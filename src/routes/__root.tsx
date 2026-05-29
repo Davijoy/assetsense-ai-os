@@ -72,14 +72,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "Assetsense — Where Real Estate Meets Intelligence" },
+      { name: "description", content: "India's intelligent real estate operating system. Manage properties, leads, marketing, sales and BI from one AI-powered platform." },
+      { name: "author", content: "Assetsense" },
+      { property: "og:title", content: "Assetsense — Where Real Estate Meets Intelligence" },
+      { property: "og:description", content: "India's intelligent real estate operating system." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:site", content: "@Assetsense" },
     ],
     links: [
       {
