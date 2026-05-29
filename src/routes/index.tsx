@@ -1,29 +1,44 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { Nav } from "@/components/landing/Nav";
+import { Hero } from "@/components/landing/Hero";
+import { Solutions } from "@/components/landing/Solutions";
+import { Marketplace } from "@/components/landing/Marketplace";
+import { AIVoice } from "@/components/landing/AIVoice";
+import { Intelligence } from "@/components/landing/Intelligence";
+import { Pricing } from "@/components/landing/Pricing";
+import { Testimonials } from "@/components/landing/Testimonials";
+import { FAQ } from "@/components/landing/FAQ";
+import { CTA } from "@/components/landing/CTA";
+import { Footer } from "@/components/landing/Footer";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Your App" },
-      { name: "description", content: "Replace this with a one-sentence description of your app." },
-      { property: "og:title", content: "Your App" },
-      { property: "og:description", content: "Replace this with a one-sentence description of your app." },
+      { title: "Assetsense — Where Real Estate Meets Intelligence" },
+      { name: "description", content: "India's intelligent real estate operating system. Properties, CRM, AI voice agents, marketing and BI on one premium platform." },
+      { property: "og:title", content: "Assetsense — Where Real Estate Meets Intelligence" },
+      { property: "og:description", content: "India's intelligent real estate operating system." },
     ],
   }),
   component: Index,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
 function Index() {
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
+    <div className="min-h-screen bg-background text-foreground">
+      <Nav />
+      <main>
+        <Hero />
+        <Solutions />
+        <Marketplace />
+        <AIVoice />
+        <Intelligence />
+        <Pricing />
+        <Testimonials />
+        <FAQ />
+        <CTA />
+      </main>
+      <Footer />
     </div>
   );
 }
