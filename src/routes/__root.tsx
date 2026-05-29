@@ -76,10 +76,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "description", content: "India's intelligent real estate operating system. Manage properties, leads, marketing, sales and BI from one AI-powered platform." },
       { name: "author", content: "Assetsense" },
       { property: "og:title", content: "Assetsense — Where Real Estate Meets Intelligence" },
-      { property: "og:description", content: "India's intelligent real estate operating system." },
+      { property: "og:description", content: "India's intelligent real estate operating system. Manage properties, leads, marketing, sales and BI from one AI-powered platform." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Assetsense" },
+      { name: "twitter:title", content: "Assetsense — Where Real Estate Meets Intelligence" },
+      { name: "twitter:description", content: "India's intelligent real estate operating system. Manage properties, leads, marketing, sales and BI from one AI-powered platform." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/35a198df-c5af-4089-9345-0ac663e89d10/id-preview-e81ea521--1bb5f836-2e76-4971-b837-c85db8907d3f.lovable.app-1780036920109.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/35a198df-c5af-4089-9345-0ac663e89d10/id-preview-e81ea521--1bb5f836-2e76-4971-b837-c85db8907d3f.lovable.app-1780036920109.png" },
     ],
     links: [
       {
