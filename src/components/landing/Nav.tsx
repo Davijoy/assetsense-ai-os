@@ -25,7 +25,9 @@ export function Nav() {
           ))}
         </nav>
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" className="hidden sm:inline-flex">Sign in</Button>
+          <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
+            <Link to="/app">Open Console</Link>
+          </Button>
           <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow">
             Book Demo
           </Button>
