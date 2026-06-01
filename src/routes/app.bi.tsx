@@ -1,4 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
+import { getBISnapshot } from "@/lib/bi.functions";
 import {
   TrendingUp,
   TrendingDown,
@@ -30,63 +32,23 @@ import {
   YAxis,
 } from "recharts";
 
-export const Route = createFileRoute("/app/bi")({
-  head: () => ({ meta: [{ title: "Intelligence — Assetsense" }] }),
-  component: BI,
+const biQueryOptions = queryOptions({
+  queryKey: ["bi-snapshot"],
+  queryFn: () => getBISnapshot(),
+  refetchInterval: 30_000,
+  staleTime: 15_000,
 });
 
-const kpis = [
-  { label: "Revenue (QTD)", value: "₹148 Cr", delta: "+23.4%", up: true, icon: IndianRupee },
-  { label: "Units Sold", value: "1,284", delta: "+18%", up: true, icon: Building2 },
-  { label: "Sales Velocity", value: "12 days", delta: "-3 days", up: true, icon: Activity },
-  { label: "Cost / Lead", value: "₹2,140", delta: "-12%", up: true, icon: Target },
-];
-
-const revenue = [
-  { m: "Jan", actual: 28, forecast: 26 },
-  { m: "Feb", actual: 34, forecast: 30 },
-  { m: "Mar", actual: 41, forecast: 38 },
-  { m: "Apr", actual: 39, forecast: 42 },
-  { m: "May", actual: 52, forecast: 48 },
-  { m: "Jun", actual: 61, forecast: 55 },
-  { m: "Jul", actual: 58, forecast: 62 },
-  { m: "Aug", actual: 72, forecast: 68 },
-  { m: "Sep", actual: 81, forecast: 75 },
-];
-
-const funnel = [
-  { stage: "Visitors", value: 142000 },
-  { stage: "Leads", value: 18400 },
-  { stage: "Qualified", value: 7820 },
-  { stage: "Site Visit", value: 3140 },
-  { stage: "Negotiation", value: 1280 },
-  { stage: "Booked", value: 612 },
-];
-
-const channel = [
-  { name: "Organic", value: 38 },
-  { name: "Meta Ads", value: 24 },
-  { name: "Google", value: 18 },
-  { name: "Partners", value: 14 },
-  { name: "Referral", value: 6 },
-];
-
-const cohort = [
-  { week: "W1", new: 320, return: 0 },
-  { week: "W2", new: 280, return: 110 },
-  { week: "W3", new: 240, return: 180 },
-  { week: "W4", new: 210, return: 220 },
-  { week: "W5", new: 190, return: 260 },
-  { week: "W6", new: 170, return: 280 },
-];
-
-const regions = [
-  { name: "Bengaluru", deals: 412, rev: "₹52 Cr", growth: 28 },
-  { name: "Mumbai", deals: 287, rev: "₹38 Cr", growth: 19 },
-  { name: "Pune", deals: 198, rev: "₹24 Cr", growth: 22 },
-  { name: "Hyderabad", deals: 174, rev: "₹19 Cr", growth: 31 },
-  { name: "NCR", deals: 142, rev: "₹15 Cr", growth: 8 },
-];
+export const Route = createFileRoute("/app/bi")({
+  head: () => ({ meta: [{ title: "Intelligence — Assetsense" }] }),
+  loader: ({ context }) => context.queryClient.ensureQueryData(biQueryOptions),
+  errorComponent: ({ error }) => (
+    <div className="rounded-2xl border border-destructive/40 bg-destructive/10 p-6 text-sm">
+      Couldn't load Intelligence data: {error.message}
+    </div>
+  ),
+  component: BI,
+});
 
 const insights = [
   { title: "Whitefield demand surging", body: "3 BHK enquiries up 42% WoW. Recommend ad spend reallocation of ₹4.8 L from NCR.", impact: "+₹2.1 Cr" },
@@ -96,17 +58,63 @@ const insights = [
 
 const PIE_COLORS = ["oklch(0.78 0.18 158)", "oklch(0.85 0.2 168)", "oklch(0.6 0.18 200)", "oklch(0.7 0.15 140)", "oklch(0.5 0.12 220)"];
 
+function formatCr(n: number) {
+  return `₹${(n / 10_000_000).toFixed(1)} Cr`;
+}
+function formatINR(n: number) {
+  return `₹${n.toLocaleString("en-IN")}`;
+}
+
 function BI() {
-  const maxFunnel = funnel[0].value;
+  const { data } = useSuspenseQuery(biQueryOptions);
+  const { kpis, revenueSeries, funnel, channel, cohort, regions } = data;
+  const maxFunnel = funnel[0]?.value || 1;
+  const kpiCards = [
+    {
+      label: "Revenue (booked)",
+      value: formatCr(kpis.revenue_inr),
+      delta: `${kpis.revenue_delta_pct >= 0 ? "+" : ""}${kpis.revenue_delta_pct}%`,
+      up: kpis.revenue_delta_pct >= 0,
+      icon: IndianRupee,
+    },
+    {
+      label: "Units Sold",
+      value: kpis.units_sold.toLocaleString("en-IN"),
+      delta: `${kpis.units_delta_pct >= 0 ? "+" : ""}${kpis.units_delta_pct}%`,
+      up: kpis.units_delta_pct >= 0,
+      icon: Building2,
+    },
+    {
+      label: "Sales Velocity",
+      value: `${kpis.sales_velocity_days} days`,
+      delta: "rolling avg",
+      up: true,
+      icon: Activity,
+    },
+    {
+      label: "Cost / Lead",
+      value: formatINR(kpis.cost_per_lead_inr),
+      delta: "blended",
+      up: true,
+      icon: Target,
+    },
+  ];
+
   return (
     <div className="space-y-8">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="text-xs uppercase tracking-[0.2em] text-primary">Business Intelligence</p>
           <h1 className="mt-2 font-display text-5xl">Signal, not noise.</h1>
-          <p className="mt-2 text-muted-foreground">Forecasts, funnels and AI recommendations — refreshed in real time.</p>
+          <p className="mt-2 text-muted-foreground">
+            Live aggregation across CRM, marketplace and voice — refreshed every 30s.
+          </p>
         </div>
         <div className="flex items-center gap-2">
+          <span className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3 py-1.5 text-[11px] text-primary">
+            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" />
+            Live · {new Date(data.generated_at).toLocaleTimeString()}
+          </span>
           <button className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-2 text-xs">
             <Filter className="h-3.5 w-3.5" /> Last 90 days
           </button>
@@ -120,7 +128,7 @@ function BI() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {kpis.map(({ label, value, delta, up, icon: Icon }) => (
+        {kpiCards.map(({ label, value, delta, up, icon: Icon }) => (
           <div key={label} className="rounded-2xl border border-border bg-surface/40 p-5">
             <div className="flex items-center justify-between">
               <Icon className="h-4 w-4 text-primary" />
@@ -141,11 +149,13 @@ function BI() {
               <h3 className="font-display text-2xl">Revenue vs forecast</h3>
               <p className="text-xs text-muted-foreground">AI projection 92% confidence · monthly ₹ Cr</p>
             </div>
-            <span className="text-[11px] text-primary">↑ 23% QoQ</span>
+            <span className="text-[11px] text-primary">
+              {kpis.revenue_delta_pct >= 0 ? "↑" : "↓"} {Math.abs(kpis.revenue_delta_pct)}% MoM
+            </span>
           </div>
           <div className="mt-4 h-72">
             <ResponsiveContainer>
-              <AreaChart data={revenue}>
+              <AreaChart data={revenueSeries}>
                 <defs>
                   <linearGradient id="actualGrad" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor="oklch(0.78 0.18 158)" stopOpacity={0.5} />
@@ -188,7 +198,7 @@ function BI() {
             {channel.map((c, i) => (
               <div key={c.name} className="flex items-center justify-between text-xs">
                 <span className="flex items-center gap-2">
-                  <span className="h-2 w-2 rounded-full" style={{ background: PIE_COLORS[i] }} />
+                  <span className="h-2 w-2 rounded-full" style={{ background: PIE_COLORS[i % PIE_COLORS.length] }} />
                   {c.name}
                 </span>
                 <span className="tabular-nums text-muted-foreground">{c.value}%</span>
@@ -207,7 +217,8 @@ function BI() {
           <div className="mt-6 space-y-2.5">
             {funnel.map((f, i) => {
               const pct = (f.value / maxFunnel) * 100;
-              const dropoff = i > 0 ? Math.round((1 - f.value / funnel[i - 1].value) * 100) : 0;
+              const prev = funnel[i - 1]?.value ?? 0;
+              const dropoff = i > 0 && prev > 0 ? Math.round((1 - f.value / prev) * 100) : 0;
               return (
                 <div key={f.stage} className="group">
                   <div className="flex items-center justify-between text-xs">
@@ -277,10 +288,12 @@ function BI() {
                 <tr key={r.name} className="hover:bg-surface/40">
                   <td className="px-5 py-3 font-medium">{r.name}</td>
                   <td className="px-5 py-3 tabular-nums">{r.deals}</td>
-                  <td className="px-5 py-3 tabular-nums">{r.rev}</td>
+                  <td className="px-5 py-3 tabular-nums">{formatCr(r.rev)}</td>
                   <td className="px-5 py-3">
-                    <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[11px] text-primary">
-                      <TrendingUp className="h-3 w-3" /> {r.growth}%
+                    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] ${
+                      r.growth >= 0 ? "bg-primary/10 text-primary" : "bg-destructive/15 text-destructive"
+                    }`}>
+                      {r.growth >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />} {Math.abs(r.growth)}%
                     </span>
                   </td>
                   <td className="px-5 py-3 text-right">
