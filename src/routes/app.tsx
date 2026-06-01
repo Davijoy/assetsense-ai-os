@@ -27,9 +27,9 @@ const nav = [
   { to: "/app/crm", label: "CRM", icon: LayoutDashboard },
   { to: "/app/leads", label: "Leads", icon: Users },
   { to: "/app/marketplace", label: "Marketplace", icon: Building2 },
-  { to: "/app/voice", label: "AI Voice", icon: PhoneCall, soon: true },
+  { to: "/app/voice", label: "AI Voice", icon: PhoneCall },
   { to: "/app/marketing", label: "Marketing", icon: Megaphone, soon: true },
-  { to: "/app/bi", label: "Intelligence", icon: BarChart3, soon: true },
+  { to: "/app/bi", label: "Intelligence", icon: BarChart3 },
   { to: "/app/partners", label: "Partners", icon: Handshake, soon: true },
 ];
 

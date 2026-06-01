@@ -12,9 +12,11 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
+import { Route as AppVoiceRouteImport } from './routes/app.voice'
 import { Route as AppMarketplaceRouteImport } from './routes/app.marketplace'
 import { Route as AppLeadsRouteImport } from './routes/app.leads'
 import { Route as AppCrmRouteImport } from './routes/app.crm'
+import { Route as AppBiRouteImport } from './routes/app.bi'
 
 const AppRoute = AppRouteImport.update({
   id: '/app',
@@ -29,6 +31,11 @@ const IndexRoute = IndexRouteImport.update({
 const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppVoiceRoute = AppVoiceRouteImport.update({
+  id: '/voice',
+  path: '/voice',
   getParentRoute: () => AppRoute,
 } as any)
 const AppMarketplaceRoute = AppMarketplaceRouteImport.update({
@@ -46,29 +53,40 @@ const AppCrmRoute = AppCrmRouteImport.update({
   path: '/crm',
   getParentRoute: () => AppRoute,
 } as any)
+const AppBiRoute = AppBiRouteImport.update({
+  id: '/bi',
+  path: '/bi',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
+  '/app/bi': typeof AppBiRoute
   '/app/crm': typeof AppCrmRoute
   '/app/leads': typeof AppLeadsRoute
   '/app/marketplace': typeof AppMarketplaceRoute
+  '/app/voice': typeof AppVoiceRoute
   '/app/': typeof AppIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/app/bi': typeof AppBiRoute
   '/app/crm': typeof AppCrmRoute
   '/app/leads': typeof AppLeadsRoute
   '/app/marketplace': typeof AppMarketplaceRoute
+  '/app/voice': typeof AppVoiceRoute
   '/app': typeof AppIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
+  '/app/bi': typeof AppBiRoute
   '/app/crm': typeof AppCrmRoute
   '/app/leads': typeof AppLeadsRoute
   '/app/marketplace': typeof AppMarketplaceRoute
+  '/app/voice': typeof AppVoiceRoute
   '/app/': typeof AppIndexRoute
 }
 export interface FileRouteTypes {
@@ -76,19 +94,30 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/app'
+    | '/app/bi'
     | '/app/crm'
     | '/app/leads'
     | '/app/marketplace'
+    | '/app/voice'
     | '/app/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/app/crm' | '/app/leads' | '/app/marketplace' | '/app'
+  to:
+    | '/'
+    | '/app/bi'
+    | '/app/crm'
+    | '/app/leads'
+    | '/app/marketplace'
+    | '/app/voice'
+    | '/app'
   id:
     | '__root__'
     | '/'
     | '/app'
+    | '/app/bi'
     | '/app/crm'
     | '/app/leads'
     | '/app/marketplace'
+    | '/app/voice'
     | '/app/'
   fileRoutesById: FileRoutesById
 }
@@ -120,6 +149,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/voice': {
+      id: '/app/voice'
+      path: '/voice'
+      fullPath: '/app/voice'
+      preLoaderRoute: typeof AppVoiceRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/marketplace': {
       id: '/app/marketplace'
       path: '/marketplace'
@@ -141,20 +177,31 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppCrmRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/bi': {
+      id: '/app/bi'
+      path: '/bi'
+      fullPath: '/app/bi'
+      preLoaderRoute: typeof AppBiRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
 interface AppRouteChildren {
+  AppBiRoute: typeof AppBiRoute
   AppCrmRoute: typeof AppCrmRoute
   AppLeadsRoute: typeof AppLeadsRoute
   AppMarketplaceRoute: typeof AppMarketplaceRoute
+  AppVoiceRoute: typeof AppVoiceRoute
   AppIndexRoute: typeof AppIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppBiRoute: AppBiRoute,
   AppCrmRoute: AppCrmRoute,
   AppLeadsRoute: AppLeadsRoute,
   AppMarketplaceRoute: AppMarketplaceRoute,
+  AppVoiceRoute: AppVoiceRoute,
   AppIndexRoute: AppIndexRoute,
 }
 
