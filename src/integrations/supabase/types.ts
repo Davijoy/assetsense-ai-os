@@ -14,7 +14,134 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      calls: {
+        Row: {
+          agent: string
+          created_at: string
+          duration_sec: number
+          id: string
+          intent_label: string
+          intent_score: number
+          language: string
+          lead_id: string | null
+          qualified: boolean
+          sentiment: string
+        }
+        Insert: {
+          agent: string
+          created_at?: string
+          duration_sec?: number
+          id?: string
+          intent_label: string
+          intent_score?: number
+          language: string
+          lead_id?: string | null
+          qualified?: boolean
+          sentiment?: string
+        }
+        Update: {
+          agent?: string
+          created_at?: string
+          duration_sec?: number
+          id?: string
+          intent_label?: string
+          intent_score?: number
+          language?: string
+          lead_id?: string | null
+          qualified?: boolean
+          sentiment?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calls_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leads: {
+        Row: {
+          budget_inr: number | null
+          city: string | null
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          owner: string | null
+          phone: string | null
+          project: string | null
+          score: number
+          source: string
+          stage: string
+        }
+        Insert: {
+          budget_inr?: number | null
+          city?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          owner?: string | null
+          phone?: string | null
+          project?: string | null
+          score?: number
+          source: string
+          stage?: string
+        }
+        Update: {
+          budget_inr?: number | null
+          city?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          owner?: string | null
+          phone?: string | null
+          project?: string | null
+          score?: number
+          source?: string
+          stage?: string
+        }
+        Relationships: []
+      }
+      properties: {
+        Row: {
+          ai_score: number
+          city: string
+          created_at: string
+          developer: string | null
+          id: string
+          name: string
+          price_inr: number
+          property_type: string
+          status: string
+        }
+        Insert: {
+          ai_score?: number
+          city: string
+          created_at?: string
+          developer?: string | null
+          id?: string
+          name: string
+          price_inr: number
+          property_type: string
+          status?: string
+        }
+        Update: {
+          ai_score?: number
+          city?: string
+          created_at?: string
+          developer?: string | null
+          id?: string
+          name?: string
+          price_inr?: number
+          property_type?: string
+          status?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
