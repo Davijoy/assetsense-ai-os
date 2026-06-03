@@ -16,6 +16,7 @@ import { Route as AppVoiceRouteImport } from './routes/app.voice'
 import { Route as AppMarketplaceRouteImport } from './routes/app.marketplace'
 import { Route as AppLeadsRouteImport } from './routes/app.leads'
 import { Route as AppKieRouteImport } from './routes/app.kie'
+import { Route as AppDocumentsRouteImport } from './routes/app.documents'
 import { Route as AppCrmRouteImport } from './routes/app.crm'
 import { Route as AppCopilotRouteImport } from './routes/app.copilot'
 import { Route as AppBiRouteImport } from './routes/app.bi'
@@ -55,6 +56,11 @@ const AppKieRoute = AppKieRouteImport.update({
   path: '/kie',
   getParentRoute: () => AppRoute,
 } as any)
+const AppDocumentsRoute = AppDocumentsRouteImport.update({
+  id: '/documents',
+  path: '/documents',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppCrmRoute = AppCrmRouteImport.update({
   id: '/crm',
   path: '/crm',
@@ -77,6 +83,7 @@ export interface FileRoutesByFullPath {
   '/app/bi': typeof AppBiRoute
   '/app/copilot': typeof AppCopilotRoute
   '/app/crm': typeof AppCrmRoute
+  '/app/documents': typeof AppDocumentsRoute
   '/app/kie': typeof AppKieRoute
   '/app/leads': typeof AppLeadsRoute
   '/app/marketplace': typeof AppMarketplaceRoute
@@ -88,6 +95,7 @@ export interface FileRoutesByTo {
   '/app/bi': typeof AppBiRoute
   '/app/copilot': typeof AppCopilotRoute
   '/app/crm': typeof AppCrmRoute
+  '/app/documents': typeof AppDocumentsRoute
   '/app/kie': typeof AppKieRoute
   '/app/leads': typeof AppLeadsRoute
   '/app/marketplace': typeof AppMarketplaceRoute
@@ -101,6 +109,7 @@ export interface FileRoutesById {
   '/app/bi': typeof AppBiRoute
   '/app/copilot': typeof AppCopilotRoute
   '/app/crm': typeof AppCrmRoute
+  '/app/documents': typeof AppDocumentsRoute
   '/app/kie': typeof AppKieRoute
   '/app/leads': typeof AppLeadsRoute
   '/app/marketplace': typeof AppMarketplaceRoute
@@ -115,6 +124,7 @@ export interface FileRouteTypes {
     | '/app/bi'
     | '/app/copilot'
     | '/app/crm'
+    | '/app/documents'
     | '/app/kie'
     | '/app/leads'
     | '/app/marketplace'
@@ -126,6 +136,7 @@ export interface FileRouteTypes {
     | '/app/bi'
     | '/app/copilot'
     | '/app/crm'
+    | '/app/documents'
     | '/app/kie'
     | '/app/leads'
     | '/app/marketplace'
@@ -138,6 +149,7 @@ export interface FileRouteTypes {
     | '/app/bi'
     | '/app/copilot'
     | '/app/crm'
+    | '/app/documents'
     | '/app/kie'
     | '/app/leads'
     | '/app/marketplace'
@@ -201,6 +213,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppKieRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/documents': {
+      id: '/app/documents'
+      path: '/documents'
+      fullPath: '/app/documents'
+      preLoaderRoute: typeof AppDocumentsRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/crm': {
       id: '/app/crm'
       path: '/crm'
@@ -229,6 +248,7 @@ interface AppRouteChildren {
   AppBiRoute: typeof AppBiRoute
   AppCopilotRoute: typeof AppCopilotRoute
   AppCrmRoute: typeof AppCrmRoute
+  AppDocumentsRoute: typeof AppDocumentsRoute
   AppKieRoute: typeof AppKieRoute
   AppLeadsRoute: typeof AppLeadsRoute
   AppMarketplaceRoute: typeof AppMarketplaceRoute
@@ -240,6 +260,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppBiRoute: AppBiRoute,
   AppCopilotRoute: AppCopilotRoute,
   AppCrmRoute: AppCrmRoute,
+  AppDocumentsRoute: AppDocumentsRoute,
   AppKieRoute: AppKieRoute,
   AppLeadsRoute: AppLeadsRoute,
   AppMarketplaceRoute: AppMarketplaceRoute,
