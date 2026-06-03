@@ -11,6 +11,10 @@ import {
   Search,
   Bell,
   Plus,
+  Sparkles,
+  FileText,
+  Lightbulb,
+  Command,
 } from "lucide-react";
 
 export const Route = createFileRoute("/app")({
@@ -31,6 +35,13 @@ const nav = [
   { to: "/app/marketing", label: "Marketing", icon: Megaphone, soon: true },
   { to: "/app/bi", label: "Intelligence", icon: BarChart3 },
   { to: "/app/partners", label: "Partners", icon: Handshake, soon: true },
+];
+
+const kieNav = [
+  { to: "/app/kie", label: "Command Center", icon: Command },
+  { to: "/app/copilot", label: "AI Copilot", icon: Sparkles },
+  { to: "/app/documents", label: "Documents", icon: FileText },
+  { to: "/app/recommendations", label: "Recommendations", icon: Lightbulb },
 ];
 
 function AppShell() {
@@ -66,6 +77,32 @@ function AppShell() {
                     soon
                   </span>
                 )}
+              </Link>
+            );
+          })}
+          <p className="mt-6 px-3 pb-2 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+            Knowledge Engine
+          </p>
+          {kieNav.map((n) => {
+            const active = path === n.to || path.startsWith(n.to + "/");
+            const Icon = n.icon;
+            return (
+              <Link
+                key={n.to}
+                to={n.to}
+                className={`group flex items-center justify-between rounded-md px-3 py-2 text-sm transition-colors ${
+                  active
+                    ? "bg-primary/10 text-foreground"
+                    : "text-muted-foreground hover:bg-sidebar-accent hover:text-foreground"
+                }`}
+              >
+                <span className="flex items-center gap-3">
+                  <Icon className={`h-4 w-4 ${active ? "text-primary" : ""}`} />
+                  {n.label}
+                </span>
+                <span className="rounded-full border border-primary/30 bg-primary/5 px-1.5 py-0.5 text-[9px] uppercase tracking-wider text-primary">
+                  KIE
+                </span>
               </Link>
             );
           })}

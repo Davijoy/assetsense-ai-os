@@ -13,9 +13,13 @@ import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as AppVoiceRouteImport } from './routes/app.voice'
+import { Route as AppRecommendationsRouteImport } from './routes/app.recommendations'
 import { Route as AppMarketplaceRouteImport } from './routes/app.marketplace'
 import { Route as AppLeadsRouteImport } from './routes/app.leads'
+import { Route as AppKieRouteImport } from './routes/app.kie'
+import { Route as AppDocumentsRouteImport } from './routes/app.documents'
 import { Route as AppCrmRouteImport } from './routes/app.crm'
+import { Route as AppCopilotRouteImport } from './routes/app.copilot'
 import { Route as AppBiRouteImport } from './routes/app.bi'
 
 const AppRoute = AppRouteImport.update({
@@ -38,6 +42,11 @@ const AppVoiceRoute = AppVoiceRouteImport.update({
   path: '/voice',
   getParentRoute: () => AppRoute,
 } as any)
+const AppRecommendationsRoute = AppRecommendationsRouteImport.update({
+  id: '/recommendations',
+  path: '/recommendations',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppMarketplaceRoute = AppMarketplaceRouteImport.update({
   id: '/marketplace',
   path: '/marketplace',
@@ -48,9 +57,24 @@ const AppLeadsRoute = AppLeadsRouteImport.update({
   path: '/leads',
   getParentRoute: () => AppRoute,
 } as any)
+const AppKieRoute = AppKieRouteImport.update({
+  id: '/kie',
+  path: '/kie',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppDocumentsRoute = AppDocumentsRouteImport.update({
+  id: '/documents',
+  path: '/documents',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppCrmRoute = AppCrmRouteImport.update({
   id: '/crm',
   path: '/crm',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppCopilotRoute = AppCopilotRouteImport.update({
+  id: '/copilot',
+  path: '/copilot',
   getParentRoute: () => AppRoute,
 } as any)
 const AppBiRoute = AppBiRouteImport.update({
@@ -63,18 +87,26 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/app/bi': typeof AppBiRoute
+  '/app/copilot': typeof AppCopilotRoute
   '/app/crm': typeof AppCrmRoute
+  '/app/documents': typeof AppDocumentsRoute
+  '/app/kie': typeof AppKieRoute
   '/app/leads': typeof AppLeadsRoute
   '/app/marketplace': typeof AppMarketplaceRoute
+  '/app/recommendations': typeof AppRecommendationsRoute
   '/app/voice': typeof AppVoiceRoute
   '/app/': typeof AppIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/app/bi': typeof AppBiRoute
+  '/app/copilot': typeof AppCopilotRoute
   '/app/crm': typeof AppCrmRoute
+  '/app/documents': typeof AppDocumentsRoute
+  '/app/kie': typeof AppKieRoute
   '/app/leads': typeof AppLeadsRoute
   '/app/marketplace': typeof AppMarketplaceRoute
+  '/app/recommendations': typeof AppRecommendationsRoute
   '/app/voice': typeof AppVoiceRoute
   '/app': typeof AppIndexRoute
 }
@@ -83,9 +115,13 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/app/bi': typeof AppBiRoute
+  '/app/copilot': typeof AppCopilotRoute
   '/app/crm': typeof AppCrmRoute
+  '/app/documents': typeof AppDocumentsRoute
+  '/app/kie': typeof AppKieRoute
   '/app/leads': typeof AppLeadsRoute
   '/app/marketplace': typeof AppMarketplaceRoute
+  '/app/recommendations': typeof AppRecommendationsRoute
   '/app/voice': typeof AppVoiceRoute
   '/app/': typeof AppIndexRoute
 }
@@ -95,18 +131,26 @@ export interface FileRouteTypes {
     | '/'
     | '/app'
     | '/app/bi'
+    | '/app/copilot'
     | '/app/crm'
+    | '/app/documents'
+    | '/app/kie'
     | '/app/leads'
     | '/app/marketplace'
+    | '/app/recommendations'
     | '/app/voice'
     | '/app/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/app/bi'
+    | '/app/copilot'
     | '/app/crm'
+    | '/app/documents'
+    | '/app/kie'
     | '/app/leads'
     | '/app/marketplace'
+    | '/app/recommendations'
     | '/app/voice'
     | '/app'
   id:
@@ -114,9 +158,13 @@ export interface FileRouteTypes {
     | '/'
     | '/app'
     | '/app/bi'
+    | '/app/copilot'
     | '/app/crm'
+    | '/app/documents'
+    | '/app/kie'
     | '/app/leads'
     | '/app/marketplace'
+    | '/app/recommendations'
     | '/app/voice'
     | '/app/'
   fileRoutesById: FileRoutesById
@@ -156,6 +204,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppVoiceRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/recommendations': {
+      id: '/app/recommendations'
+      path: '/recommendations'
+      fullPath: '/app/recommendations'
+      preLoaderRoute: typeof AppRecommendationsRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/marketplace': {
       id: '/app/marketplace'
       path: '/marketplace'
@@ -170,11 +225,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppLeadsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/kie': {
+      id: '/app/kie'
+      path: '/kie'
+      fullPath: '/app/kie'
+      preLoaderRoute: typeof AppKieRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/documents': {
+      id: '/app/documents'
+      path: '/documents'
+      fullPath: '/app/documents'
+      preLoaderRoute: typeof AppDocumentsRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/crm': {
       id: '/app/crm'
       path: '/crm'
       fullPath: '/app/crm'
       preLoaderRoute: typeof AppCrmRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/copilot': {
+      id: '/app/copilot'
+      path: '/copilot'
+      fullPath: '/app/copilot'
+      preLoaderRoute: typeof AppCopilotRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/bi': {
@@ -189,18 +265,26 @@ declare module '@tanstack/react-router' {
 
 interface AppRouteChildren {
   AppBiRoute: typeof AppBiRoute
+  AppCopilotRoute: typeof AppCopilotRoute
   AppCrmRoute: typeof AppCrmRoute
+  AppDocumentsRoute: typeof AppDocumentsRoute
+  AppKieRoute: typeof AppKieRoute
   AppLeadsRoute: typeof AppLeadsRoute
   AppMarketplaceRoute: typeof AppMarketplaceRoute
+  AppRecommendationsRoute: typeof AppRecommendationsRoute
   AppVoiceRoute: typeof AppVoiceRoute
   AppIndexRoute: typeof AppIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppBiRoute: AppBiRoute,
+  AppCopilotRoute: AppCopilotRoute,
   AppCrmRoute: AppCrmRoute,
+  AppDocumentsRoute: AppDocumentsRoute,
+  AppKieRoute: AppKieRoute,
   AppLeadsRoute: AppLeadsRoute,
   AppMarketplaceRoute: AppMarketplaceRoute,
+  AppRecommendationsRoute: AppRecommendationsRoute,
   AppVoiceRoute: AppVoiceRoute,
   AppIndexRoute: AppIndexRoute,
 }
