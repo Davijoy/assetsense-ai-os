@@ -15,6 +15,7 @@ import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as AppVoiceRouteImport } from './routes/app.voice'
 import { Route as AppMarketplaceRouteImport } from './routes/app.marketplace'
 import { Route as AppLeadsRouteImport } from './routes/app.leads'
+import { Route as AppKieRouteImport } from './routes/app.kie'
 import { Route as AppCrmRouteImport } from './routes/app.crm'
 import { Route as AppBiRouteImport } from './routes/app.bi'
 
@@ -48,6 +49,11 @@ const AppLeadsRoute = AppLeadsRouteImport.update({
   path: '/leads',
   getParentRoute: () => AppRoute,
 } as any)
+const AppKieRoute = AppKieRouteImport.update({
+  id: '/kie',
+  path: '/kie',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppCrmRoute = AppCrmRouteImport.update({
   id: '/crm',
   path: '/crm',
@@ -64,6 +70,7 @@ export interface FileRoutesByFullPath {
   '/app': typeof AppRouteWithChildren
   '/app/bi': typeof AppBiRoute
   '/app/crm': typeof AppCrmRoute
+  '/app/kie': typeof AppKieRoute
   '/app/leads': typeof AppLeadsRoute
   '/app/marketplace': typeof AppMarketplaceRoute
   '/app/voice': typeof AppVoiceRoute
@@ -73,6 +80,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/app/bi': typeof AppBiRoute
   '/app/crm': typeof AppCrmRoute
+  '/app/kie': typeof AppKieRoute
   '/app/leads': typeof AppLeadsRoute
   '/app/marketplace': typeof AppMarketplaceRoute
   '/app/voice': typeof AppVoiceRoute
@@ -84,6 +92,7 @@ export interface FileRoutesById {
   '/app': typeof AppRouteWithChildren
   '/app/bi': typeof AppBiRoute
   '/app/crm': typeof AppCrmRoute
+  '/app/kie': typeof AppKieRoute
   '/app/leads': typeof AppLeadsRoute
   '/app/marketplace': typeof AppMarketplaceRoute
   '/app/voice': typeof AppVoiceRoute
@@ -96,6 +105,7 @@ export interface FileRouteTypes {
     | '/app'
     | '/app/bi'
     | '/app/crm'
+    | '/app/kie'
     | '/app/leads'
     | '/app/marketplace'
     | '/app/voice'
@@ -105,6 +115,7 @@ export interface FileRouteTypes {
     | '/'
     | '/app/bi'
     | '/app/crm'
+    | '/app/kie'
     | '/app/leads'
     | '/app/marketplace'
     | '/app/voice'
@@ -115,6 +126,7 @@ export interface FileRouteTypes {
     | '/app'
     | '/app/bi'
     | '/app/crm'
+    | '/app/kie'
     | '/app/leads'
     | '/app/marketplace'
     | '/app/voice'
@@ -170,6 +182,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppLeadsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/kie': {
+      id: '/app/kie'
+      path: '/kie'
+      fullPath: '/app/kie'
+      preLoaderRoute: typeof AppKieRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/crm': {
       id: '/app/crm'
       path: '/crm'
@@ -190,6 +209,7 @@ declare module '@tanstack/react-router' {
 interface AppRouteChildren {
   AppBiRoute: typeof AppBiRoute
   AppCrmRoute: typeof AppCrmRoute
+  AppKieRoute: typeof AppKieRoute
   AppLeadsRoute: typeof AppLeadsRoute
   AppMarketplaceRoute: typeof AppMarketplaceRoute
   AppVoiceRoute: typeof AppVoiceRoute
@@ -199,6 +219,7 @@ interface AppRouteChildren {
 const AppRouteChildren: AppRouteChildren = {
   AppBiRoute: AppBiRoute,
   AppCrmRoute: AppCrmRoute,
+  AppKieRoute: AppKieRoute,
   AppLeadsRoute: AppLeadsRoute,
   AppMarketplaceRoute: AppMarketplaceRoute,
   AppVoiceRoute: AppVoiceRoute,
@@ -214,3 +235,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
