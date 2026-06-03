@@ -1,6 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 const messageSchema = z.object({
   messages: z
@@ -17,6 +16,7 @@ const messageSchema = z.object({
 export type CopilotMessage = z.infer<typeof messageSchema>["messages"][number];
 
 async function buildContext(): Promise<string> {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const [leadsRes, propsRes, callsRes] = await Promise.all([
     supabaseAdmin.from("leads").select("stage,source,city,budget_inr,score"),
     supabaseAdmin.from("properties").select("city,status,price_inr,property_type,ai_score"),
