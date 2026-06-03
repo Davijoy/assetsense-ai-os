@@ -13,6 +13,7 @@ import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as AppVoiceRouteImport } from './routes/app.voice'
+import { Route as AppRecommendationsRouteImport } from './routes/app.recommendations'
 import { Route as AppMarketplaceRouteImport } from './routes/app.marketplace'
 import { Route as AppLeadsRouteImport } from './routes/app.leads'
 import { Route as AppKieRouteImport } from './routes/app.kie'
@@ -39,6 +40,11 @@ const AppIndexRoute = AppIndexRouteImport.update({
 const AppVoiceRoute = AppVoiceRouteImport.update({
   id: '/voice',
   path: '/voice',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppRecommendationsRoute = AppRecommendationsRouteImport.update({
+  id: '/recommendations',
+  path: '/recommendations',
   getParentRoute: () => AppRoute,
 } as any)
 const AppMarketplaceRoute = AppMarketplaceRouteImport.update({
@@ -87,6 +93,7 @@ export interface FileRoutesByFullPath {
   '/app/kie': typeof AppKieRoute
   '/app/leads': typeof AppLeadsRoute
   '/app/marketplace': typeof AppMarketplaceRoute
+  '/app/recommendations': typeof AppRecommendationsRoute
   '/app/voice': typeof AppVoiceRoute
   '/app/': typeof AppIndexRoute
 }
@@ -99,6 +106,7 @@ export interface FileRoutesByTo {
   '/app/kie': typeof AppKieRoute
   '/app/leads': typeof AppLeadsRoute
   '/app/marketplace': typeof AppMarketplaceRoute
+  '/app/recommendations': typeof AppRecommendationsRoute
   '/app/voice': typeof AppVoiceRoute
   '/app': typeof AppIndexRoute
 }
@@ -113,6 +121,7 @@ export interface FileRoutesById {
   '/app/kie': typeof AppKieRoute
   '/app/leads': typeof AppLeadsRoute
   '/app/marketplace': typeof AppMarketplaceRoute
+  '/app/recommendations': typeof AppRecommendationsRoute
   '/app/voice': typeof AppVoiceRoute
   '/app/': typeof AppIndexRoute
 }
@@ -128,6 +137,7 @@ export interface FileRouteTypes {
     | '/app/kie'
     | '/app/leads'
     | '/app/marketplace'
+    | '/app/recommendations'
     | '/app/voice'
     | '/app/'
   fileRoutesByTo: FileRoutesByTo
@@ -140,6 +150,7 @@ export interface FileRouteTypes {
     | '/app/kie'
     | '/app/leads'
     | '/app/marketplace'
+    | '/app/recommendations'
     | '/app/voice'
     | '/app'
   id:
@@ -153,6 +164,7 @@ export interface FileRouteTypes {
     | '/app/kie'
     | '/app/leads'
     | '/app/marketplace'
+    | '/app/recommendations'
     | '/app/voice'
     | '/app/'
   fileRoutesById: FileRoutesById
@@ -190,6 +202,13 @@ declare module '@tanstack/react-router' {
       path: '/voice'
       fullPath: '/app/voice'
       preLoaderRoute: typeof AppVoiceRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/recommendations': {
+      id: '/app/recommendations'
+      path: '/recommendations'
+      fullPath: '/app/recommendations'
+      preLoaderRoute: typeof AppRecommendationsRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/marketplace': {
@@ -252,6 +271,7 @@ interface AppRouteChildren {
   AppKieRoute: typeof AppKieRoute
   AppLeadsRoute: typeof AppLeadsRoute
   AppMarketplaceRoute: typeof AppMarketplaceRoute
+  AppRecommendationsRoute: typeof AppRecommendationsRoute
   AppVoiceRoute: typeof AppVoiceRoute
   AppIndexRoute: typeof AppIndexRoute
 }
@@ -264,6 +284,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppKieRoute: AppKieRoute,
   AppLeadsRoute: AppLeadsRoute,
   AppMarketplaceRoute: AppMarketplaceRoute,
+  AppRecommendationsRoute: AppRecommendationsRoute,
   AppVoiceRoute: AppVoiceRoute,
   AppIndexRoute: AppIndexRoute,
 }
