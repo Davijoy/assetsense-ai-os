@@ -170,8 +170,8 @@ function CommandCenter() {
         <div className="bg-grid absolute inset-0 opacity-30" />
         <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs text-primary">
-              <Brain className="h-3 w-3" /> Knowledge Intelligence Engine
+            <div className="inline-flex items-center gap-2 rounded-full border border-gold/40 bg-gold/5 px-3 py-1 text-xs text-gold">
+              <Brain className="h-3 w-3" /> Sentinel Knowledge Engine™ · Transform Data Into Decisions
             </div>
             <h1 className="mt-4 font-display text-5xl leading-none">
               Turn data <span className="text-gradient-emerald italic">into decisions.</span>
