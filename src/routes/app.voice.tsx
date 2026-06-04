@@ -19,7 +19,7 @@ import {
 import { useState } from "react";
 
 export const Route = createFileRoute("/app/voice")({
-  head: () => ({ meta: [{ title: "AI Voice — Assetsense" }] }),
+  head: () => ({ meta: [{ title: "AI Voice — Sentinel Fort Group" }] }),
   component: VoiceDashboard,
 });
 
@@ -46,7 +46,7 @@ const liveCalls = [
 ];
 
 const transcript = [
-  { who: "agent", text: "Hi Rohan, this is Aria from Assetsense. I see you enquired about Lodha Park — is now a good time?" },
+  { who: "agent", text: "Hi Rohan, this is Aria from Sentinel Fort Group. I see you enquired about Lodha Park — is now a good time?" },
   { who: "lead", text: "Yes, I have a couple of minutes. I'm specifically looking at 3 BHK units." },
   { who: "agent", text: "Got it. 3 BHKs at Lodha Park start at ₹4.2 Cr with a sea-view premium. Budget range you're comfortable with?" },
   { who: "lead", text: "Around 4.5 Cr, but timeline matters — I need possession within 6 months." },

@@ -68,7 +68,7 @@ export const askCopilot = createServerFn({ method: "POST" })
     if (!apiKey) throw new Error("LOVABLE_API_KEY missing");
 
     const context = await buildContext();
-    const system = `You are Assetsense Copilot — an executive AI analyst for an Indian real-estate intelligence platform.
+    const system = `You are Sentinel Copilot — an executive AI analyst for an Indian real-estate intelligence platform.
 Answer with crisp, board-room quality insight. Always ground numbers in the SNAPSHOT below.
 Format: 1) one-line headline, 2) 2–4 bullet insights with numbers, 3) a single bolded recommendation.
 Use ₹ Cr / Lakh. Be decisive, never hedge.

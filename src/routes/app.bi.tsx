@@ -40,7 +40,7 @@ const biQueryOptions = queryOptions({
 });
 
 export const Route = createFileRoute("/app/bi")({
-  head: () => ({ meta: [{ title: "Intelligence — Assetsense" }] }),
+  head: () => ({ meta: [{ title: "Intelligence — Sentinel Fort Group" }] }),
   loader: ({ context }) => context.queryClient.ensureQueryData(biQueryOptions),
   errorComponent: ({ error }) => (
     <div className="rounded-2xl border border-destructive/40 bg-destructive/10 p-6 text-sm">
@@ -111,7 +111,7 @@ function BI() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <span className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3 py-1.5 text-[11px] text-primary">
+          <span suppressHydrationWarning className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3 py-1.5 text-[11px] text-primary">
             <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" />
             Live · {new Date(data.generated_at).toLocaleTimeString()}
           </span>

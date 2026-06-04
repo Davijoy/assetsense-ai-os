@@ -1,5 +1,5 @@
 const items = [
-  { q: "Assetsense replaced our CRM, ERP and ad-ops stack. Our cost-per-booking dropped by 38% in one quarter.",
+  { q: "Sentinel Fort Group replaced our CRM, ERP and ad-ops stack. Our cost-per-booking dropped by 38% in one quarter.",
     a: "Aarav Mehta", r: "Head of Sales, Skyline Developers" },
   { q: "The AI voice agents qualify leads at 2am. We wake up to scheduled site visits.",
     a: "Priya Iyer", r: "Founder, Iyer Realty" },

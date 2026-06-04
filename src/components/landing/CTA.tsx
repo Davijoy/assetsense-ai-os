@@ -13,7 +13,7 @@ export function CTA() {
               Ready to run your real estate business <em className="text-gradient-emerald not-italic">intelligently?</em>
             </h2>
             <p className="mx-auto mt-6 max-w-xl text-lg text-muted-foreground">
-              Join leading developers and brokerages already operating on Assetsense.
+              Join leading developers and brokerages already operating on Sentinel Fort Group.
             </p>
             <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
               <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow h-12 px-7">

@@ -14,9 +14,9 @@ import { Footer } from "@/components/landing/Footer";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Assetsense — Where Real Estate Meets Intelligence" },
+      { title: "Sentinel Fort Group — Strength. Vision. Legacy." },
       { name: "description", content: "India's intelligent real estate operating system. Properties, CRM, AI voice agents, marketing and BI on one premium platform." },
-      { property: "og:title", content: "Assetsense — Where Real Estate Meets Intelligence" },
+      { property: "og:title", content: "Sentinel Fort Group — Strength. Vision. Legacy." },
       { property: "og:description", content: "India's intelligent real estate operating system." },
     ],
   }),
