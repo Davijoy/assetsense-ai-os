@@ -1,7 +1,7 @@
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 const faqs = [
-  { q: "Is Assetsense built for developers or brokers?", a: "Both. The platform offers dedicated portals for developers, brokers, channel partners and enterprise sales teams — all on a unified data layer." },
+  { q: "Is Sentinel Fort Group built for developers or brokers?", a: "Both. The platform offers dedicated portals for developers, brokers, channel partners and enterprise sales teams — all on a unified data layer." },
   { q: "Can the AI voice agents speak Indian languages?", a: "Yes. Out of the box we support English, Hindi, Marathi, Tamil, Telugu and Kannada with natural conversation flow." },
   { q: "Do you offer multi-tenant SaaS for white-labelling?", a: "Enterprise plans include multi-tenant architecture, custom domains, branding and role-based access control." },
   { q: "How does data security work?", a: "Enterprise-grade encryption in transit and at rest, full audit logs, RBAC, and ISO/SOC-aligned controls." },

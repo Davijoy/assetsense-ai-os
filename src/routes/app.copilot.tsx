@@ -6,7 +6,7 @@ import { askCopilot, type CopilotMessage } from "@/lib/copilot.functions";
 import { Send, Sparkles, Brain, Loader2 } from "lucide-react";
 
 export const Route = createFileRoute("/app/copilot")({
-  head: () => ({ meta: [{ title: "AI Copilot — Assetsense KIE" }] }),
+  head: () => ({ meta: [{ title: "AI Copilot — Sentinel Knowledge Engine" }] }),
   component: Copilot,
 });
 

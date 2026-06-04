@@ -69,7 +69,7 @@
 }
 
 :root {
-  /* Assetsense — Midnight + Electric Green (dark by default) */
+  /* Sentinel Fort Group — Midnight + Electric Green (dark by default) */
   --radius: 0.75rem;
   --background: oklch(0.13 0.03 260);
   --foreground: oklch(0.96 0.01 240);

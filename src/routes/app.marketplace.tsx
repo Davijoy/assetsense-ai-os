@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 
 export const Route = createFileRoute("/app/marketplace")({
-  head: () => ({ meta: [{ title: "Marketplace — Assetsense" }] }),
+  head: () => ({ meta: [{ title: "Marketplace — Sentinel Fort Group" }] }),
   component: Marketplace,
 });
 

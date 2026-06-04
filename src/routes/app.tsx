@@ -20,8 +20,8 @@ import {
 export const Route = createFileRoute("/app")({
   head: () => ({
     meta: [
-      { title: "Assetsense Console" },
-      { name: "description", content: "Assetsense operating console — CRM, marketplace, AI voice and BI." },
+      { title: "Sentinel Fort Group Console" },
+      { name: "description", content: "Sentinel Fort Group operating console — CRM, marketplace, AI voice and BI." },
     ],
   }),
   component: AppShell,
@@ -51,7 +51,7 @@ function AppShell() {
       <aside className="fixed inset-y-0 left-0 hidden w-64 flex-col border-r border-border/60 bg-sidebar lg:flex">
         <Link to="/" className="flex h-16 items-center gap-2 px-6 border-b border-border/60">
           <div className="h-7 w-7 rounded-md bg-gradient-to-br from-primary to-emerald-glow shadow-glow" />
-          <span className="font-display text-2xl">Assetsense</span>
+          <span className="font-display text-2xl">Sentinel Fort Group</span>
         </Link>
         <nav className="flex-1 space-y-1 px-3 py-6">
           <p className="px-3 pb-2 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Workspace</p>

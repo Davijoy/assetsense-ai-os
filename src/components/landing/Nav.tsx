@@ -15,7 +15,7 @@ export function Nav() {
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
         <Link to="/" className="flex items-center gap-2">
           <div className="h-7 w-7 rounded-md bg-gradient-to-br from-primary to-emerald-glow shadow-glow" />
-          <span className="font-display text-2xl tracking-tight">Assetsense</span>
+          <span className="font-display text-2xl tracking-tight">Sentinel Fort Group</span>
         </Link>
         <nav className="hidden md:flex items-center gap-8">
           {links.map((l) => (

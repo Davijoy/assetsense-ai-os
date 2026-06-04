@@ -39,7 +39,7 @@ const opts = queryOptions({
 
 export const Route = createFileRoute("/app/kie")({
   head: () => ({
-    meta: [{ title: "Command Center — Assetsense KIE" }],
+    meta: [{ title: "Command Center — Sentinel Knowledge Engine" }],
   }),
   loader: ({ context }) => context.queryClient.ensureQueryData(opts),
   component: CommandCenter,

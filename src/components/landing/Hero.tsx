@@ -38,7 +38,7 @@ export function Hero() {
           <div className="relative rounded-2xl border border-border bg-surface/40 p-2 backdrop-blur shadow-elevated">
             <img
               src={heroImg}
-              alt="Assetsense intelligence dashboard preview"
+              alt="Sentinel Fort Group intelligence dashboard preview"
               width={1600}
               height={1200}
               className="rounded-xl w-full h-auto"

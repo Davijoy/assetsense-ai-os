@@ -12,7 +12,7 @@ export function Footer() {
           <div>
             <div className="flex items-center gap-2">
               <div className="h-7 w-7 rounded-md bg-gradient-to-br from-primary to-emerald-glow shadow-glow" />
-              <span className="font-display text-2xl">Assetsense</span>
+              <span className="font-display text-2xl">Sentinel Fort Group</span>
             </div>
             <p className="mt-4 max-w-sm text-sm text-muted-foreground">
               Where Real Estate Meets Intelligence. India's intelligent real estate operating system.
@@ -30,7 +30,7 @@ export function Footer() {
           </div>
         </div>
         <div className="mt-16 flex flex-wrap items-center justify-between gap-4 border-t border-border pt-8 text-xs text-muted-foreground">
-          <div>© {new Date().getFullYear()} Assetsense. All rights reserved.</div>
+          <div>© {new Date().getFullYear()} Sentinel Fort Group. All rights reserved.</div>
           <div>Built for India's real estate industry.</div>
         </div>
       </div>

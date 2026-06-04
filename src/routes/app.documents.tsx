@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 
 export const Route = createFileRoute("/app/documents")({
-  head: () => ({ meta: [{ title: "Document Intelligence — Assetsense KIE" }] }),
+  head: () => ({ meta: [{ title: "Document Intelligence — Sentinel Knowledge Engine" }] }),
   component: Documents,
 });
 

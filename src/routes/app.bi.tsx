@@ -40,7 +40,7 @@ const biQueryOptions = queryOptions({
 });
 
 export const Route = createFileRoute("/app/bi")({
-  head: () => ({ meta: [{ title: "Intelligence — Assetsense" }] }),
+  head: () => ({ meta: [{ title: "Intelligence — Sentinel Fort Group" }] }),
   loader: ({ context }) => context.queryClient.ensureQueryData(biQueryOptions),
   errorComponent: ({ error }) => (
     <div className="rounded-2xl border border-destructive/40 bg-destructive/10 p-6 text-sm">

@@ -5,7 +5,7 @@ import {
 
 const solutions = [
   { icon: Building2, name: "Property Marketplace", desc: "Listings portal with smart search, virtual tours and AI investment scoring." },
-  { icon: Users, name: "Assetsense CRM", desc: "Lead pipelines, scoring, assignment and nurturing built for real estate sales." },
+  { icon: Users, name: "Sentinel CRM", desc: "Lead pipelines, scoring, assignment and nurturing built for real estate sales." },
   { icon: Bot, name: "AI Lead Intelligence", desc: "Predict purchase intent, budget, location preference and conversion probability." },
   { icon: Phone, name: "AI Voice Agents", desc: "Autonomous calling campaigns with sentiment analysis and qualification." },
   { icon: Megaphone, name: "Marketing Cloud", desc: "Meta, Google, WhatsApp, SMS and email campaigns with ROI tracking." },
