@@ -66,6 +66,9 @@
   --color-emerald-glow: var(--emerald-glow);
   --color-surface: var(--surface);
   --color-surface-elevated: var(--surface-elevated);
+  --color-gold: var(--gold);
+  --color-gold-soft: var(--gold-soft);
+  --color-gold-bright: var(--gold-bright);
 }
 
 :root {
@@ -112,6 +115,12 @@
   --gradient-emerald: linear-gradient(135deg, oklch(0.78 0.18 158), oklch(0.85 0.2 168));
   --shadow-glow: 0 0 40px -10px oklch(0.78 0.18 158 / 0.45);
   --shadow-elevated: 0 30px 80px -20px oklch(0.05 0.02 260 / 0.7);
+  /* Sentinel Fort Group — premium gold accents */
+  --gold: oklch(0.78 0.13 85);
+  --gold-soft: oklch(0.7 0.11 82);
+  --gold-bright: oklch(0.86 0.15 88);
+  --gradient-gold: linear-gradient(135deg, var(--gold-soft), var(--gold-bright));
+  --shadow-gold: 0 0 30px -8px oklch(0.78 0.13 85 / 0.45);
 }
 
 .dark {
