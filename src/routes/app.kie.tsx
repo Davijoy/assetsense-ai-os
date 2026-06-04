@@ -403,3 +403,110 @@ function ModuleCard({
     </Link>
   );
 }
+
+type ForecastDriver = { label: string; value: string; weight: number };
+type ForecastCardProps = {
+  icon: typeof Activity;
+  title: string;
+  headline: string;
+  sub: string;
+  confidence: number;
+  band: string;
+  drivers: ForecastDriver[];
+  method: string;
+};
+
+function ForecastCard({
+  icon: Icon,
+  title,
+  headline,
+  sub,
+  confidence,
+  band,
+  drivers,
+  method,
+}: ForecastCardProps) {
+  const [open, setOpen] = useState(false);
+  const tone =
+    confidence >= 85 ? "text-primary" : confidence >= 70 ? "text-amber-400" : "text-destructive";
+  const ring =
+    confidence >= 85
+      ? "border-primary/40 bg-primary/5"
+      : confidence >= 70
+        ? "border-amber-400/40 bg-amber-400/5"
+        : "border-destructive/40 bg-destructive/5";
+  return (
+    <div className="rounded-2xl border border-border/60 bg-card p-6">
+      <div className="flex items-start justify-between">
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <Icon className="h-4 w-4 text-primary" />
+          <span className="text-xs uppercase tracking-wider">{title}</span>
+        </div>
+        <div
+          className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-wider ${ring} ${tone}`}
+          title="Model confidence"
+        >
+          <ShieldCheck className="h-3 w-3" /> {confidence}%
+        </div>
+      </div>
+      <div className="mt-4 font-display text-2xl leading-tight">{headline}</div>
+      <div className="mt-1 text-xs text-muted-foreground">{sub}</div>
+
+      <div className="mt-4">
+        <div className="mb-1 flex items-center justify-between text-[10px] uppercase tracking-wider text-muted-foreground">
+          <span>Confidence</span>
+          <span>{band}</span>
+        </div>
+        <div className="h-1.5 w-full overflow-hidden rounded-full bg-border/60">
+          <div
+            className="h-full rounded-full bg-gradient-to-r from-primary/60 to-primary"
+            style={{ width: `${confidence}%` }}
+          />
+        </div>
+      </div>
+
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="mt-4 inline-flex items-center gap-1 text-xs text-primary hover:underline"
+      >
+        {open ? "Hide" : "Why this number?"}
+        <ChevronDown className={`h-3 w-3 transition ${open ? "rotate-180" : ""}`} />
+      </button>
+
+      {open && (
+        <div className="mt-3 space-y-3 border-t border-border/60 pt-3">
+          <div>
+            <div className="mb-2 text-[10px] uppercase tracking-wider text-muted-foreground">
+              Top drivers
+            </div>
+            <div className="space-y-2">
+              {drivers.map((d) => (
+                <div key={d.label}>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-foreground/90">{d.label}</span>
+                    <span className="text-muted-foreground">
+                      {d.value} · <span className="text-primary">{d.weight}%</span>
+                    </span>
+                  </div>
+                  <div className="mt-1 h-1 w-full overflow-hidden rounded-full bg-border/60">
+                    <div
+                      className="h-full rounded-full bg-primary/70"
+                      style={{ width: `${d.weight}%` }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="rounded-lg border border-border/60 bg-background/40 p-3">
+            <div className="mb-1 flex items-center gap-1 text-[10px] uppercase tracking-wider text-muted-foreground">
+              <Database className="h-3 w-3" /> Method
+            </div>
+            <p className="text-xs text-muted-foreground">{method}</p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
