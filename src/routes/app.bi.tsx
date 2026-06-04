@@ -111,7 +111,7 @@ function BI() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <span className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3 py-1.5 text-[11px] text-primary">
+          <span suppressHydrationWarning className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3 py-1.5 text-[11px] text-primary">
             <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" />
             Live · {new Date(data.generated_at).toLocaleTimeString()}
           </span>
