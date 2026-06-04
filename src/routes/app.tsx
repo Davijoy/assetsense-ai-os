@@ -1,4 +1,5 @@
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
+import { SentinelMark } from "@/components/brand/Logo";
 import {
   LayoutDashboard,
   Users,
@@ -50,8 +51,11 @@ function AppShell() {
     <div className="min-h-screen bg-background text-foreground">
       <aside className="fixed inset-y-0 left-0 hidden w-64 flex-col border-r border-border/60 bg-sidebar lg:flex">
         <Link to="/" className="flex h-16 items-center gap-2 px-6 border-b border-border/60">
-          <div className="h-7 w-7 rounded-md bg-gradient-to-br from-primary to-emerald-glow shadow-glow" />
-          <span className="font-display text-2xl">Sentinel Fort Group</span>
+          <SentinelMark />
+          <div className="flex flex-col leading-none">
+            <span className="font-display text-xl">Sentinel Fort</span>
+            <span className="text-[9px] uppercase tracking-[0.22em] text-gold/80">Group</span>
+          </div>
         </Link>
         <nav className="flex-1 space-y-1 px-3 py-6">
           <p className="px-3 pb-2 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Workspace</p>
