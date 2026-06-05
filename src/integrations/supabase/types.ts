@@ -18,18 +18,21 @@ export type Database = {
         Row: {
           id: string
           logo_url: string | null
+          logo_url_dark: string | null
           tenant_key: string
           updated_at: string
         }
         Insert: {
           id?: string
           logo_url?: string | null
+          logo_url_dark?: string | null
           tenant_key?: string
           updated_at?: string
         }
         Update: {
           id?: string
           logo_url?: string | null
+          logo_url_dark?: string | null
           tenant_key?: string
           updated_at?: string
         }
