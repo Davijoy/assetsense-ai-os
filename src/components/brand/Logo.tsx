@@ -1,15 +1,21 @@
 import { cn } from "@/lib/utils";
 import shieldAsset from "@/assets/sentinel-shield.png.asset.json";
 import { useBranding } from "./BrandingContext";
+import { useColorScheme } from "@/hooks/use-color-scheme";
 
 /**
  * Sentinel Fort Group mark — official shield + fort + flag emblem (navy & gold).
  */
 export function SentinelMark({ className }: { className?: string }) {
-  const { logoUrl } = useBranding();
+  const { logoUrl, logoUrlDark } = useBranding();
+  const scheme = useColorScheme();
+  const src =
+    scheme === "dark"
+      ? logoUrlDark ?? logoUrl ?? shieldAsset.url
+      : logoUrl ?? logoUrlDark ?? shieldAsset.url;
   return (
     <img
-      src={logoUrl ?? shieldAsset.url}
+      src={src}
       alt="Sentinel Fort Group"
       className={cn("h-7 w-7 object-contain", className)}
       draggable={false}
