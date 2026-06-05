@@ -1,5 +1,9 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase as supabaseTyped } from "@/integrations/supabase/client";
+// branding_settings is not yet in generated types — cast for now.
+const supabase = supabaseTyped as unknown as {
+  from: (table: string) => any;
+};
 
 type BrandingState = {
   logoUrl: string | null;
