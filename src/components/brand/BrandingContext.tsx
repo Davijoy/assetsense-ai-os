@@ -28,7 +28,7 @@ export function BrandingProvider({ children }: { children: ReactNode }) {
       .select("logo_url")
       .eq("tenant_key", "default")
       .maybeSingle()
-      .then(({ data }) => {
+      .then(({ data }: { data: { logo_url: string | null } | null }) => {
         if (!active) return;
         setLogoUrlState(data?.logo_url ?? null);
         setLoading(false);
