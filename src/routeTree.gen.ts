@@ -21,6 +21,7 @@ import { Route as AppDocumentsRouteImport } from './routes/app.documents'
 import { Route as AppCrmRouteImport } from './routes/app.crm'
 import { Route as AppCopilotRouteImport } from './routes/app.copilot'
 import { Route as AppBiRouteImport } from './routes/app.bi'
+import { Route as AppSettingsBrandingRouteImport } from './routes/app.settings.branding'
 
 const AppRoute = AppRouteImport.update({
   id: '/app',
@@ -82,6 +83,11 @@ const AppBiRoute = AppBiRouteImport.update({
   path: '/bi',
   getParentRoute: () => AppRoute,
 } as any)
+const AppSettingsBrandingRoute = AppSettingsBrandingRouteImport.update({
+  id: '/settings/branding',
+  path: '/settings/branding',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -96,6 +102,7 @@ export interface FileRoutesByFullPath {
   '/app/recommendations': typeof AppRecommendationsRoute
   '/app/voice': typeof AppVoiceRoute
   '/app/': typeof AppIndexRoute
+  '/app/settings/branding': typeof AppSettingsBrandingRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -109,6 +116,7 @@ export interface FileRoutesByTo {
   '/app/recommendations': typeof AppRecommendationsRoute
   '/app/voice': typeof AppVoiceRoute
   '/app': typeof AppIndexRoute
+  '/app/settings/branding': typeof AppSettingsBrandingRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -124,6 +132,7 @@ export interface FileRoutesById {
   '/app/recommendations': typeof AppRecommendationsRoute
   '/app/voice': typeof AppVoiceRoute
   '/app/': typeof AppIndexRoute
+  '/app/settings/branding': typeof AppSettingsBrandingRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -140,6 +149,7 @@ export interface FileRouteTypes {
     | '/app/recommendations'
     | '/app/voice'
     | '/app/'
+    | '/app/settings/branding'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -153,6 +163,7 @@ export interface FileRouteTypes {
     | '/app/recommendations'
     | '/app/voice'
     | '/app'
+    | '/app/settings/branding'
   id:
     | '__root__'
     | '/'
@@ -167,6 +178,7 @@ export interface FileRouteTypes {
     | '/app/recommendations'
     | '/app/voice'
     | '/app/'
+    | '/app/settings/branding'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -260,6 +272,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppBiRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/settings/branding': {
+      id: '/app/settings/branding'
+      path: '/settings/branding'
+      fullPath: '/app/settings/branding'
+      preLoaderRoute: typeof AppSettingsBrandingRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
@@ -274,6 +293,7 @@ interface AppRouteChildren {
   AppRecommendationsRoute: typeof AppRecommendationsRoute
   AppVoiceRoute: typeof AppVoiceRoute
   AppIndexRoute: typeof AppIndexRoute
+  AppSettingsBrandingRoute: typeof AppSettingsBrandingRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
@@ -287,6 +307,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppRecommendationsRoute: AppRecommendationsRoute,
   AppVoiceRoute: AppVoiceRoute,
   AppIndexRoute: AppIndexRoute,
+  AppSettingsBrandingRoute: AppSettingsBrandingRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
@@ -298,3 +319,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
