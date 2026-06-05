@@ -115,6 +115,29 @@ function AppShell() {
               </Link>
             );
           })}
+          <p className="mt-6 px-3 pb-2 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+            Admin
+          </p>
+          {adminNav.map((n) => {
+            const active = path.startsWith(n.to);
+            const Icon = n.icon;
+            return (
+              <Link
+                key={n.to}
+                to={n.to}
+                className={`group flex items-center justify-between rounded-md px-3 py-2 text-sm transition-colors ${
+                  active
+                    ? "bg-primary/10 text-foreground"
+                    : "text-muted-foreground hover:bg-sidebar-accent hover:text-foreground"
+                }`}
+              >
+                <span className="flex items-center gap-3">
+                  <Icon className={`h-4 w-4 ${active ? "text-primary" : ""}`} />
+                  {n.label}
+                </span>
+              </Link>
+            );
+          })}
         </nav>
         <div className="border-t border-border/60 p-4">
           <div className="flex items-center gap-3">
