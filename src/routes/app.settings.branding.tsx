@@ -135,7 +135,7 @@ function UploadCard({
   label: string;
   hint: string;
   src: string;
-  inputRef: React.RefObject<HTMLInputElement>;
+  inputRef: React.RefObject<HTMLInputElement | null>;
   onPick: (file: File) => void;
   surface: "light" | "dark";
 }) {
