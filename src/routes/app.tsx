@@ -16,6 +16,7 @@ import {
   FileText,
   Lightbulb,
   Command,
+  Palette,
 } from "lucide-react";
 
 export const Route = createFileRoute("/app")({
@@ -43,6 +44,10 @@ const kieNav = [
   { to: "/app/copilot", label: "AI Copilot", icon: Sparkles },
   { to: "/app/documents", label: "Documents", icon: FileText },
   { to: "/app/recommendations", label: "Recommendations", icon: Lightbulb },
+];
+
+const adminNav = [
+  { to: "/app/settings/branding", label: "Branding", icon: Palette },
 ];
 
 function AppShell() {
