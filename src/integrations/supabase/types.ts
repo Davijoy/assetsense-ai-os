@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      branding_settings: {
+        Row: {
+          id: string
+          logo_url: string | null
+          tenant_key: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          logo_url?: string | null
+          tenant_key?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          logo_url?: string | null
+          tenant_key?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       calls: {
         Row: {
           agent: string

@@ -1,13 +1,15 @@
 import { cn } from "@/lib/utils";
 import shieldAsset from "@/assets/sentinel-shield.png.asset.json";
+import { useBranding } from "./BrandingContext";
 
 /**
  * Sentinel Fort Group mark — official shield + fort + flag emblem (navy & gold).
  */
 export function SentinelMark({ className }: { className?: string }) {
+  const { logoUrl } = useBranding();
   return (
     <img
-      src={shieldAsset.url}
+      src={logoUrl ?? shieldAsset.url}
       alt="Sentinel Fort Group"
       className={cn("h-7 w-7 object-contain", className)}
       draggable={false}
