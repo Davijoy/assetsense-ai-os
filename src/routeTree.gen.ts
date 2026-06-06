@@ -14,6 +14,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as AppWorkflowsRouteImport } from './routes/app.workflows'
 import { Route as AppVoiceRouteImport } from './routes/app.voice'
+import { Route as AppSalesintelRouteImport } from './routes/app.salesintel'
 import { Route as AppRiskRouteImport } from './routes/app.risk'
 import { Route as AppRecommendationsRouteImport } from './routes/app.recommendations'
 import { Route as AppMarketplaceRouteImport } from './routes/app.marketplace'
@@ -54,6 +55,11 @@ const AppWorkflowsRoute = AppWorkflowsRouteImport.update({
 const AppVoiceRoute = AppVoiceRouteImport.update({
   id: '/voice',
   path: '/voice',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSalesintelRoute = AppSalesintelRouteImport.update({
+  id: '/salesintel',
+  path: '/salesintel',
   getParentRoute: () => AppRoute,
 } as any)
 const AppRiskRoute = AppRiskRouteImport.update({
@@ -155,6 +161,7 @@ export interface FileRoutesByFullPath {
   '/app/marketplace': typeof AppMarketplaceRoute
   '/app/recommendations': typeof AppRecommendationsRoute
   '/app/risk': typeof AppRiskRoute
+  '/app/salesintel': typeof AppSalesintelRoute
   '/app/voice': typeof AppVoiceRoute
   '/app/workflows': typeof AppWorkflowsRoute
   '/app/': typeof AppIndexRoute
@@ -177,6 +184,7 @@ export interface FileRoutesByTo {
   '/app/marketplace': typeof AppMarketplaceRoute
   '/app/recommendations': typeof AppRecommendationsRoute
   '/app/risk': typeof AppRiskRoute
+  '/app/salesintel': typeof AppSalesintelRoute
   '/app/voice': typeof AppVoiceRoute
   '/app/workflows': typeof AppWorkflowsRoute
   '/app': typeof AppIndexRoute
@@ -201,6 +209,7 @@ export interface FileRoutesById {
   '/app/marketplace': typeof AppMarketplaceRoute
   '/app/recommendations': typeof AppRecommendationsRoute
   '/app/risk': typeof AppRiskRoute
+  '/app/salesintel': typeof AppSalesintelRoute
   '/app/voice': typeof AppVoiceRoute
   '/app/workflows': typeof AppWorkflowsRoute
   '/app/': typeof AppIndexRoute
@@ -226,6 +235,7 @@ export interface FileRouteTypes {
     | '/app/marketplace'
     | '/app/recommendations'
     | '/app/risk'
+    | '/app/salesintel'
     | '/app/voice'
     | '/app/workflows'
     | '/app/'
@@ -248,6 +258,7 @@ export interface FileRouteTypes {
     | '/app/marketplace'
     | '/app/recommendations'
     | '/app/risk'
+    | '/app/salesintel'
     | '/app/voice'
     | '/app/workflows'
     | '/app'
@@ -271,6 +282,7 @@ export interface FileRouteTypes {
     | '/app/marketplace'
     | '/app/recommendations'
     | '/app/risk'
+    | '/app/salesintel'
     | '/app/voice'
     | '/app/workflows'
     | '/app/'
@@ -317,6 +329,13 @@ declare module '@tanstack/react-router' {
       path: '/voice'
       fullPath: '/app/voice'
       preLoaderRoute: typeof AppVoiceRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/salesintel': {
+      id: '/app/salesintel'
+      path: '/salesintel'
+      fullPath: '/app/salesintel'
+      preLoaderRoute: typeof AppSalesintelRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/risk': {
@@ -450,6 +469,7 @@ interface AppRouteChildren {
   AppMarketplaceRoute: typeof AppMarketplaceRoute
   AppRecommendationsRoute: typeof AppRecommendationsRoute
   AppRiskRoute: typeof AppRiskRoute
+  AppSalesintelRoute: typeof AppSalesintelRoute
   AppVoiceRoute: typeof AppVoiceRoute
   AppWorkflowsRoute: typeof AppWorkflowsRoute
   AppIndexRoute: typeof AppIndexRoute
@@ -472,6 +492,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppMarketplaceRoute: AppMarketplaceRoute,
   AppRecommendationsRoute: AppRecommendationsRoute,
   AppRiskRoute: AppRiskRoute,
+  AppSalesintelRoute: AppSalesintelRoute,
   AppVoiceRoute: AppVoiceRoute,
   AppWorkflowsRoute: AppWorkflowsRoute,
   AppIndexRoute: AppIndexRoute,
