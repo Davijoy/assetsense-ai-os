@@ -12,14 +12,24 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
+import { Route as AppWorkflowsRouteImport } from './routes/app.workflows'
 import { Route as AppVoiceRouteImport } from './routes/app.voice'
+import { Route as AppSalesintelRouteImport } from './routes/app.salesintel'
+import { Route as AppRiskRouteImport } from './routes/app.risk'
 import { Route as AppRecommendationsRouteImport } from './routes/app.recommendations'
 import { Route as AppMarketplaceRouteImport } from './routes/app.marketplace'
+import { Route as AppMarketRouteImport } from './routes/app.market'
 import { Route as AppLeadsRouteImport } from './routes/app.leads'
 import { Route as AppKieRouteImport } from './routes/app.kie'
+import { Route as AppGraphRouteImport } from './routes/app.graph'
+import { Route as AppGovernanceRouteImport } from './routes/app.governance'
+import { Route as AppFeedRouteImport } from './routes/app.feed'
 import { Route as AppDocumentsRouteImport } from './routes/app.documents'
+import { Route as AppDealroomsRouteImport } from './routes/app.dealrooms'
 import { Route as AppCrmRouteImport } from './routes/app.crm'
 import { Route as AppCopilotRouteImport } from './routes/app.copilot'
+import { Route as AppCommandRouteImport } from './routes/app.command'
+import { Route as AppCollectionsRouteImport } from './routes/app.collections'
 import { Route as AppBiRouteImport } from './routes/app.bi'
 import { Route as AppSettingsBrandingRouteImport } from './routes/app.settings.branding'
 
@@ -38,9 +48,24 @@ const AppIndexRoute = AppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppRoute,
 } as any)
+const AppWorkflowsRoute = AppWorkflowsRouteImport.update({
+  id: '/workflows',
+  path: '/workflows',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppVoiceRoute = AppVoiceRouteImport.update({
   id: '/voice',
   path: '/voice',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSalesintelRoute = AppSalesintelRouteImport.update({
+  id: '/salesintel',
+  path: '/salesintel',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppRiskRoute = AppRiskRouteImport.update({
+  id: '/risk',
+  path: '/risk',
   getParentRoute: () => AppRoute,
 } as any)
 const AppRecommendationsRoute = AppRecommendationsRouteImport.update({
@@ -53,6 +78,11 @@ const AppMarketplaceRoute = AppMarketplaceRouteImport.update({
   path: '/marketplace',
   getParentRoute: () => AppRoute,
 } as any)
+const AppMarketRoute = AppMarketRouteImport.update({
+  id: '/market',
+  path: '/market',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppLeadsRoute = AppLeadsRouteImport.update({
   id: '/leads',
   path: '/leads',
@@ -63,9 +93,29 @@ const AppKieRoute = AppKieRouteImport.update({
   path: '/kie',
   getParentRoute: () => AppRoute,
 } as any)
+const AppGraphRoute = AppGraphRouteImport.update({
+  id: '/graph',
+  path: '/graph',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppGovernanceRoute = AppGovernanceRouteImport.update({
+  id: '/governance',
+  path: '/governance',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppFeedRoute = AppFeedRouteImport.update({
+  id: '/feed',
+  path: '/feed',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppDocumentsRoute = AppDocumentsRouteImport.update({
   id: '/documents',
   path: '/documents',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppDealroomsRoute = AppDealroomsRouteImport.update({
+  id: '/dealrooms',
+  path: '/dealrooms',
   getParentRoute: () => AppRoute,
 } as any)
 const AppCrmRoute = AppCrmRouteImport.update({
@@ -76,6 +126,16 @@ const AppCrmRoute = AppCrmRouteImport.update({
 const AppCopilotRoute = AppCopilotRouteImport.update({
   id: '/copilot',
   path: '/copilot',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppCommandRoute = AppCommandRouteImport.update({
+  id: '/command',
+  path: '/command',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppCollectionsRoute = AppCollectionsRouteImport.update({
+  id: '/collections',
+  path: '/collections',
   getParentRoute: () => AppRoute,
 } as any)
 const AppBiRoute = AppBiRouteImport.update({
@@ -93,28 +153,48 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/app/bi': typeof AppBiRoute
+  '/app/collections': typeof AppCollectionsRoute
+  '/app/command': typeof AppCommandRoute
   '/app/copilot': typeof AppCopilotRoute
   '/app/crm': typeof AppCrmRoute
+  '/app/dealrooms': typeof AppDealroomsRoute
   '/app/documents': typeof AppDocumentsRoute
+  '/app/feed': typeof AppFeedRoute
+  '/app/governance': typeof AppGovernanceRoute
+  '/app/graph': typeof AppGraphRoute
   '/app/kie': typeof AppKieRoute
   '/app/leads': typeof AppLeadsRoute
+  '/app/market': typeof AppMarketRoute
   '/app/marketplace': typeof AppMarketplaceRoute
   '/app/recommendations': typeof AppRecommendationsRoute
+  '/app/risk': typeof AppRiskRoute
+  '/app/salesintel': typeof AppSalesintelRoute
   '/app/voice': typeof AppVoiceRoute
+  '/app/workflows': typeof AppWorkflowsRoute
   '/app/': typeof AppIndexRoute
   '/app/settings/branding': typeof AppSettingsBrandingRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/app/bi': typeof AppBiRoute
+  '/app/collections': typeof AppCollectionsRoute
+  '/app/command': typeof AppCommandRoute
   '/app/copilot': typeof AppCopilotRoute
   '/app/crm': typeof AppCrmRoute
+  '/app/dealrooms': typeof AppDealroomsRoute
   '/app/documents': typeof AppDocumentsRoute
+  '/app/feed': typeof AppFeedRoute
+  '/app/governance': typeof AppGovernanceRoute
+  '/app/graph': typeof AppGraphRoute
   '/app/kie': typeof AppKieRoute
   '/app/leads': typeof AppLeadsRoute
+  '/app/market': typeof AppMarketRoute
   '/app/marketplace': typeof AppMarketplaceRoute
   '/app/recommendations': typeof AppRecommendationsRoute
+  '/app/risk': typeof AppRiskRoute
+  '/app/salesintel': typeof AppSalesintelRoute
   '/app/voice': typeof AppVoiceRoute
+  '/app/workflows': typeof AppWorkflowsRoute
   '/app': typeof AppIndexRoute
   '/app/settings/branding': typeof AppSettingsBrandingRoute
 }
@@ -123,14 +203,24 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/app/bi': typeof AppBiRoute
+  '/app/collections': typeof AppCollectionsRoute
+  '/app/command': typeof AppCommandRoute
   '/app/copilot': typeof AppCopilotRoute
   '/app/crm': typeof AppCrmRoute
+  '/app/dealrooms': typeof AppDealroomsRoute
   '/app/documents': typeof AppDocumentsRoute
+  '/app/feed': typeof AppFeedRoute
+  '/app/governance': typeof AppGovernanceRoute
+  '/app/graph': typeof AppGraphRoute
   '/app/kie': typeof AppKieRoute
   '/app/leads': typeof AppLeadsRoute
+  '/app/market': typeof AppMarketRoute
   '/app/marketplace': typeof AppMarketplaceRoute
   '/app/recommendations': typeof AppRecommendationsRoute
+  '/app/risk': typeof AppRiskRoute
+  '/app/salesintel': typeof AppSalesintelRoute
   '/app/voice': typeof AppVoiceRoute
+  '/app/workflows': typeof AppWorkflowsRoute
   '/app/': typeof AppIndexRoute
   '/app/settings/branding': typeof AppSettingsBrandingRoute
 }
@@ -140,28 +230,48 @@ export interface FileRouteTypes {
     | '/'
     | '/app'
     | '/app/bi'
+    | '/app/collections'
+    | '/app/command'
     | '/app/copilot'
     | '/app/crm'
+    | '/app/dealrooms'
     | '/app/documents'
+    | '/app/feed'
+    | '/app/governance'
+    | '/app/graph'
     | '/app/kie'
     | '/app/leads'
+    | '/app/market'
     | '/app/marketplace'
     | '/app/recommendations'
+    | '/app/risk'
+    | '/app/salesintel'
     | '/app/voice'
+    | '/app/workflows'
     | '/app/'
     | '/app/settings/branding'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/app/bi'
+    | '/app/collections'
+    | '/app/command'
     | '/app/copilot'
     | '/app/crm'
+    | '/app/dealrooms'
     | '/app/documents'
+    | '/app/feed'
+    | '/app/governance'
+    | '/app/graph'
     | '/app/kie'
     | '/app/leads'
+    | '/app/market'
     | '/app/marketplace'
     | '/app/recommendations'
+    | '/app/risk'
+    | '/app/salesintel'
     | '/app/voice'
+    | '/app/workflows'
     | '/app'
     | '/app/settings/branding'
   id:
@@ -169,14 +279,24 @@ export interface FileRouteTypes {
     | '/'
     | '/app'
     | '/app/bi'
+    | '/app/collections'
+    | '/app/command'
     | '/app/copilot'
     | '/app/crm'
+    | '/app/dealrooms'
     | '/app/documents'
+    | '/app/feed'
+    | '/app/governance'
+    | '/app/graph'
     | '/app/kie'
     | '/app/leads'
+    | '/app/market'
     | '/app/marketplace'
     | '/app/recommendations'
+    | '/app/risk'
+    | '/app/salesintel'
     | '/app/voice'
+    | '/app/workflows'
     | '/app/'
     | '/app/settings/branding'
   fileRoutesById: FileRoutesById
@@ -209,11 +329,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/workflows': {
+      id: '/app/workflows'
+      path: '/workflows'
+      fullPath: '/app/workflows'
+      preLoaderRoute: typeof AppWorkflowsRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/voice': {
       id: '/app/voice'
       path: '/voice'
       fullPath: '/app/voice'
       preLoaderRoute: typeof AppVoiceRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/salesintel': {
+      id: '/app/salesintel'
+      path: '/salesintel'
+      fullPath: '/app/salesintel'
+      preLoaderRoute: typeof AppSalesintelRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/risk': {
+      id: '/app/risk'
+      path: '/risk'
+      fullPath: '/app/risk'
+      preLoaderRoute: typeof AppRiskRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/recommendations': {
@@ -230,6 +371,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppMarketplaceRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/market': {
+      id: '/app/market'
+      path: '/market'
+      fullPath: '/app/market'
+      preLoaderRoute: typeof AppMarketRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/leads': {
       id: '/app/leads'
       path: '/leads'
@@ -244,11 +392,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppKieRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/graph': {
+      id: '/app/graph'
+      path: '/graph'
+      fullPath: '/app/graph'
+      preLoaderRoute: typeof AppGraphRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/governance': {
+      id: '/app/governance'
+      path: '/governance'
+      fullPath: '/app/governance'
+      preLoaderRoute: typeof AppGovernanceRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/feed': {
+      id: '/app/feed'
+      path: '/feed'
+      fullPath: '/app/feed'
+      preLoaderRoute: typeof AppFeedRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/documents': {
       id: '/app/documents'
       path: '/documents'
       fullPath: '/app/documents'
       preLoaderRoute: typeof AppDocumentsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/dealrooms': {
+      id: '/app/dealrooms'
+      path: '/dealrooms'
+      fullPath: '/app/dealrooms'
+      preLoaderRoute: typeof AppDealroomsRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/crm': {
@@ -263,6 +439,20 @@ declare module '@tanstack/react-router' {
       path: '/copilot'
       fullPath: '/app/copilot'
       preLoaderRoute: typeof AppCopilotRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/command': {
+      id: '/app/command'
+      path: '/command'
+      fullPath: '/app/command'
+      preLoaderRoute: typeof AppCommandRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/collections': {
+      id: '/app/collections'
+      path: '/collections'
+      fullPath: '/app/collections'
+      preLoaderRoute: typeof AppCollectionsRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/bi': {
@@ -284,28 +474,48 @@ declare module '@tanstack/react-router' {
 
 interface AppRouteChildren {
   AppBiRoute: typeof AppBiRoute
+  AppCollectionsRoute: typeof AppCollectionsRoute
+  AppCommandRoute: typeof AppCommandRoute
   AppCopilotRoute: typeof AppCopilotRoute
   AppCrmRoute: typeof AppCrmRoute
+  AppDealroomsRoute: typeof AppDealroomsRoute
   AppDocumentsRoute: typeof AppDocumentsRoute
+  AppFeedRoute: typeof AppFeedRoute
+  AppGovernanceRoute: typeof AppGovernanceRoute
+  AppGraphRoute: typeof AppGraphRoute
   AppKieRoute: typeof AppKieRoute
   AppLeadsRoute: typeof AppLeadsRoute
+  AppMarketRoute: typeof AppMarketRoute
   AppMarketplaceRoute: typeof AppMarketplaceRoute
   AppRecommendationsRoute: typeof AppRecommendationsRoute
+  AppRiskRoute: typeof AppRiskRoute
+  AppSalesintelRoute: typeof AppSalesintelRoute
   AppVoiceRoute: typeof AppVoiceRoute
+  AppWorkflowsRoute: typeof AppWorkflowsRoute
   AppIndexRoute: typeof AppIndexRoute
   AppSettingsBrandingRoute: typeof AppSettingsBrandingRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppBiRoute: AppBiRoute,
+  AppCollectionsRoute: AppCollectionsRoute,
+  AppCommandRoute: AppCommandRoute,
   AppCopilotRoute: AppCopilotRoute,
   AppCrmRoute: AppCrmRoute,
+  AppDealroomsRoute: AppDealroomsRoute,
   AppDocumentsRoute: AppDocumentsRoute,
+  AppFeedRoute: AppFeedRoute,
+  AppGovernanceRoute: AppGovernanceRoute,
+  AppGraphRoute: AppGraphRoute,
   AppKieRoute: AppKieRoute,
   AppLeadsRoute: AppLeadsRoute,
+  AppMarketRoute: AppMarketRoute,
   AppMarketplaceRoute: AppMarketplaceRoute,
   AppRecommendationsRoute: AppRecommendationsRoute,
+  AppRiskRoute: AppRiskRoute,
+  AppSalesintelRoute: AppSalesintelRoute,
   AppVoiceRoute: AppVoiceRoute,
+  AppWorkflowsRoute: AppWorkflowsRoute,
   AppIndexRoute: AppIndexRoute,
   AppSettingsBrandingRoute: AppSettingsBrandingRoute,
 }
@@ -319,3 +529,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
