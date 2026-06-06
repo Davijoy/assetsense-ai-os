@@ -27,6 +27,7 @@ import { Route as AppDealroomsRouteImport } from './routes/app.dealrooms'
 import { Route as AppCrmRouteImport } from './routes/app.crm'
 import { Route as AppCopilotRouteImport } from './routes/app.copilot'
 import { Route as AppCommandRouteImport } from './routes/app.command'
+import { Route as AppCollectionsRouteImport } from './routes/app.collections'
 import { Route as AppBiRouteImport } from './routes/app.bi'
 import { Route as AppSettingsBrandingRouteImport } from './routes/app.settings.branding'
 
@@ -120,6 +121,11 @@ const AppCommandRoute = AppCommandRouteImport.update({
   path: '/command',
   getParentRoute: () => AppRoute,
 } as any)
+const AppCollectionsRoute = AppCollectionsRouteImport.update({
+  id: '/collections',
+  path: '/collections',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppBiRoute = AppBiRouteImport.update({
   id: '/bi',
   path: '/bi',
@@ -135,6 +141,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/app/bi': typeof AppBiRoute
+  '/app/collections': typeof AppCollectionsRoute
   '/app/command': typeof AppCommandRoute
   '/app/copilot': typeof AppCopilotRoute
   '/app/crm': typeof AppCrmRoute
@@ -156,6 +163,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/app/bi': typeof AppBiRoute
+  '/app/collections': typeof AppCollectionsRoute
   '/app/command': typeof AppCommandRoute
   '/app/copilot': typeof AppCopilotRoute
   '/app/crm': typeof AppCrmRoute
@@ -179,6 +187,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/app/bi': typeof AppBiRoute
+  '/app/collections': typeof AppCollectionsRoute
   '/app/command': typeof AppCommandRoute
   '/app/copilot': typeof AppCopilotRoute
   '/app/crm': typeof AppCrmRoute
@@ -203,6 +212,7 @@ export interface FileRouteTypes {
     | '/'
     | '/app'
     | '/app/bi'
+    | '/app/collections'
     | '/app/command'
     | '/app/copilot'
     | '/app/crm'
@@ -224,6 +234,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/app/bi'
+    | '/app/collections'
     | '/app/command'
     | '/app/copilot'
     | '/app/crm'
@@ -246,6 +257,7 @@ export interface FileRouteTypes {
     | '/'
     | '/app'
     | '/app/bi'
+    | '/app/collections'
     | '/app/command'
     | '/app/copilot'
     | '/app/crm'
@@ -398,6 +410,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppCommandRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/collections': {
+      id: '/app/collections'
+      path: '/collections'
+      fullPath: '/app/collections'
+      preLoaderRoute: typeof AppCollectionsRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/bi': {
       id: '/app/bi'
       path: '/bi'
@@ -417,6 +436,7 @@ declare module '@tanstack/react-router' {
 
 interface AppRouteChildren {
   AppBiRoute: typeof AppBiRoute
+  AppCollectionsRoute: typeof AppCollectionsRoute
   AppCommandRoute: typeof AppCommandRoute
   AppCopilotRoute: typeof AppCopilotRoute
   AppCrmRoute: typeof AppCrmRoute
@@ -438,6 +458,7 @@ interface AppRouteChildren {
 
 const AppRouteChildren: AppRouteChildren = {
   AppBiRoute: AppBiRoute,
+  AppCollectionsRoute: AppCollectionsRoute,
   AppCommandRoute: AppCommandRoute,
   AppCopilotRoute: AppCopilotRoute,
   AppCrmRoute: AppCrmRoute,
