@@ -17,6 +17,15 @@ import {
   Lightbulb,
   Command,
   Palette,
+  Network,
+  ShieldAlert,
+  Globe2,
+  Newspaper,
+  Workflow,
+  Banknote,
+  GitBranch,
+  ScrollText,
+  Gauge,
 } from "lucide-react";
 
 export const Route = createFileRoute("/app")({
@@ -40,13 +49,23 @@ const nav = [
 ];
 
 const kieNav = [
-  { to: "/app/kie", label: "Command Center", icon: Command },
+  { to: "/app/command", label: "Executive Command", icon: Command },
+  { to: "/app/feed", label: "AI Feed", icon: Newspaper },
   { to: "/app/copilot", label: "AI Copilot", icon: Sparkles },
-  { to: "/app/documents", label: "Documents", icon: FileText },
   { to: "/app/recommendations", label: "Recommendations", icon: Lightbulb },
+  { to: "/app/workflows", label: "Autonomous Workflows", icon: Workflow },
+  { to: "/app/dealrooms", label: "Deal Rooms", icon: GitBranch },
+  { to: "/app/risk", label: "Risk Center", icon: ShieldAlert },
+  { to: "/app/market", label: "Market Intelligence", icon: Globe2 },
+  { to: "/app/collections", label: "Collections AI", icon: Banknote },
+  { to: "/app/salesintel", label: "Sales Intelligence", icon: Gauge },
+  { to: "/app/graph", label: "Intelligence Graph", icon: Network },
+  { to: "/app/documents", label: "Documents", icon: FileText },
+  { to: "/app/kie", label: "Legacy KIE", icon: BarChart3 },
 ];
 
 const adminNav = [
+  { to: "/app/governance", label: "Governance", icon: ScrollText },
   { to: "/app/settings/branding", label: "Branding", icon: Palette },
 ];
 
