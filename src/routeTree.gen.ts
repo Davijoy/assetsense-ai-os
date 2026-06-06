@@ -22,6 +22,7 @@ import { Route as AppMarketRouteImport } from './routes/app.market'
 import { Route as AppLeadsRouteImport } from './routes/app.leads'
 import { Route as AppKieRouteImport } from './routes/app.kie'
 import { Route as AppGraphRouteImport } from './routes/app.graph'
+import { Route as AppGovernanceRouteImport } from './routes/app.governance'
 import { Route as AppFeedRouteImport } from './routes/app.feed'
 import { Route as AppDocumentsRouteImport } from './routes/app.documents'
 import { Route as AppDealroomsRouteImport } from './routes/app.dealrooms'
@@ -97,6 +98,11 @@ const AppGraphRoute = AppGraphRouteImport.update({
   path: '/graph',
   getParentRoute: () => AppRoute,
 } as any)
+const AppGovernanceRoute = AppGovernanceRouteImport.update({
+  id: '/governance',
+  path: '/governance',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppFeedRoute = AppFeedRouteImport.update({
   id: '/feed',
   path: '/feed',
@@ -154,6 +160,7 @@ export interface FileRoutesByFullPath {
   '/app/dealrooms': typeof AppDealroomsRoute
   '/app/documents': typeof AppDocumentsRoute
   '/app/feed': typeof AppFeedRoute
+  '/app/governance': typeof AppGovernanceRoute
   '/app/graph': typeof AppGraphRoute
   '/app/kie': typeof AppKieRoute
   '/app/leads': typeof AppLeadsRoute
@@ -177,6 +184,7 @@ export interface FileRoutesByTo {
   '/app/dealrooms': typeof AppDealroomsRoute
   '/app/documents': typeof AppDocumentsRoute
   '/app/feed': typeof AppFeedRoute
+  '/app/governance': typeof AppGovernanceRoute
   '/app/graph': typeof AppGraphRoute
   '/app/kie': typeof AppKieRoute
   '/app/leads': typeof AppLeadsRoute
@@ -202,6 +210,7 @@ export interface FileRoutesById {
   '/app/dealrooms': typeof AppDealroomsRoute
   '/app/documents': typeof AppDocumentsRoute
   '/app/feed': typeof AppFeedRoute
+  '/app/governance': typeof AppGovernanceRoute
   '/app/graph': typeof AppGraphRoute
   '/app/kie': typeof AppKieRoute
   '/app/leads': typeof AppLeadsRoute
@@ -228,6 +237,7 @@ export interface FileRouteTypes {
     | '/app/dealrooms'
     | '/app/documents'
     | '/app/feed'
+    | '/app/governance'
     | '/app/graph'
     | '/app/kie'
     | '/app/leads'
@@ -251,6 +261,7 @@ export interface FileRouteTypes {
     | '/app/dealrooms'
     | '/app/documents'
     | '/app/feed'
+    | '/app/governance'
     | '/app/graph'
     | '/app/kie'
     | '/app/leads'
@@ -275,6 +286,7 @@ export interface FileRouteTypes {
     | '/app/dealrooms'
     | '/app/documents'
     | '/app/feed'
+    | '/app/governance'
     | '/app/graph'
     | '/app/kie'
     | '/app/leads'
@@ -387,6 +399,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppGraphRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/governance': {
+      id: '/app/governance'
+      path: '/governance'
+      fullPath: '/app/governance'
+      preLoaderRoute: typeof AppGovernanceRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/feed': {
       id: '/app/feed'
       path: '/feed'
@@ -462,6 +481,7 @@ interface AppRouteChildren {
   AppDealroomsRoute: typeof AppDealroomsRoute
   AppDocumentsRoute: typeof AppDocumentsRoute
   AppFeedRoute: typeof AppFeedRoute
+  AppGovernanceRoute: typeof AppGovernanceRoute
   AppGraphRoute: typeof AppGraphRoute
   AppKieRoute: typeof AppKieRoute
   AppLeadsRoute: typeof AppLeadsRoute
@@ -485,6 +505,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppDealroomsRoute: AppDealroomsRoute,
   AppDocumentsRoute: AppDocumentsRoute,
   AppFeedRoute: AppFeedRoute,
+  AppGovernanceRoute: AppGovernanceRoute,
   AppGraphRoute: AppGraphRoute,
   AppKieRoute: AppKieRoute,
   AppLeadsRoute: AppLeadsRoute,
