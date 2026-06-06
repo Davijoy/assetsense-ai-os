@@ -18,6 +18,7 @@ import { Route as AppMarketplaceRouteImport } from './routes/app.marketplace'
 import { Route as AppLeadsRouteImport } from './routes/app.leads'
 import { Route as AppKieRouteImport } from './routes/app.kie'
 import { Route as AppDocumentsRouteImport } from './routes/app.documents'
+import { Route as AppDealroomsRouteImport } from './routes/app.dealrooms'
 import { Route as AppCrmRouteImport } from './routes/app.crm'
 import { Route as AppCopilotRouteImport } from './routes/app.copilot'
 import { Route as AppCommandRouteImport } from './routes/app.command'
@@ -69,6 +70,11 @@ const AppDocumentsRoute = AppDocumentsRouteImport.update({
   path: '/documents',
   getParentRoute: () => AppRoute,
 } as any)
+const AppDealroomsRoute = AppDealroomsRouteImport.update({
+  id: '/dealrooms',
+  path: '/dealrooms',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppCrmRoute = AppCrmRouteImport.update({
   id: '/crm',
   path: '/crm',
@@ -102,6 +108,7 @@ export interface FileRoutesByFullPath {
   '/app/command': typeof AppCommandRoute
   '/app/copilot': typeof AppCopilotRoute
   '/app/crm': typeof AppCrmRoute
+  '/app/dealrooms': typeof AppDealroomsRoute
   '/app/documents': typeof AppDocumentsRoute
   '/app/kie': typeof AppKieRoute
   '/app/leads': typeof AppLeadsRoute
@@ -117,6 +124,7 @@ export interface FileRoutesByTo {
   '/app/command': typeof AppCommandRoute
   '/app/copilot': typeof AppCopilotRoute
   '/app/crm': typeof AppCrmRoute
+  '/app/dealrooms': typeof AppDealroomsRoute
   '/app/documents': typeof AppDocumentsRoute
   '/app/kie': typeof AppKieRoute
   '/app/leads': typeof AppLeadsRoute
@@ -134,6 +142,7 @@ export interface FileRoutesById {
   '/app/command': typeof AppCommandRoute
   '/app/copilot': typeof AppCopilotRoute
   '/app/crm': typeof AppCrmRoute
+  '/app/dealrooms': typeof AppDealroomsRoute
   '/app/documents': typeof AppDocumentsRoute
   '/app/kie': typeof AppKieRoute
   '/app/leads': typeof AppLeadsRoute
@@ -152,6 +161,7 @@ export interface FileRouteTypes {
     | '/app/command'
     | '/app/copilot'
     | '/app/crm'
+    | '/app/dealrooms'
     | '/app/documents'
     | '/app/kie'
     | '/app/leads'
@@ -167,6 +177,7 @@ export interface FileRouteTypes {
     | '/app/command'
     | '/app/copilot'
     | '/app/crm'
+    | '/app/dealrooms'
     | '/app/documents'
     | '/app/kie'
     | '/app/leads'
@@ -183,6 +194,7 @@ export interface FileRouteTypes {
     | '/app/command'
     | '/app/copilot'
     | '/app/crm'
+    | '/app/dealrooms'
     | '/app/documents'
     | '/app/kie'
     | '/app/leads'
@@ -263,6 +275,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppDocumentsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/dealrooms': {
+      id: '/app/dealrooms'
+      path: '/dealrooms'
+      fullPath: '/app/dealrooms'
+      preLoaderRoute: typeof AppDealroomsRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/crm': {
       id: '/app/crm'
       path: '/crm'
@@ -306,6 +325,7 @@ interface AppRouteChildren {
   AppCommandRoute: typeof AppCommandRoute
   AppCopilotRoute: typeof AppCopilotRoute
   AppCrmRoute: typeof AppCrmRoute
+  AppDealroomsRoute: typeof AppDealroomsRoute
   AppDocumentsRoute: typeof AppDocumentsRoute
   AppKieRoute: typeof AppKieRoute
   AppLeadsRoute: typeof AppLeadsRoute
@@ -321,6 +341,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppCommandRoute: AppCommandRoute,
   AppCopilotRoute: AppCopilotRoute,
   AppCrmRoute: AppCrmRoute,
+  AppDealroomsRoute: AppDealroomsRoute,
   AppDocumentsRoute: AppDocumentsRoute,
   AppKieRoute: AppKieRoute,
   AppLeadsRoute: AppLeadsRoute,
