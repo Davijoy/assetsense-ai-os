@@ -20,6 +20,7 @@ import { Route as AppKieRouteImport } from './routes/app.kie'
 import { Route as AppDocumentsRouteImport } from './routes/app.documents'
 import { Route as AppCrmRouteImport } from './routes/app.crm'
 import { Route as AppCopilotRouteImport } from './routes/app.copilot'
+import { Route as AppCommandRouteImport } from './routes/app.command'
 import { Route as AppBiRouteImport } from './routes/app.bi'
 import { Route as AppSettingsBrandingRouteImport } from './routes/app.settings.branding'
 
@@ -78,6 +79,11 @@ const AppCopilotRoute = AppCopilotRouteImport.update({
   path: '/copilot',
   getParentRoute: () => AppRoute,
 } as any)
+const AppCommandRoute = AppCommandRouteImport.update({
+  id: '/command',
+  path: '/command',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppBiRoute = AppBiRouteImport.update({
   id: '/bi',
   path: '/bi',
@@ -93,6 +99,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/app/bi': typeof AppBiRoute
+  '/app/command': typeof AppCommandRoute
   '/app/copilot': typeof AppCopilotRoute
   '/app/crm': typeof AppCrmRoute
   '/app/documents': typeof AppDocumentsRoute
@@ -107,6 +114,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/app/bi': typeof AppBiRoute
+  '/app/command': typeof AppCommandRoute
   '/app/copilot': typeof AppCopilotRoute
   '/app/crm': typeof AppCrmRoute
   '/app/documents': typeof AppDocumentsRoute
@@ -123,6 +131,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/app/bi': typeof AppBiRoute
+  '/app/command': typeof AppCommandRoute
   '/app/copilot': typeof AppCopilotRoute
   '/app/crm': typeof AppCrmRoute
   '/app/documents': typeof AppDocumentsRoute
@@ -140,6 +149,7 @@ export interface FileRouteTypes {
     | '/'
     | '/app'
     | '/app/bi'
+    | '/app/command'
     | '/app/copilot'
     | '/app/crm'
     | '/app/documents'
@@ -154,6 +164,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/app/bi'
+    | '/app/command'
     | '/app/copilot'
     | '/app/crm'
     | '/app/documents'
@@ -169,6 +180,7 @@ export interface FileRouteTypes {
     | '/'
     | '/app'
     | '/app/bi'
+    | '/app/command'
     | '/app/copilot'
     | '/app/crm'
     | '/app/documents'
@@ -265,6 +277,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppCopilotRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/command': {
+      id: '/app/command'
+      path: '/command'
+      fullPath: '/app/command'
+      preLoaderRoute: typeof AppCommandRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/bi': {
       id: '/app/bi'
       path: '/bi'
@@ -284,6 +303,7 @@ declare module '@tanstack/react-router' {
 
 interface AppRouteChildren {
   AppBiRoute: typeof AppBiRoute
+  AppCommandRoute: typeof AppCommandRoute
   AppCopilotRoute: typeof AppCopilotRoute
   AppCrmRoute: typeof AppCrmRoute
   AppDocumentsRoute: typeof AppDocumentsRoute
@@ -298,6 +318,7 @@ interface AppRouteChildren {
 
 const AppRouteChildren: AppRouteChildren = {
   AppBiRoute: AppBiRoute,
+  AppCommandRoute: AppCommandRoute,
   AppCopilotRoute: AppCopilotRoute,
   AppCrmRoute: AppCrmRoute,
   AppDocumentsRoute: AppDocumentsRoute,
@@ -319,3 +340,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
