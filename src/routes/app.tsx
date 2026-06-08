@@ -20,7 +20,6 @@ import {
   Network,
   ShieldAlert,
   Globe2,
-  Newspaper,
   Workflow,
   Banknote,
   GitBranch,
