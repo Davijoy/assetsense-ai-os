@@ -85,6 +85,95 @@ export type Database = {
           },
         ]
       }
+      kie_doc_chunks: {
+        Row: {
+          chunk_index: number
+          content: string
+          created_at: string
+          document_id: string
+          embedding: string
+          id: string
+          token_count: number
+        }
+        Insert: {
+          chunk_index: number
+          content: string
+          created_at?: string
+          document_id: string
+          embedding: string
+          id?: string
+          token_count?: number
+        }
+        Update: {
+          chunk_index?: number
+          content?: string
+          created_at?: string
+          document_id?: string
+          embedding?: string
+          id?: string
+          token_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kie_doc_chunks_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "kie_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kie_documents: {
+        Row: {
+          chunk_count: number
+          confidence: number
+          created_at: string
+          doc_type: string
+          entities: Json
+          id: string
+          insights: Json
+          name: string
+          project: string | null
+          size_bytes: number
+          status: string
+          storage_path: string | null
+          summary: string | null
+          updated_at: string
+        }
+        Insert: {
+          chunk_count?: number
+          confidence?: number
+          created_at?: string
+          doc_type?: string
+          entities?: Json
+          id?: string
+          insights?: Json
+          name: string
+          project?: string | null
+          size_bytes?: number
+          status?: string
+          storage_path?: string | null
+          summary?: string | null
+          updated_at?: string
+        }
+        Update: {
+          chunk_count?: number
+          confidence?: number
+          created_at?: string
+          doc_type?: string
+          entities?: Json
+          id?: string
+          insights?: Json
+          name?: string
+          project?: string | null
+          size_bytes?: number
+          status?: string
+          storage_path?: string | null
+          summary?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       leads: {
         Row: {
           budget_inr: number | null
@@ -171,7 +260,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      match_kie_chunks: {
+        Args: { match_count?: number; query_embedding: string }
+        Returns: {
+          content: string
+          document_id: string
+          document_name: string
+          id: string
+          similarity: number
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

@@ -20,12 +20,13 @@ import {
   Network,
   ShieldAlert,
   Globe2,
-  Newspaper,
   Workflow,
   Banknote,
   GitBranch,
   ScrollText,
   Gauge,
+  MessageSquareText,
+  Package,
 } from "lucide-react";
 
 export const Route = createFileRoute("/app")({
@@ -43,20 +44,21 @@ const nav = [
   { to: "/app/leads", label: "Leads", icon: Users },
   { to: "/app/marketplace", label: "Marketplace", icon: Building2 },
   { to: "/app/voice", label: "AI Voice", icon: PhoneCall },
-  { to: "/app/marketing", label: "Marketing", icon: Megaphone, soon: true },
+  { to: "/app/marketing", label: "Marketing", icon: Megaphone },
   { to: "/app/bi", label: "Intelligence", icon: BarChart3 },
   { to: "/app/partners", label: "Partners", icon: Handshake, soon: true },
 ];
 
 const kieNav = [
   { to: "/app/command", label: "Executive Command", icon: Command },
-  { to: "/app/feed", label: "AI Feed", icon: Newspaper },
   { to: "/app/copilot", label: "AI Copilot", icon: Sparkles },
+  { to: "/app/docchat", label: "Document Chat", icon: MessageSquareText },
   { to: "/app/recommendations", label: "Recommendations", icon: Lightbulb },
   { to: "/app/workflows", label: "Autonomous Workflows", icon: Workflow },
   { to: "/app/dealrooms", label: "Deal Rooms", icon: GitBranch },
   { to: "/app/risk", label: "Risk Center", icon: ShieldAlert },
   { to: "/app/market", label: "Market Intelligence", icon: Globe2 },
+  { to: "/app/inventory", label: "Inventory Intelligence", icon: Package },
   { to: "/app/collections", label: "Collections AI", icon: Banknote },
   { to: "/app/salesintel", label: "Sales Intelligence", icon: Gauge },
   { to: "/app/graph", label: "Intelligence Graph", icon: Network },
