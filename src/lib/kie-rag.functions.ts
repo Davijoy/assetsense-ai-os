@@ -110,19 +110,15 @@ export const ingestKieDocument = createServerFn({ method: "POST" })
         allEmbeddings.push(...embeds);
       }
 
-      // 3) insert chunks
+      // 3) insert chunks. pgvector accepts a stringified array like "[0.1,0.2,...]"
       const rows = chunks.map((content, idx) => ({
         document_id: docId,
         chunk_index: idx,
         content,
-        embedding: allEmbeddings[idx] as unknown as string,
+        embedding: `[${allEmbeddings[idx].join(",")}]`,
         token_count: Math.round(content.length / 4),
       }));
-      // supabase-js accepts number[] for vector columns when sent as JSON
-      const chunkInsert = await supabaseAdmin
-        .from("kie_doc_chunks")
-        // @ts-expect-error vector column accepts number[] at runtime
-        .insert(rows.map((r) => ({ ...r, embedding: allEmbeddings[r.chunk_index] })));
+      const chunkInsert = await supabaseAdmin.from("kie_doc_chunks").insert(rows);
       if (chunkInsert.error) throw new Error(chunkInsert.error.message);
 
       // 4) summarize + extract via chat model
