@@ -22,6 +22,7 @@ import { Route as AppMarketingRouteImport } from './routes/app.marketing'
 import { Route as AppMarketRouteImport } from './routes/app.market'
 import { Route as AppLeadsRouteImport } from './routes/app.leads'
 import { Route as AppKieRouteImport } from './routes/app.kie'
+import { Route as AppInventoryRouteImport } from './routes/app.inventory'
 import { Route as AppGraphRouteImport } from './routes/app.graph'
 import { Route as AppGovernanceRouteImport } from './routes/app.governance'
 import { Route as AppFeedRouteImport } from './routes/app.feed'
@@ -100,6 +101,11 @@ const AppKieRoute = AppKieRouteImport.update({
   path: '/kie',
   getParentRoute: () => AppRoute,
 } as any)
+const AppInventoryRoute = AppInventoryRouteImport.update({
+  id: '/inventory',
+  path: '/inventory',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppGraphRoute = AppGraphRouteImport.update({
   id: '/graph',
   path: '/graph',
@@ -175,6 +181,7 @@ export interface FileRoutesByFullPath {
   '/app/feed': typeof AppFeedRoute
   '/app/governance': typeof AppGovernanceRoute
   '/app/graph': typeof AppGraphRoute
+  '/app/inventory': typeof AppInventoryRoute
   '/app/kie': typeof AppKieRoute
   '/app/leads': typeof AppLeadsRoute
   '/app/market': typeof AppMarketRoute
@@ -201,6 +208,7 @@ export interface FileRoutesByTo {
   '/app/feed': typeof AppFeedRoute
   '/app/governance': typeof AppGovernanceRoute
   '/app/graph': typeof AppGraphRoute
+  '/app/inventory': typeof AppInventoryRoute
   '/app/kie': typeof AppKieRoute
   '/app/leads': typeof AppLeadsRoute
   '/app/market': typeof AppMarketRoute
@@ -229,6 +237,7 @@ export interface FileRoutesById {
   '/app/feed': typeof AppFeedRoute
   '/app/governance': typeof AppGovernanceRoute
   '/app/graph': typeof AppGraphRoute
+  '/app/inventory': typeof AppInventoryRoute
   '/app/kie': typeof AppKieRoute
   '/app/leads': typeof AppLeadsRoute
   '/app/market': typeof AppMarketRoute
@@ -258,6 +267,7 @@ export interface FileRouteTypes {
     | '/app/feed'
     | '/app/governance'
     | '/app/graph'
+    | '/app/inventory'
     | '/app/kie'
     | '/app/leads'
     | '/app/market'
@@ -284,6 +294,7 @@ export interface FileRouteTypes {
     | '/app/feed'
     | '/app/governance'
     | '/app/graph'
+    | '/app/inventory'
     | '/app/kie'
     | '/app/leads'
     | '/app/market'
@@ -311,6 +322,7 @@ export interface FileRouteTypes {
     | '/app/feed'
     | '/app/governance'
     | '/app/graph'
+    | '/app/inventory'
     | '/app/kie'
     | '/app/leads'
     | '/app/market'
@@ -423,6 +435,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppKieRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/inventory': {
+      id: '/app/inventory'
+      path: '/inventory'
+      fullPath: '/app/inventory'
+      preLoaderRoute: typeof AppInventoryRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/graph': {
       id: '/app/graph'
       path: '/graph'
@@ -522,6 +541,7 @@ interface AppRouteChildren {
   AppFeedRoute: typeof AppFeedRoute
   AppGovernanceRoute: typeof AppGovernanceRoute
   AppGraphRoute: typeof AppGraphRoute
+  AppInventoryRoute: typeof AppInventoryRoute
   AppKieRoute: typeof AppKieRoute
   AppLeadsRoute: typeof AppLeadsRoute
   AppMarketRoute: typeof AppMarketRoute
@@ -548,6 +568,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppFeedRoute: AppFeedRoute,
   AppGovernanceRoute: AppGovernanceRoute,
   AppGraphRoute: AppGraphRoute,
+  AppInventoryRoute: AppInventoryRoute,
   AppKieRoute: AppKieRoute,
   AppLeadsRoute: AppLeadsRoute,
   AppMarketRoute: AppMarketRoute,
