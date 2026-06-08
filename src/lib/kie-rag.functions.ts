@@ -206,9 +206,10 @@ export const chatWithKieDocs = createServerFn({ method: "POST" })
     if (!lastUser) return { reply: "(no question)", sources: [] };
 
     const [queryEmbedding] = await embedBatch(apiKey, [lastUser.content]);
+    const vectorLiteral = `[${queryEmbedding.join(",")}]`;
 
     const { data: matches, error } = await supabaseAdmin.rpc("match_kie_chunks", {
-      query_embedding: queryEmbedding as unknown as string,
+      query_embedding: vectorLiteral as unknown as string,
       match_count: 6,
     });
     if (error) throw new Error(error.message);
