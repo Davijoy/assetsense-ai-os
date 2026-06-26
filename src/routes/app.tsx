@@ -172,8 +172,8 @@ function AppShell() {
         </div>
       </aside>
 
-      <div className="md:pl-64">
-        <header className="sticky top-0 z-40 flex h-16 items-center gap-4 border-b border-border/60 bg-background/70 px-6 backdrop-blur-xl">
+      <div className="flex h-screen flex-col md:pl-64">
+        <header className="flex h-16 shrink-0 items-center gap-4 border-b border-border/60 bg-background/70 px-6 backdrop-blur-xl">
           <div className="flex flex-1 items-center gap-3">
             <Search className="h-4 w-4 text-muted-foreground" />
             <input
@@ -189,7 +189,7 @@ function AppShell() {
             <Plus className="h-3.5 w-3.5" /> New
           </button>
         </header>
-        <main className="px-6 py-8">
+        <main className="flex-1 overflow-y-auto px-6 py-8">
           <Outlet />
         </main>
       </div>
