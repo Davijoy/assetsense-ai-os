@@ -83,7 +83,7 @@ function AppShell() {
             <span className="text-[9px] uppercase tracking-[0.22em] text-gold/80">Group</span>
           </div>
         </Link>
-        <nav className="flex-1 space-y-1 px-3 py-6">
+        <nav className="flex-1 space-y-0.5 overflow-y-auto px-3 py-4">
           <p className="px-3 pb-2 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Workspace</p>
           {nav.map((n) => {
             const active = path.startsWith(n.to);
@@ -92,7 +92,7 @@ function AppShell() {
               <Link
                 key={n.to}
                 to={n.to}
-                className={`group flex items-center justify-between rounded-md px-3 py-2 text-sm transition-colors ${
+                className={`group flex items-center justify-between rounded-md px-3 py-1.5 text-[13px] transition-colors ${
                   active
                     ? "bg-primary/10 text-foreground"
                     : "text-muted-foreground hover:bg-sidebar-accent hover:text-foreground"
@@ -110,7 +110,7 @@ function AppShell() {
               </Link>
             );
           })}
-          <p className="mt-6 px-3 pb-2 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+          <p className="mt-4 px-3 pb-1 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
             Knowledge Engine
           </p>
           {kieNav.map((n) => {
@@ -120,7 +120,7 @@ function AppShell() {
               <Link
                 key={n.to}
                 to={n.to}
-                className={`group flex items-center justify-between rounded-md px-3 py-2 text-sm transition-colors ${
+                className={`group flex items-center justify-between rounded-md px-3 py-1.5 text-[13px] transition-colors ${
                   active
                     ? "bg-primary/10 text-foreground"
                     : "text-muted-foreground hover:bg-sidebar-accent hover:text-foreground"
@@ -136,7 +136,7 @@ function AppShell() {
               </Link>
             );
           })}
-          <p className="mt-6 px-3 pb-2 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+          <p className="mt-4 px-3 pb-1 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
             Admin
           </p>
           {adminNav.map((n) => {
@@ -146,7 +146,7 @@ function AppShell() {
               <Link
                 key={n.to}
                 to={n.to}
-                className={`group flex items-center justify-between rounded-md px-3 py-2 text-sm transition-colors ${
+                className={`group flex items-center justify-between rounded-md px-3 py-1.5 text-[13px] transition-colors ${
                   active
                     ? "bg-primary/10 text-foreground"
                     : "text-muted-foreground hover:bg-sidebar-accent hover:text-foreground"
