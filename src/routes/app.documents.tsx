@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { getInsightExplanation } from "@/lib/insights.functions";
+import { getInsightExplanation, getDatasetDetail } from "@/lib/insights.functions";
 import {
   Dialog,
   DialogContent,
@@ -124,8 +124,10 @@ const INSIGHTS = [
 
 function Documents() {
   const [open, setOpen] = useState<number | null>(null);
+  const [datasetId, setDatasetId] = useState<string | null>(null);
   const active = open !== null ? INSIGHTS[open] : null;
   const fetchExplain = useServerFn(getInsightExplanation);
+  const fetchDataset = useServerFn(getDatasetDetail);
   const { data: method, isLoading: methodLoading } = useQuery({
     queryKey: ["insight-explain", active?.title],
     enabled: !!active,
@@ -138,6 +140,12 @@ function Documents() {
           docType: active!.docType,
         },
       }),
+    staleTime: 60_000,
+  });
+  const { data: dataset, isLoading: datasetLoading } = useQuery({
+    queryKey: ["dataset-detail", datasetId],
+    enabled: !!datasetId,
+    queryFn: () => fetchDataset({ data: { id: datasetId! } }),
     staleTime: 60_000,
   });
   return (
