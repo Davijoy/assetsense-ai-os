@@ -15,8 +15,7 @@ export function Hero() {
             <span>Strength. Vision. Legacy.</span>
           </div>
           <h1 className="mt-8 font-display text-5xl leading-[1.05] sm:text-6xl md:text-7xl lg:text-8xl">
-            India's <em className="text-gradient-emerald not-italic">Intelligent</em>
-            <br /> Real Estate <span className="italic">Operating System</span>
+            The Intelligence Layer <em className="text-gradient-emerald not-italic">for Real Estate</em>
           </h1>
           <p className="mx-auto mt-8 max-w-2xl text-lg text-muted-foreground leading-relaxed">
             Empowering developers, brokers, investors and enterprises through intelligence,
