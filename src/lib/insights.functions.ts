@@ -15,6 +15,29 @@ export type InsightDataset = {
   coverage: string;
   updated: string;
 };
+export type DatasetField = {
+  name: string;
+  type: string;
+  description: string;
+  pii?: boolean;
+};
+export type DatasetDetail = {
+  id: string;
+  description: string;
+  rows: string;
+  coverage: string;
+  updated: string;
+  source: string;
+  owner: string;
+  refreshCadence: string;
+  retention: string;
+  freshnessSlaMins: number;
+  lastSyncedAt: string;
+  primaryKey: string[];
+  fields: DatasetField[];
+  sampleRows: Record<string, string | number>[];
+  lineage: string[];
+};
 export type FormulaRef = { symbol: string; meaning: string; source: string };
 export type InsightExplanation = {
   model: string;
