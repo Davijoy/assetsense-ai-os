@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { getInsightExplanation } from "@/lib/insights.functions";
+import { getInsightExplanation, getDatasetDetail } from "@/lib/insights.functions";
 import {
   Dialog,
   DialogContent,
@@ -124,8 +124,10 @@ const INSIGHTS = [
 
 function Documents() {
   const [open, setOpen] = useState<number | null>(null);
+  const [datasetId, setDatasetId] = useState<string | null>(null);
   const active = open !== null ? INSIGHTS[open] : null;
   const fetchExplain = useServerFn(getInsightExplanation);
+  const fetchDataset = useServerFn(getDatasetDetail);
   const { data: method, isLoading: methodLoading } = useQuery({
     queryKey: ["insight-explain", active?.title],
     enabled: !!active,
@@ -138,6 +140,12 @@ function Documents() {
           docType: active!.docType,
         },
       }),
+    staleTime: 60_000,
+  });
+  const { data: dataset, isLoading: datasetLoading } = useQuery({
+    queryKey: ["dataset-detail", datasetId],
+    enabled: !!datasetId,
+    queryFn: () => fetchDataset({ data: { id: datasetId! } }),
     staleTime: 60_000,
   });
   return (
@@ -376,15 +384,23 @@ function Documents() {
                   </div>
                   <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
                     {method.datasets.map((d) => (
-                      <div key={d.id} className="rounded-md border border-border/60 bg-surface/60 p-2">
-                        <div className="font-mono text-[11px] text-primary">{d.id}</div>
+                      <button
+                        key={d.id}
+                        type="button"
+                        onClick={() => setDatasetId(d.id)}
+                        className="group rounded-md border border-border/60 bg-surface/60 p-2 text-left transition hover:border-primary/50 hover:bg-surface"
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="font-mono text-[11px] text-primary">{d.id}</div>
+                          <ArrowUpRight className="h-3 w-3 text-muted-foreground group-hover:text-primary" />
+                        </div>
                         <div className="mt-0.5 text-[11px] text-foreground">{d.description}</div>
                         <div className="mt-1 flex flex-wrap gap-x-2 text-[10px] text-muted-foreground">
                           <span>{d.rows}</span>
                           <span>· {d.coverage}</span>
                           <span>· updated {d.updated}</span>
                         </div>
-                      </div>
+                      </button>
                     ))}
                   </div>
                 </div>
@@ -431,6 +447,152 @@ function Documents() {
               </div>
               )}
             </>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!datasetId} onOpenChange={(v) => !v && setDatasetId(null)}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <span className="w-fit rounded-full bg-primary/10 px-2 py-0.5 text-[10px] uppercase tracking-wider text-primary">
+              Dataset
+            </span>
+            <DialogTitle className="font-mono text-xl">{datasetId}</DialogTitle>
+            <DialogDescription>
+              {dataset?.description ?? "Loading dataset metadata…"}
+            </DialogDescription>
+          </DialogHeader>
+
+          {datasetLoading || !dataset ? (
+            <div className="space-y-3">
+              <div className="h-16 animate-pulse rounded-lg bg-surface" />
+              <div className="h-32 animate-pulse rounded-lg bg-surface" />
+              <div className="h-32 animate-pulse rounded-lg bg-surface" />
+            </div>
+          ) : (
+            <div className="space-y-4 text-sm">
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                {[
+                  { k: "Rows", v: dataset.rows },
+                  { k: "Coverage", v: dataset.coverage },
+                  { k: "Refresh", v: dataset.refreshCadence },
+                  { k: "Retention", v: dataset.retention },
+                ].map((m) => (
+                  <div key={m.k} className="rounded-md border border-border/60 bg-surface/60 p-2">
+                    <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{m.k}</div>
+                    <div className="mt-0.5 text-[12px] text-foreground">{m.v}</div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="rounded-md border border-primary/20 bg-primary/5 p-3">
+                <div className="flex items-center justify-between text-[11px]">
+                  <div>
+                    <div className="text-[10px] uppercase tracking-wider text-primary">Sync recency</div>
+                    <div className="mt-0.5 text-foreground">
+                      Last synced <span className="font-mono">{dataset.lastSyncedAt}</span>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Freshness SLA</div>
+                    <div className="mt-0.5 text-foreground">
+                      {dataset.freshnessSlaMins === 0
+                        ? "live"
+                        : dataset.freshnessSlaMins >= 1440
+                          ? `${Math.round(dataset.freshnessSlaMins / 1440)}d`
+                          : dataset.freshnessSlaMins >= 60
+                            ? `${Math.round(dataset.freshnessSlaMins / 60)}h`
+                            : `${dataset.freshnessSlaMins}m`}
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-2 text-[11px] text-muted-foreground">
+                  Owner: <span className="text-foreground">{dataset.owner}</span> · Source: <span className="text-foreground">{dataset.source}</span>
+                </div>
+              </div>
+
+              <div>
+                <div className="mb-1 flex items-center justify-between">
+                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Schema</div>
+                  <div className="text-[10px] text-muted-foreground">
+                    PK: <span className="font-mono text-primary">{dataset.primaryKey.join(", ")}</span>
+                  </div>
+                </div>
+                <div className="overflow-hidden rounded-md border border-border/60">
+                  <table className="w-full text-[11px]">
+                    <thead className="bg-surface text-muted-foreground">
+                      <tr>
+                        <th className="px-2 py-1.5 text-left font-medium">Field</th>
+                        <th className="px-2 py-1.5 text-left font-medium">Type</th>
+                        <th className="px-2 py-1.5 text-left font-medium">Description</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border/60">
+                      {dataset.fields.map((f) => (
+                        <tr key={f.name}>
+                          <td className="px-2 py-1.5 font-mono text-foreground">
+                            {f.name}
+                            {f.pii && (
+                              <span className="ml-1.5 rounded-sm bg-yellow-500/10 px-1 py-0.5 text-[9px] uppercase tracking-wider text-yellow-400">
+                                PII
+                              </span>
+                            )}
+                          </td>
+                          <td className="px-2 py-1.5 font-mono text-[10px] text-primary">{f.type}</td>
+                          <td className="px-2 py-1.5 text-muted-foreground">{f.description}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div>
+                <div className="mb-1 text-[10px] uppercase tracking-wider text-muted-foreground">
+                  Sample rows ({dataset.sampleRows.length})
+                </div>
+                <div className="overflow-x-auto rounded-md border border-border/60">
+                  <table className="w-full text-[11px]">
+                    <thead className="bg-surface text-muted-foreground">
+                      <tr>
+                        {dataset.fields.map((f) => (
+                          <th key={f.name} className="whitespace-nowrap px-2 py-1.5 text-left font-medium">
+                            {f.name}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border/60">
+                      {dataset.sampleRows.map((row, i) => (
+                        <tr key={i}>
+                          {dataset.fields.map((f) => (
+                            <td key={f.name} className="whitespace-nowrap px-2 py-1.5 font-mono text-foreground">
+                              {String(row[f.name] ?? "—")}
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div>
+                <div className="mb-1 text-[10px] uppercase tracking-wider text-muted-foreground">Lineage</div>
+                <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
+                  {dataset.lineage.map((step, i) => (
+                    <span key={step} className="flex items-center gap-1.5">
+                      <span className="rounded-md border border-border/60 bg-surface px-2 py-0.5 font-mono text-foreground">
+                        {step}
+                      </span>
+                      {i < dataset.lineage.length - 1 && (
+                        <span className="text-muted-foreground">→</span>
+                      )}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
           )}
         </DialogContent>
       </Dialog>
