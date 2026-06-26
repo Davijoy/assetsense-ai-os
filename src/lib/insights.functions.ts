@@ -590,3 +590,9 @@ export const getInsightExplanation = createServerFn({ method: "POST" })
       generatedAt: new Date().toISOString(),
     };
   });
+
+export const getDatasetDetail = createServerFn({ method: "POST" })
+  .inputValidator((d: { id: string }) => d)
+  .handler(async ({ data }): Promise<DatasetDetail | null> => {
+    return DATASETS[data.id] ?? null;
+  });
