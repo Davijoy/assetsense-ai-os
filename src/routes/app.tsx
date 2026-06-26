@@ -75,7 +75,7 @@ function AppShell() {
   const path = useRouterState({ select: (s) => s.location.pathname });
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <aside className="fixed inset-y-0 left-0 hidden w-64 flex-col border-r border-border/60 bg-sidebar lg:flex">
+      <aside className="fixed inset-y-0 left-0 hidden w-64 flex-col border-r border-border/60 bg-sidebar md:flex">
         <Link to="/" className="flex h-16 items-center gap-2 px-6 border-b border-border/60">
           <SentinelMark />
           <div className="flex flex-col leading-none">
@@ -172,7 +172,7 @@ function AppShell() {
         </div>
       </aside>
 
-      <div className="lg:pl-64">
+      <div className="md:pl-64">
         <header className="sticky top-0 z-40 flex h-16 items-center gap-4 border-b border-border/60 bg-background/70 px-6 backdrop-blur-xl">
           <div className="flex flex-1 items-center gap-3">
             <Search className="h-4 w-4 text-muted-foreground" />
