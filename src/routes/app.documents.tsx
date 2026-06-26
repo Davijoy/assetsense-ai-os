@@ -1,5 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { getInsightExplanation } from "@/lib/insights.functions";
 import {
   Dialog,
   DialogContent,
@@ -92,80 +95,48 @@ const PIPELINE = [
 const INSIGHTS = [
   {
     tag: "Market Report",
+    docType: "Market Report",
+    project: "Bengaluru / Whitefield",
     title: "Whitefield demand outpaces supply",
     body: "Demand grew 14% YoY while inventory grew only 4%. Likely 6–9% price uplift over next 2 quarters.",
     rec: "Increase acquisition focus on Whitefield 2BHK inventory.",
-    method: {
-      model: "Gradient Boosted Regression (XGBoost) + Prophet trend decomposition",
-      inputs: [
-        "MagicBricks + 99acres listing velocity (last 8 quarters)",
-        "RERA new-launch supply filings for PIN 560066",
-        "Sentinel CRM lead intent scores for Whitefield 2BHK",
-        "Bengaluru micro-market price index (CREDAI)",
-      ],
-      formula: "Δprice = f(demand_growth − supply_growth, absorption_rate, lead_intent_index)",
-      confidence: 92,
-      drivers: [
-        { label: "Demand vs supply gap", weight: 0.46 },
-        { label: "Lead intent surge (CRM)", weight: 0.27 },
-        { label: "Comparable price trend", weight: 0.18 },
-        { label: "Seasonality (Q1/Q2)", weight: 0.09 },
-      ],
-      refreshed: "Refreshed 2h ago · retrained weekly",
-    },
   },
   {
     tag: "Inventory",
+    docType: "Inventory",
+    project: "Lodha Park · Tower B",
     title: "Tower B absorption stalled",
     body: "Booking velocity fell 38% over 6 weeks despite traffic remaining flat. Pricing 7% above comparable inventory.",
     rec: "Launch a 60-day incentive campaign on Tower B 3BHK units.",
-    method: {
-      model: "Bayesian Change-Point Detection + Poisson booking-velocity model",
-      inputs: [
-        "Booking events per week (Tower B, 3BHK)",
-        "Site-visit traffic and call-volume (Sentinel Voice AI)",
-        "Listed price vs comparable inventory within 3km",
-        "Channel-partner conversion ratios",
-      ],
-      formula: "velocity_drop = (μ_recent − μ_baseline) / μ_baseline   |   price_gap = listed/comp − 1",
-      confidence: 88,
-      drivers: [
-        { label: "Booking velocity drop", weight: 0.52 },
-        { label: "Price premium vs comps", weight: 0.31 },
-        { label: "Flat site-visit traffic", weight: 0.12 },
-        { label: "Partner conversion dip", weight: 0.05 },
-      ],
-      refreshed: "Refreshed 35m ago · monitored hourly",
-    },
   },
   {
     tag: "RERA",
+    docType: "RERA",
+    project: "Prestige Falcon City",
     title: "3 projects missing Q1 RERA filings",
     body: "Compliance risk flagged across Prestige Falcon, Lodha Trump, Brigade Cornerstone.",
     rec: "Notify legal team — file before Mar 31 deadline.",
-    method: {
-      model: "Rule-based compliance engine + NER (spaCy transformer) on RERA portal scrape",
-      inputs: [
-        "RERA state portal quarterly filing index",
-        "Project-to-RERA-ID mapping from Sentinel Knowledge Graph",
-        "Filing deadline calendar (state-wise)",
-        "Historical filing latency per developer",
-      ],
-      formula: "risk = missing_filings × days_to_deadline⁻¹ × developer_latency_score",
-      confidence: 99,
-      drivers: [
-        { label: "Missing Q1 filings (3)", weight: 0.6 },
-        { label: "Days to Mar 31 deadline", weight: 0.25 },
-        { label: "Developer past latency", weight: 0.15 },
-      ],
-      refreshed: "Refreshed 12m ago · synced with RERA portal daily",
-    },
   },
 ];
 
 function Documents() {
   const [open, setOpen] = useState<number | null>(null);
   const active = open !== null ? INSIGHTS[open] : null;
+  const fetchExplain = useServerFn(getInsightExplanation);
+  const { data: method, isLoading: methodLoading } = useQuery({
+    queryKey: ["insight-explain", active?.title],
+    enabled: !!active,
+    queryFn: () =>
+      fetchExplain({
+        data: {
+          tag: active!.tag,
+          title: active!.title,
+          project: active!.project,
+          docType: active!.docType,
+        },
+      }),
+    staleTime: 60_000,
+  });
   return (
     <div className="space-y-8">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
@@ -296,16 +267,29 @@ function Documents() {
                 <DialogDescription>{active.body}</DialogDescription>
               </DialogHeader>
 
+              {methodLoading || !method ? (
+                <div className="space-y-3 text-sm">
+                  <div className="h-16 animate-pulse rounded-lg bg-surface" />
+                  <div className="h-24 animate-pulse rounded-lg bg-surface" />
+                  <div className="h-20 animate-pulse rounded-lg bg-surface" />
+                  <div className="text-xs text-muted-foreground">
+                    Fetching explanation payload from backend…
+                  </div>
+                </div>
+              ) : (
               <div className="space-y-4 text-sm">
                 <div className="rounded-lg border border-primary/20 bg-primary/5 p-3">
                   <div className="text-[10px] uppercase tracking-wider text-primary">Model / Algorithm</div>
-                  <div className="mt-1 font-medium">{active.method.model}</div>
+                  <div className="mt-1 font-medium">{method.model}</div>
+                  <div className="mt-0.5 text-[11px] text-muted-foreground">
+                    {method.algorithmFamily}
+                  </div>
                 </div>
 
                 <div>
                   <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Data inputs</div>
                   <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
-                    {active.method.inputs.map((x) => (
+                    {method.inputs.map((x) => (
                       <li key={x} className="flex gap-2">
                         <span className="text-primary">•</span> {x}
                       </li>
@@ -314,19 +298,33 @@ function Documents() {
                 </div>
 
                 <div>
+                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Features</div>
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {method.features.map((f) => (
+                      <span
+                        key={f}
+                        className="rounded-md border border-border/60 bg-surface px-2 py-0.5 font-mono text-[10px] text-foreground"
+                      >
+                        {f}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
                   <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Formula</div>
                   <pre className="mt-1 overflow-x-auto rounded-md border border-border/60 bg-surface p-2 text-[11px] text-foreground">
-{active.method.formula}
+{method.formula}
                   </pre>
                 </div>
 
                 <div>
                   <div className="flex items-center justify-between">
                     <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Top weighted drivers</div>
-                    <div className="text-xs text-primary">Confidence {active.method.confidence}%</div>
+                    <div className="text-xs text-primary">Confidence {method.confidence}%</div>
                   </div>
                   <div className="mt-2 space-y-2">
-                    {active.method.drivers.map((d) => (
+                    {method.drivers.map((d) => (
                       <div key={d.label}>
                         <div className="flex justify-between text-xs">
                           <span>{d.label}</span>
@@ -344,9 +342,10 @@ function Documents() {
                 </div>
 
                 <div className="border-t border-border/60 pt-3 text-xs text-muted-foreground">
-                  {active.method.refreshed}
+                  {method.refreshed} · payload generated server-side
                 </div>
               </div>
+              )}
             </>
           )}
         </DialogContent>
