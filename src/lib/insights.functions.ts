@@ -35,7 +35,7 @@ export type DatasetDetail = {
   lastSyncedAt: string;
   primaryKey: string[];
   fields: DatasetField[];
-  sampleRows: Record<string, string | number>[];
+  sampleRows: Record<string, string | number | boolean>[];
   lineage: string[];
 };
 export type FormulaRef = { symbol: string; meaning: string; source: string };
