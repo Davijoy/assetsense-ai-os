@@ -22,6 +22,9 @@ import {
   Network,
   ArrowUpRight,
   Info,
+  Database,
+  BookOpen,
+  ExternalLink,
 } from "lucide-react";
 
 export const Route = createFileRoute("/app/documents")({
@@ -316,6 +319,28 @@ function Documents() {
                   <pre className="mt-1 overflow-x-auto rounded-md border border-border/60 bg-surface p-2 text-[11px] text-foreground">
 {method.formula}
                   </pre>
+                  {method.formulaRefs?.length > 0 && (
+                    <div className="mt-2 overflow-hidden rounded-md border border-border/60">
+                      <table className="w-full text-[11px]">
+                        <thead className="bg-surface text-muted-foreground">
+                          <tr>
+                            <th className="px-2 py-1.5 text-left font-medium">Symbol</th>
+                            <th className="px-2 py-1.5 text-left font-medium">Meaning</th>
+                            <th className="px-2 py-1.5 text-left font-medium">Source</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-border/60">
+                          {method.formulaRefs.map((r) => (
+                            <tr key={r.symbol}>
+                              <td className="px-2 py-1.5 font-mono text-foreground">{r.symbol}</td>
+                              <td className="px-2 py-1.5 text-muted-foreground">{r.meaning}</td>
+                              <td className="px-2 py-1.5 font-mono text-[10px] text-primary">{r.source}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                 </div>
 
                 <div>
@@ -343,6 +368,65 @@ function Documents() {
 
                 <div className="border-t border-border/60 pt-3 text-xs text-muted-foreground">
                   {method.refreshed} · payload generated server-side
+                </div>
+
+                <div>
+                  <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-muted-foreground">
+                    <Database className="h-3 w-3" /> Datasets used
+                  </div>
+                  <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    {method.datasets.map((d) => (
+                      <div key={d.id} className="rounded-md border border-border/60 bg-surface/60 p-2">
+                        <div className="font-mono text-[11px] text-primary">{d.id}</div>
+                        <div className="mt-0.5 text-[11px] text-foreground">{d.description}</div>
+                        <div className="mt-1 flex flex-wrap gap-x-2 text-[10px] text-muted-foreground">
+                          <span>{d.rows}</span>
+                          <span>· {d.coverage}</span>
+                          <span>· updated {d.updated}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-muted-foreground">
+                    <BookOpen className="h-3 w-3" /> Source citations
+                  </div>
+                  <ul className="mt-2 space-y-1.5">
+                    {method.sources.map((s) => (
+                      <li
+                        key={s.ref}
+                        className="flex items-start justify-between gap-3 rounded-md border border-border/60 bg-surface/60 px-2.5 py-1.5 text-[11px]"
+                      >
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="rounded-sm bg-primary/10 px-1.5 py-0.5 text-[9px] uppercase tracking-wider text-primary">
+                              {s.type}
+                            </span>
+                            <span className="truncate text-foreground">{s.label}</span>
+                          </div>
+                          <div className="mt-0.5 font-mono text-[10px] text-muted-foreground">
+                            {s.ref} · synced {s.lastSync}
+                          </div>
+                        </div>
+                        {s.url && (
+                          <a
+                            href={s.url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1 text-[10px] text-primary hover:underline"
+                          >
+                            Open <ExternalLink className="h-3 w-3" />
+                          </a>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="rounded-md border border-dashed border-border/60 bg-surface/40 p-2 text-[10px] text-muted-foreground">
+                  Cite as: <span className="font-mono text-foreground">{method.citation}</span>
                 </div>
               </div>
               )}
