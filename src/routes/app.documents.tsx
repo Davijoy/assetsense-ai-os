@@ -384,15 +384,23 @@ function Documents() {
                   </div>
                   <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
                     {method.datasets.map((d) => (
-                      <div key={d.id} className="rounded-md border border-border/60 bg-surface/60 p-2">
-                        <div className="font-mono text-[11px] text-primary">{d.id}</div>
+                      <button
+                        key={d.id}
+                        type="button"
+                        onClick={() => setDatasetId(d.id)}
+                        className="group rounded-md border border-border/60 bg-surface/60 p-2 text-left transition hover:border-primary/50 hover:bg-surface"
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="font-mono text-[11px] text-primary">{d.id}</div>
+                          <ArrowUpRight className="h-3 w-3 text-muted-foreground group-hover:text-primary" />
+                        </div>
                         <div className="mt-0.5 text-[11px] text-foreground">{d.description}</div>
                         <div className="mt-1 flex flex-wrap gap-x-2 text-[10px] text-muted-foreground">
                           <span>{d.rows}</span>
                           <span>· {d.coverage}</span>
                           <span>· updated {d.updated}</span>
                         </div>
-                      </div>
+                      </button>
                     ))}
                   </div>
                 </div>
