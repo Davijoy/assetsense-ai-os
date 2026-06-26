@@ -267,7 +267,7 @@ function Documents() {
       </div>
 
       <Dialog open={open !== null} onOpenChange={(v) => !v && setOpen(null)}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
           {active && (
             <>
               <DialogHeader>
@@ -452,7 +452,7 @@ function Documents() {
       </Dialog>
 
       <Dialog open={!!datasetId} onOpenChange={(v) => !v && setDatasetId(null)}>
-        <DialogContent className="max-w-3xl">
+        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <span className="w-fit rounded-full bg-primary/10 px-2 py-0.5 text-[10px] uppercase tracking-wider text-primary">
               Dataset
