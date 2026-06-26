@@ -22,6 +22,9 @@ import {
   Network,
   ArrowUpRight,
   Info,
+  Database,
+  BookOpen,
+  ExternalLink,
 } from "lucide-react";
 
 export const Route = createFileRoute("/app/documents")({
