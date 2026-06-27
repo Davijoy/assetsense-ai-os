@@ -147,6 +147,51 @@ export type Database = {
           },
         ]
       }
+      documents_global: {
+        Row: {
+          created_at: string
+          doc_type: string
+          id: string
+          jurisdiction: string | null
+          metadata: Json
+          name: string
+          published_at: string | null
+          publisher: string | null
+          size_bytes: number
+          storage_path: string | null
+          summary: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          doc_type?: string
+          id?: string
+          jurisdiction?: string | null
+          metadata?: Json
+          name: string
+          published_at?: string | null
+          publisher?: string | null
+          size_bytes?: number
+          storage_path?: string | null
+          summary?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          doc_type?: string
+          id?: string
+          jurisdiction?: string | null
+          metadata?: Json
+          name?: string
+          published_at?: string | null
+          publisher?: string | null
+          size_bytes?: number
+          storage_path?: string | null
+          summary?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       feature_flags: {
         Row: {
           config: Json
@@ -338,6 +383,92 @@ export type Database = {
           },
         ]
       }
+      locations: {
+        Row: {
+          city: string
+          country: string
+          created_at: string
+          id: string
+          lat: number | null
+          lng: number | null
+          metadata: Json
+          polygon: Json | null
+          region: string | null
+          updated_at: string
+        }
+        Insert: {
+          city: string
+          country?: string
+          created_at?: string
+          id?: string
+          lat?: number | null
+          lng?: number | null
+          metadata?: Json
+          polygon?: Json | null
+          region?: string | null
+          updated_at?: string
+        }
+        Update: {
+          city?: string
+          country?: string
+          created_at?: string
+          id?: string
+          lat?: number | null
+          lng?: number | null
+          metadata?: Json
+          polygon?: Json | null
+          region?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      market_data: {
+        Row: {
+          created_at: string
+          id: string
+          location_id: string
+          metadata: Json
+          metric: string
+          period_end: string
+          period_start: string
+          source: string | null
+          unit: string | null
+          value: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          location_id: string
+          metadata?: Json
+          metric: string
+          period_end: string
+          period_start: string
+          source?: string | null
+          unit?: string | null
+          value: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          location_id?: string
+          metadata?: Json
+          metric?: string
+          period_end?: string
+          period_start?: string
+          source?: string | null
+          unit?: string | null
+          value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "market_data_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       permissions: {
         Row: {
           code: string
@@ -399,6 +530,211 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "properties_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      properties_global: {
+        Row: {
+          area_sqft: number | null
+          asset_class: string | null
+          attributes: Json
+          created_at: string
+          description: string | null
+          developer: string | null
+          id: string
+          location_id: string | null
+          name: string
+          price_inr: number | null
+          property_type: string
+          rera_id: string | null
+          slug: string | null
+          source_property_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          area_sqft?: number | null
+          asset_class?: string | null
+          attributes?: Json
+          created_at?: string
+          description?: string | null
+          developer?: string | null
+          id?: string
+          location_id?: string | null
+          name: string
+          price_inr?: number | null
+          property_type: string
+          rera_id?: string | null
+          slug?: string | null
+          source_property_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          area_sqft?: number | null
+          asset_class?: string | null
+          attributes?: Json
+          created_at?: string
+          description?: string | null
+          developer?: string | null
+          id?: string
+          location_id?: string | null
+          name?: string
+          price_inr?: number | null
+          property_type?: string
+          rera_id?: string | null
+          slug?: string | null
+          source_property_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "properties_global_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "properties_global_source_property_id_fkey"
+            columns: ["source_property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      property_embeddings: {
+        Row: {
+          created_at: string
+          embedding: string
+          id: string
+          model: string
+          property_id: string
+          source_text: string | null
+        }
+        Insert: {
+          created_at?: string
+          embedding: string
+          id?: string
+          model?: string
+          property_id: string
+          source_text?: string | null
+        }
+        Update: {
+          created_at?: string
+          embedding?: string
+          id?: string
+          model?: string
+          property_id?: string
+          source_text?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_embeddings_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties_global"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      property_media: {
+        Row: {
+          caption: string | null
+          created_at: string
+          id: string
+          kind: string
+          metadata: Json
+          property_id: string
+          sort_order: number
+          url: string
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string
+          id?: string
+          kind?: string
+          metadata?: Json
+          property_id: string
+          sort_order?: number
+          url: string
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string
+          id?: string
+          kind?: string
+          metadata?: Json
+          property_id?: string
+          sort_order?: number
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_media_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties_global"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      property_relationships: {
+        Row: {
+          contact_id: string | null
+          contact_name: string | null
+          created_at: string
+          id: string
+          metadata: Json
+          property_id: string
+          relationship_type: Database["public"]["Enums"]["relationship_type"]
+          since: string | null
+          until: string | null
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          contact_id?: string | null
+          contact_name?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json
+          property_id: string
+          relationship_type: Database["public"]["Enums"]["relationship_type"]
+          since?: string | null
+          until?: string | null
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          contact_id?: string | null
+          contact_name?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json
+          property_id?: string
+          relationship_type?: Database["public"]["Enums"]["relationship_type"]
+          since?: string | null
+          until?: string | null
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_relationships_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties_global"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "property_relationships_workspace_id_fkey"
             columns: ["workspace_id"]
             isOneToOne: false
             referencedRelation: "workspaces"
@@ -470,6 +806,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      valuation_models: {
+        Row: {
+          code: string
+          created_at: string
+          description: string | null
+          family: string
+          features: Json
+          id: string
+          is_active: boolean
+          metrics: Json
+          name: string
+          updated_at: string
+          version: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          description?: string | null
+          family: string
+          features?: Json
+          id?: string
+          is_active?: boolean
+          metrics?: Json
+          name: string
+          updated_at?: string
+          version?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          description?: string | null
+          family?: string
+          features?: Json
+          id?: string
+          is_active?: boolean
+          metrics?: Json
+          name?: string
+          updated_at?: string
+          version?: string
+        }
+        Relationships: []
       }
       workspace_members: {
         Row: {
@@ -584,9 +962,29 @@ export type Database = {
           similarity: number
         }[]
       }
+      match_properties: {
+        Args: { match_count?: number; query_embedding: string }
+        Returns: {
+          city: string
+          name: string
+          property_id: string
+          similarity: number
+        }[]
+      }
     }
     Enums: {
       member_status: "active" | "invited" | "suspended"
+      relationship_type:
+        | "OWNER"
+        | "LENDER"
+        | "BROKER"
+        | "BUYER"
+        | "TENANT"
+        | "INVESTOR"
+        | "MANAGER"
+        | "ARCHITECT"
+        | "CONTRACTOR"
+        | "REGULATOR"
       workspace_category: "INTERNAL" | "CUSTOMER" | "PARTNER"
       workspace_type:
         | "BUYER"
@@ -735,6 +1133,18 @@ export const Constants = {
   public: {
     Enums: {
       member_status: ["active", "invited", "suspended"],
+      relationship_type: [
+        "OWNER",
+        "LENDER",
+        "BROKER",
+        "BUYER",
+        "TENANT",
+        "INVESTOR",
+        "MANAGER",
+        "ARCHITECT",
+        "CONTRACTOR",
+        "REGULATOR",
+      ],
       workspace_category: ["INTERNAL", "CUSTOMER", "PARTNER"],
       workspace_type: [
         "BUYER",
