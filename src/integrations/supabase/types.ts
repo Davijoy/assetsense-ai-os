@@ -14,6 +14,47 @@ export type Database = {
   }
   public: {
     Tables: {
+      audit_logs: {
+        Row: {
+          action: string
+          actor_id: string | null
+          diff: Json
+          entity: string
+          entity_id: string | null
+          id: string
+          ts: string
+          workspace_id: string | null
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          diff?: Json
+          entity: string
+          entity_id?: string | null
+          id?: string
+          ts?: string
+          workspace_id?: string | null
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          diff?: Json
+          entity?: string
+          entity_id?: string | null
+          id?: string
+          ts?: string
+          workspace_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_logs_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       branding_settings: {
         Row: {
           id: string
@@ -21,6 +62,7 @@ export type Database = {
           logo_url_dark: string | null
           tenant_key: string
           updated_at: string
+          workspace_id: string
         }
         Insert: {
           id?: string
@@ -28,6 +70,7 @@ export type Database = {
           logo_url_dark?: string | null
           tenant_key?: string
           updated_at?: string
+          workspace_id?: string
         }
         Update: {
           id?: string
@@ -35,8 +78,17 @@ export type Database = {
           logo_url_dark?: string | null
           tenant_key?: string
           updated_at?: string
+          workspace_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "branding_settings_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       calls: {
         Row: {
@@ -50,6 +102,7 @@ export type Database = {
           lead_id: string | null
           qualified: boolean
           sentiment: string
+          workspace_id: string
         }
         Insert: {
           agent: string
@@ -62,6 +115,7 @@ export type Database = {
           lead_id?: string | null
           qualified?: boolean
           sentiment?: string
+          workspace_id?: string
         }
         Update: {
           agent?: string
@@ -74,6 +128,7 @@ export type Database = {
           lead_id?: string | null
           qualified?: boolean
           sentiment?: string
+          workspace_id?: string
         }
         Relationships: [
           {
@@ -81,6 +136,48 @@ export type Database = {
             columns: ["lead_id"]
             isOneToOne: false
             referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calls_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      feature_flags: {
+        Row: {
+          config: Json
+          enabled: boolean
+          flag_key: string
+          id: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          config?: Json
+          enabled?: boolean
+          flag_key: string
+          id?: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          config?: Json
+          enabled?: boolean
+          flag_key?: string
+          id?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feature_flags_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
             referencedColumns: ["id"]
           },
         ]
@@ -139,6 +236,7 @@ export type Database = {
           storage_path: string | null
           summary: string | null
           updated_at: string
+          workspace_id: string
         }
         Insert: {
           chunk_count?: number
@@ -155,6 +253,7 @@ export type Database = {
           storage_path?: string | null
           summary?: string | null
           updated_at?: string
+          workspace_id?: string
         }
         Update: {
           chunk_count?: number
@@ -171,8 +270,17 @@ export type Database = {
           storage_path?: string | null
           summary?: string | null
           updated_at?: string
+          workspace_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "kie_documents_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       leads: {
         Row: {
@@ -188,6 +296,7 @@ export type Database = {
           score: number
           source: string
           stage: string
+          workspace_id: string
         }
         Insert: {
           budget_inr?: number | null
@@ -202,6 +311,7 @@ export type Database = {
           score?: number
           source: string
           stage?: string
+          workspace_id?: string
         }
         Update: {
           budget_inr?: number | null
@@ -216,6 +326,36 @@ export type Database = {
           score?: number
           source?: string
           stage?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leads_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      permissions: {
+        Row: {
+          code: string
+          created_at: string
+          description: string | null
+          id: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          description?: string | null
+          id?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          description?: string | null
+          id?: string
         }
         Relationships: []
       }
@@ -230,6 +370,7 @@ export type Database = {
           price_inr: number
           property_type: string
           status: string
+          workspace_id: string
         }
         Insert: {
           ai_score?: number
@@ -241,6 +382,7 @@ export type Database = {
           price_inr: number
           property_type: string
           status?: string
+          workspace_id?: string
         }
         Update: {
           ai_score?: number
@@ -252,14 +394,186 @@ export type Database = {
           price_inr?: number
           property_type?: string
           status?: string
+          workspace_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "properties_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      role_permissions: {
+        Row: {
+          permission_id: string
+          role_id: string
+        }
+        Insert: {
+          permission_id: string
+          role_id: string
+        }
+        Update: {
+          permission_id?: string
+          role_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "role_permissions_permission_id_fkey"
+            columns: ["permission_id"]
+            isOneToOne: false
+            referencedRelation: "permissions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "role_permissions_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "roles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      roles: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_system: boolean
+          name: string
+          workspace_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_system?: boolean
+          name: string
+          workspace_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_system?: boolean
+          name?: string
+          workspace_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "roles_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workspace_members: {
+        Row: {
+          created_at: string
+          id: string
+          is_primary: boolean
+          role_id: string
+          status: Database["public"]["Enums"]["member_status"]
+          user_id: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_primary?: boolean
+          role_id: string
+          status?: Database["public"]["Enums"]["member_status"]
+          user_id: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_primary?: boolean
+          role_id?: string
+          status?: Database["public"]["Enums"]["member_status"]
+          user_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspace_members_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "roles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workspace_members_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workspaces: {
+        Row: {
+          category: Database["public"]["Enums"]["workspace_category"]
+          created_at: string
+          id: string
+          name: string
+          parent_id: string | null
+          settings: Json
+          slug: string
+          type: Database["public"]["Enums"]["workspace_type"]
+          updated_at: string
+        }
+        Insert: {
+          category: Database["public"]["Enums"]["workspace_category"]
+          created_at?: string
+          id?: string
+          name: string
+          parent_id?: string | null
+          settings?: Json
+          slug: string
+          type: Database["public"]["Enums"]["workspace_type"]
+          updated_at?: string
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["workspace_category"]
+          created_at?: string
+          id?: string
+          name?: string
+          parent_id?: string | null
+          settings?: Json
+          slug?: string
+          type?: Database["public"]["Enums"]["workspace_type"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspaces_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      current_workspace_id: { Args: never; Returns: string }
+      has_permission: {
+        Args: { _perm: string; _user_id: string }
+        Returns: boolean
+      }
+      is_workspace_member: {
+        Args: { _user_id: string; _workspace_id: string }
+        Returns: boolean
+      }
       match_kie_chunks: {
         Args: { match_count?: number; query_embedding: string }
         Returns: {
@@ -272,7 +586,27 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      member_status: "active" | "invited" | "suspended"
+      workspace_category: "INTERNAL" | "CUSTOMER" | "PARTNER"
+      workspace_type:
+        | "BUYER"
+        | "CHANNEL_PARTNER"
+        | "COMPANY"
+        | "PLATFORM_ADMIN"
+        | "EXECUTIVE"
+        | "OPERATIONS"
+        | "CUSTOMER_SUCCESS"
+        | "DATA_OPERATIONS"
+        | "COMPLIANCE"
+        | "SUPPORT"
+        | "BANK"
+        | "LENDER"
+        | "LEGAL_FIRM"
+        | "INSURANCE_PROVIDER"
+        | "PROPERTY_MANAGER"
+        | "VALUATION_AGENCY"
+        | "ESCROW_PROVIDER"
+        | "INSPECTION_AGENCY"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -399,6 +733,29 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      member_status: ["active", "invited", "suspended"],
+      workspace_category: ["INTERNAL", "CUSTOMER", "PARTNER"],
+      workspace_type: [
+        "BUYER",
+        "CHANNEL_PARTNER",
+        "COMPANY",
+        "PLATFORM_ADMIN",
+        "EXECUTIVE",
+        "OPERATIONS",
+        "CUSTOMER_SUCCESS",
+        "DATA_OPERATIONS",
+        "COMPLIANCE",
+        "SUPPORT",
+        "BANK",
+        "LENDER",
+        "LEGAL_FIRM",
+        "INSURANCE_PROVIDER",
+        "PROPERTY_MANAGER",
+        "VALUATION_AGENCY",
+        "ESCROW_PROVIDER",
+        "INSPECTION_AGENCY",
+      ],
+    },
   },
 } as const
