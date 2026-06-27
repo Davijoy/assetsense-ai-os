@@ -6,13 +6,21 @@ export const DEFAULT_WORKSPACE_ID = "00000000-0000-0000-0000-00000000d3f7";
 
 export type WorkspaceCategory = "INTERNAL" | "CUSTOMER" | "PARTNER";
 
+type JsonValue =
+  | string
+  | number
+  | boolean
+  | null
+  | JsonValue[]
+  | { [key: string]: JsonValue };
+
 export type Workspace = {
   id: string;
   name: string;
   slug: string;
   category: WorkspaceCategory;
   type: string;
-  settings: Record<string, unknown>;
+  settings: { [key: string]: JsonValue };
 };
 
 export type Membership = {
@@ -70,6 +78,6 @@ export async function getWorkspace(
     slug: data.slug,
     category: data.category,
     type: data.type,
-    settings: (data.settings ?? {}) as Record<string, unknown>,
+    settings: (data.settings ?? {}) as { [key: string]: JsonValue },
   };
 }
