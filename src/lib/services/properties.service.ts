@@ -17,7 +17,7 @@ export type GlobalProperty = {
   developer: string | null;
   reraId: string | null;
   description: string | null;
-  attributes: Record<string, unknown>;
+  attributes: Record<string, any>;
   createdAt: string;
 };
 
@@ -67,7 +67,7 @@ export async function listGlobalProperties(
   if (filter.maxPrice != null) q = q.lte("price_inr", filter.maxPrice);
   const { data, error } = await q;
   if (error) throw error;
-  let rows = (data ?? []).map(mapRow);
+  let rows: GlobalProperty[] = (data ?? []).map(mapRow);
   if (filter.city) {
     const needle = filter.city.toLowerCase();
     rows = rows.filter((p) => (p.city ?? "").toLowerCase() === needle);

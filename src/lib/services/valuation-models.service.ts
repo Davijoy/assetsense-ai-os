@@ -10,8 +10,8 @@ export type ValuationModel = {
   family: string;
   version: string;
   description: string | null;
-  features: unknown[];
-  metrics: Record<string, unknown>;
+  features: any[];
+  metrics: Record<string, any>;
   isActive: boolean;
 };
 
@@ -23,8 +23,8 @@ function mapRow(r: any): ValuationModel {
     family: r.family,
     version: r.version,
     description: r.description ?? null,
-    features: (r.features ?? []) as unknown[],
-    metrics: (r.metrics ?? {}) as Record<string, unknown>,
+    features: (r.features ?? []) as any[],
+    metrics: (r.metrics ?? {}) as Record<string, any>,
     isActive: !!r.is_active,
   };
 }

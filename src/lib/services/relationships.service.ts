@@ -26,7 +26,7 @@ export type PropertyRelationship = {
   relationshipType: RelationshipType;
   since: string | null;
   until: string | null;
-  metadata: Record<string, unknown>;
+  metadata: Record<string, any>;
 };
 
 function mapRow(r: any): PropertyRelationship {
@@ -87,7 +87,7 @@ export async function createPropertyRelationship(
     contactName?: string | null;
     since?: string | null;
     until?: string | null;
-    metadata?: Record<string, unknown>;
+    metadata?: Record<string, any>;
   },
 ): Promise<PropertyRelationship> {
   const { data, error } = await (supabase as any)
