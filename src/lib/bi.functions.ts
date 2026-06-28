@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { requireRoles } from "@/integrations/supabase/role-middleware";
 
 export type BISnapshot = {
   kpis: {
@@ -27,7 +28,9 @@ function monthKey(d: Date) {
   return `${d.getUTCFullYear()}-${d.getUTCMonth()}`;
 }
 
-export const getBISnapshot = createServerFn({ method: "GET" }).handler(async (): Promise<BISnapshot> => {
+export const getBISnapshot = createServerFn({ method: "GET" })
+  .middleware([requireRoles(["admin", "manager", "viewer"])])
+  .handler(async (): Promise<BISnapshot> => {
   const [leadsRes, propsRes, callsRes] = await Promise.all([
     supabaseAdmin.from("leads").select("id,stage,source,city,budget_inr,created_at,score"),
     supabaseAdmin.from("properties").select("id,city,status,price_inr,created_at"),
