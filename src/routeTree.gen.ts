@@ -9,11 +9,13 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as AppWorkflowsRouteImport } from './routes/app.workflows'
 import { Route as AppVoiceRouteImport } from './routes/app.voice'
+import { Route as AppUsersRouteImport } from './routes/app.users'
 import { Route as AppSalesintelRouteImport } from './routes/app.salesintel'
 import { Route as AppRiskRouteImport } from './routes/app.risk'
 import { Route as AppRecommendationsRouteImport } from './routes/app.recommendations'
@@ -36,6 +38,11 @@ import { Route as AppCollectionsRouteImport } from './routes/app.collections'
 import { Route as AppBiRouteImport } from './routes/app.bi'
 import { Route as AppSettingsBrandingRouteImport } from './routes/app.settings.branding'
 
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppRoute = AppRouteImport.update({
   id: '/app',
   path: '/app',
@@ -59,6 +66,11 @@ const AppWorkflowsRoute = AppWorkflowsRouteImport.update({
 const AppVoiceRoute = AppVoiceRouteImport.update({
   id: '/voice',
   path: '/voice',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppUsersRoute = AppUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
   getParentRoute: () => AppRoute,
 } as any)
 const AppSalesintelRoute = AppSalesintelRouteImport.update({
@@ -170,6 +182,7 @@ const AppSettingsBrandingRoute = AppSettingsBrandingRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
+  '/auth': typeof AuthRoute
   '/app/bi': typeof AppBiRoute
   '/app/collections': typeof AppCollectionsRoute
   '/app/command': typeof AppCommandRoute
@@ -190,6 +203,7 @@ export interface FileRoutesByFullPath {
   '/app/recommendations': typeof AppRecommendationsRoute
   '/app/risk': typeof AppRiskRoute
   '/app/salesintel': typeof AppSalesintelRoute
+  '/app/users': typeof AppUsersRoute
   '/app/voice': typeof AppVoiceRoute
   '/app/workflows': typeof AppWorkflowsRoute
   '/app/': typeof AppIndexRoute
@@ -197,6 +211,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/app/bi': typeof AppBiRoute
   '/app/collections': typeof AppCollectionsRoute
   '/app/command': typeof AppCommandRoute
@@ -217,6 +232,7 @@ export interface FileRoutesByTo {
   '/app/recommendations': typeof AppRecommendationsRoute
   '/app/risk': typeof AppRiskRoute
   '/app/salesintel': typeof AppSalesintelRoute
+  '/app/users': typeof AppUsersRoute
   '/app/voice': typeof AppVoiceRoute
   '/app/workflows': typeof AppWorkflowsRoute
   '/app': typeof AppIndexRoute
@@ -226,6 +242,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
+  '/auth': typeof AuthRoute
   '/app/bi': typeof AppBiRoute
   '/app/collections': typeof AppCollectionsRoute
   '/app/command': typeof AppCommandRoute
@@ -246,6 +263,7 @@ export interface FileRoutesById {
   '/app/recommendations': typeof AppRecommendationsRoute
   '/app/risk': typeof AppRiskRoute
   '/app/salesintel': typeof AppSalesintelRoute
+  '/app/users': typeof AppUsersRoute
   '/app/voice': typeof AppVoiceRoute
   '/app/workflows': typeof AppWorkflowsRoute
   '/app/': typeof AppIndexRoute
@@ -256,6 +274,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/app'
+    | '/auth'
     | '/app/bi'
     | '/app/collections'
     | '/app/command'
@@ -276,6 +295,7 @@ export interface FileRouteTypes {
     | '/app/recommendations'
     | '/app/risk'
     | '/app/salesintel'
+    | '/app/users'
     | '/app/voice'
     | '/app/workflows'
     | '/app/'
@@ -283,6 +303,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/auth'
     | '/app/bi'
     | '/app/collections'
     | '/app/command'
@@ -303,6 +324,7 @@ export interface FileRouteTypes {
     | '/app/recommendations'
     | '/app/risk'
     | '/app/salesintel'
+    | '/app/users'
     | '/app/voice'
     | '/app/workflows'
     | '/app'
@@ -311,6 +333,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/app'
+    | '/auth'
     | '/app/bi'
     | '/app/collections'
     | '/app/command'
@@ -331,6 +354,7 @@ export interface FileRouteTypes {
     | '/app/recommendations'
     | '/app/risk'
     | '/app/salesintel'
+    | '/app/users'
     | '/app/voice'
     | '/app/workflows'
     | '/app/'
@@ -340,10 +364,18 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AppRoute: typeof AppRouteWithChildren
+  AuthRoute: typeof AuthRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/app': {
       id: '/app'
       path: '/app'
@@ -377,6 +409,13 @@ declare module '@tanstack/react-router' {
       path: '/voice'
       fullPath: '/app/voice'
       preLoaderRoute: typeof AppVoiceRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/users': {
+      id: '/app/users'
+      path: '/users'
+      fullPath: '/app/users'
+      preLoaderRoute: typeof AppUsersRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/salesintel': {
@@ -550,6 +589,7 @@ interface AppRouteChildren {
   AppRecommendationsRoute: typeof AppRecommendationsRoute
   AppRiskRoute: typeof AppRiskRoute
   AppSalesintelRoute: typeof AppSalesintelRoute
+  AppUsersRoute: typeof AppUsersRoute
   AppVoiceRoute: typeof AppVoiceRoute
   AppWorkflowsRoute: typeof AppWorkflowsRoute
   AppIndexRoute: typeof AppIndexRoute
@@ -577,6 +617,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppRecommendationsRoute: AppRecommendationsRoute,
   AppRiskRoute: AppRiskRoute,
   AppSalesintelRoute: AppSalesintelRoute,
+  AppUsersRoute: AppUsersRoute,
   AppVoiceRoute: AppVoiceRoute,
   AppWorkflowsRoute: AppWorkflowsRoute,
   AppIndexRoute: AppIndexRoute,
@@ -588,17 +629,8 @@ const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AppRoute: AppRouteWithChildren,
+  AuthRoute: AuthRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
