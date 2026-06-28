@@ -1,7 +1,7 @@
 import { createMiddleware } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "./auth-middleware";
 
-export type AppRole = "admin" | "manager" | "agent" | "viewer";
+export type AppRole = "admin" | "manager" | "agent" | "viewer" | "builder" | "developer";
 
 /**
  * Server-fn middleware that ensures the caller has at least one of the given roles.
@@ -35,3 +35,4 @@ export function requireRoles(roles: AppRole[]) {
 export const requireAdmin = requireRoles(["admin"]);
 export const requireAdminOrManager = requireRoles(["admin", "manager"]);
 export const requireStaff = requireRoles(["admin", "manager", "agent"]);
+export const requireBuilderOrDeveloper = requireRoles(["admin", "manager", "builder", "developer"]);
