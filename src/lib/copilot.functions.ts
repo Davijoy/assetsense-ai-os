@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { requireRoles } from "@/integrations/supabase/role-middleware";
 
 const messageSchema = z.object({
   messages: z
@@ -62,6 +63,7 @@ async function buildContext(): Promise<string> {
 }
 
 export const askCopilot = createServerFn({ method: "POST" })
+  .middleware([requireRoles(["admin", "manager", "agent"])])
   .inputValidator((input: unknown) => messageSchema.parse(input))
   .handler(async ({ data }) => {
     const apiKey = process.env.LOVABLE_API_KEY;

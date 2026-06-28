@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 export type InsightDriver = { label: string; weight: number };
 export type InsightSource = {
@@ -568,6 +569,7 @@ function makeDrivers(features: string[], seed: number): InsightDriver[] {
 }
 
 export const getInsightExplanation = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((d: Input) => d)
   .handler(async ({ data }): Promise<InsightExplanation> => {
     const key = pickKey(data.tag, data.docType);
@@ -592,6 +594,7 @@ export const getInsightExplanation = createServerFn({ method: "POST" })
   });
 
 export const getDatasetDetail = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((d: { id: string }) => d)
   .handler(async ({ data }): Promise<DatasetDetail | null> => {
     return DATASETS[data.id] ?? null;

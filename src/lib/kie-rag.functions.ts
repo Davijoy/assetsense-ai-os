@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { requireRoles } from "@/integrations/supabase/role-middleware";
 
 const ingestSchema = z.object({
   name: z.string().min(1).max(300),
@@ -75,6 +76,7 @@ async function embedBatch(apiKey: string, inputs: string[]): Promise<number[][]>
 // ---------- ingest ----------
 
 export const ingestKieDocument = createServerFn({ method: "POST" })
+  .middleware([requireRoles(["admin", "manager"])])
   .inputValidator((input: unknown) => ingestSchema.parse(input))
   .handler(async ({ data }) => {
     const apiKey = process.env.LOVABLE_API_KEY;
@@ -196,6 +198,7 @@ export const ingestKieDocument = createServerFn({ method: "POST" })
 // ---------- chat ----------
 
 export const chatWithKieDocs = createServerFn({ method: "POST" })
+  .middleware([requireRoles(["admin", "manager", "agent"])])
   .inputValidator((input: unknown) => chatSchema.parse(input))
   .handler(async ({ data }) => {
     const apiKey = process.env.LOVABLE_API_KEY;
@@ -264,7 +267,9 @@ ${ctxBlocks || "(no matching context found)"}`;
 
 // ---------- list ----------
 
-export const listKieDocuments = createServerFn({ method: "GET" }).handler(async () => {
+export const listKieDocuments = createServerFn({ method: "GET" })
+  .middleware([requireRoles(["admin", "manager", "agent"])])
+  .handler(async () => {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data, error } = await supabaseAdmin
     .from("kie_documents")
