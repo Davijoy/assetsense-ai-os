@@ -10,6 +10,8 @@ import {
 
 import appCss from "../styles.css?url";
 import { BrandingProvider } from "@/components/brand/BrandingContext";
+import { AuthProvider } from "@/hooks/use-auth";
+import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
   return (
@@ -124,10 +126,13 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <BrandingProvider>
-        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-        <Outlet />
-      </BrandingProvider>
+      <AuthProvider>
+        <BrandingProvider>
+          {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+          <Outlet />
+          <Toaster />
+        </BrandingProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
