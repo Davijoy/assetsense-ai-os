@@ -198,6 +198,7 @@ export const ingestKieDocument = createServerFn({ method: "POST" })
 // ---------- chat ----------
 
 export const chatWithKieDocs = createServerFn({ method: "POST" })
+  .middleware([requireRoles(["admin", "manager", "agent"])])
   .inputValidator((input: unknown) => chatSchema.parse(input))
   .handler(async ({ data }) => {
     const apiKey = process.env.LOVABLE_API_KEY;
@@ -266,7 +267,9 @@ ${ctxBlocks || "(no matching context found)"}`;
 
 // ---------- list ----------
 
-export const listKieDocuments = createServerFn({ method: "GET" }).handler(async () => {
+export const listKieDocuments = createServerFn({ method: "GET" })
+  .middleware([requireRoles(["admin", "manager", "agent"])])
+  .handler(async () => {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data, error } = await supabaseAdmin
     .from("kie_documents")
