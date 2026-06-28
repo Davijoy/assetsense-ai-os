@@ -13,6 +13,8 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
+import { Route as AuthResetPasswordRouteImport } from './routes/auth.reset-password'
+import { Route as AuthForgotPasswordRouteImport } from './routes/auth.forgot-password'
 import { Route as AppWorkflowsRouteImport } from './routes/app.workflows'
 import { Route as AppVoiceRouteImport } from './routes/app.voice'
 import { Route as AppUsersRouteImport } from './routes/app.users'
@@ -57,6 +59,16 @@ const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AppRoute,
+} as any)
+const AuthResetPasswordRoute = AuthResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthForgotPasswordRoute = AuthForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
+  getParentRoute: () => AuthRoute,
 } as any)
 const AppWorkflowsRoute = AppWorkflowsRouteImport.update({
   id: '/workflows',
@@ -182,7 +194,7 @@ const AppSettingsBrandingRoute = AppSettingsBrandingRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
-  '/auth': typeof AuthRoute
+  '/auth': typeof AuthRouteWithChildren
   '/app/bi': typeof AppBiRoute
   '/app/collections': typeof AppCollectionsRoute
   '/app/command': typeof AppCommandRoute
@@ -206,12 +218,14 @@ export interface FileRoutesByFullPath {
   '/app/users': typeof AppUsersRoute
   '/app/voice': typeof AppVoiceRoute
   '/app/workflows': typeof AppWorkflowsRoute
+  '/auth/forgot-password': typeof AuthForgotPasswordRoute
+  '/auth/reset-password': typeof AuthResetPasswordRoute
   '/app/': typeof AppIndexRoute
   '/app/settings/branding': typeof AppSettingsBrandingRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/auth': typeof AuthRoute
+  '/auth': typeof AuthRouteWithChildren
   '/app/bi': typeof AppBiRoute
   '/app/collections': typeof AppCollectionsRoute
   '/app/command': typeof AppCommandRoute
@@ -235,6 +249,8 @@ export interface FileRoutesByTo {
   '/app/users': typeof AppUsersRoute
   '/app/voice': typeof AppVoiceRoute
   '/app/workflows': typeof AppWorkflowsRoute
+  '/auth/forgot-password': typeof AuthForgotPasswordRoute
+  '/auth/reset-password': typeof AuthResetPasswordRoute
   '/app': typeof AppIndexRoute
   '/app/settings/branding': typeof AppSettingsBrandingRoute
 }
@@ -242,7 +258,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
-  '/auth': typeof AuthRoute
+  '/auth': typeof AuthRouteWithChildren
   '/app/bi': typeof AppBiRoute
   '/app/collections': typeof AppCollectionsRoute
   '/app/command': typeof AppCommandRoute
@@ -266,6 +282,8 @@ export interface FileRoutesById {
   '/app/users': typeof AppUsersRoute
   '/app/voice': typeof AppVoiceRoute
   '/app/workflows': typeof AppWorkflowsRoute
+  '/auth/forgot-password': typeof AuthForgotPasswordRoute
+  '/auth/reset-password': typeof AuthResetPasswordRoute
   '/app/': typeof AppIndexRoute
   '/app/settings/branding': typeof AppSettingsBrandingRoute
 }
@@ -298,6 +316,8 @@ export interface FileRouteTypes {
     | '/app/users'
     | '/app/voice'
     | '/app/workflows'
+    | '/auth/forgot-password'
+    | '/auth/reset-password'
     | '/app/'
     | '/app/settings/branding'
   fileRoutesByTo: FileRoutesByTo
@@ -327,6 +347,8 @@ export interface FileRouteTypes {
     | '/app/users'
     | '/app/voice'
     | '/app/workflows'
+    | '/auth/forgot-password'
+    | '/auth/reset-password'
     | '/app'
     | '/app/settings/branding'
   id:
@@ -357,6 +379,8 @@ export interface FileRouteTypes {
     | '/app/users'
     | '/app/voice'
     | '/app/workflows'
+    | '/auth/forgot-password'
+    | '/auth/reset-password'
     | '/app/'
     | '/app/settings/branding'
   fileRoutesById: FileRoutesById
@@ -364,7 +388,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AppRoute: typeof AppRouteWithChildren
-  AuthRoute: typeof AuthRoute
+  AuthRoute: typeof AuthRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -396,6 +420,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/'
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
+    }
+    '/auth/reset-password': {
+      id: '/auth/reset-password'
+      path: '/reset-password'
+      fullPath: '/auth/reset-password'
+      preLoaderRoute: typeof AuthResetPasswordRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/auth/forgot-password': {
+      id: '/auth/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/auth/forgot-password'
+      preLoaderRoute: typeof AuthForgotPasswordRouteImport
+      parentRoute: typeof AuthRoute
     }
     '/app/workflows': {
       id: '/app/workflows'
@@ -626,10 +664,22 @@ const AppRouteChildren: AppRouteChildren = {
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
+interface AuthRouteChildren {
+  AuthForgotPasswordRoute: typeof AuthForgotPasswordRoute
+  AuthResetPasswordRoute: typeof AuthResetPasswordRoute
+}
+
+const AuthRouteChildren: AuthRouteChildren = {
+  AuthForgotPasswordRoute: AuthForgotPasswordRoute,
+  AuthResetPasswordRoute: AuthResetPasswordRoute,
+}
+
+const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AppRoute: AppRouteWithChildren,
-  AuthRoute: AuthRoute,
+  AuthRoute: AuthRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
