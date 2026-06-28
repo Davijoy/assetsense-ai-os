@@ -18,7 +18,7 @@ export const Route = createFileRoute("/app/users")({
   component: UsersPage,
 });
 
-const ROLES: AppRole[] = ["admin", "manager", "agent", "viewer"];
+const ROLES: AppRole[] = ["admin", "manager", "agent", "builder", "developer", "viewer"];
 
 type Row = {
   id: string;
@@ -153,6 +153,8 @@ function UsersPage() {
           <div><span className="text-primary">Manager</span> — every workspace & KIE module, no admin tools.</div>
           <div><span className="text-primary">Agent</span> — CRM, Leads, Marketplace, Voice, Marketing, Document Chat, Deal Rooms.</div>
           <div><span className="text-primary">Viewer</span> — read-only dashboards: CRM, Marketplace, Intelligence, Market.</div>
+          <div><span className="text-primary">Builder</span> — Marketplace, Inventory, Documents, Deal Rooms, Workflows, Market Intelligence.</div>
+          <div><span className="text-primary">Developer</span> — Marketplace, Documents, Workflows, Inventory, Graph, Deal Rooms, Market Intelligence.</div>
         </div>
       </div>
 
