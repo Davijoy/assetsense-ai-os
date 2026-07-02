@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useSuspenseQuery, queryOptions } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { getBISnapshot } from "@/lib/bi.functions";
 import {
   Package,
@@ -12,15 +13,8 @@ import {
   ShieldCheck,
 } from "lucide-react";
 
-const opts = queryOptions({
-  queryKey: ["bi-snapshot"],
-  queryFn: () => getBISnapshot(),
-  refetchInterval: 30_000,
-});
-
 export const Route = createFileRoute("/app/inventory")({
   head: () => ({ meta: [{ title: "Inventory Intelligence — Sentinel KIE" }] }),
-  loader: ({ context }) => context.queryClient.ensureQueryData(opts),
   component: Inventory,
 });
 
@@ -55,7 +49,12 @@ const RECS = [
 ];
 
 function Inventory() {
-  const { data } = useSuspenseQuery(opts);
+  const fetchSnapshot = useServerFn(getBISnapshot);
+  const { data } = useQuery({
+    queryKey: ["bi-snapshot"],
+    queryFn: () => fetchSnapshot(),
+    refetchInterval: 30_000,
+  });
   const totalUnits = TOWERS.reduce((s, t) => s + t.total, 0);
   const soldUnits = TOWERS.reduce((s, t) => s + t.sold, 0);
   const absorption = Math.round((soldUnits / totalUnits) * 100);
@@ -117,7 +116,7 @@ function Inventory() {
       </div>
 
       <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
-        Live snapshot · sync {new Date(data.generated_at).toLocaleTimeString()}
+        Live snapshot · sync {data ? new Date(data.generated_at).toLocaleTimeString() : "…"}
       </p>
     </div>
   );
