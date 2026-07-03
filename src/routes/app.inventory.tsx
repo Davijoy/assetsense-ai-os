@@ -17,10 +17,10 @@ import {
 export const Route = createFileRoute("/app/inventory")({
   head: () => ({ meta: [{ title: "Inventory Intelligence — Sentinel KIE" }] }),
   ssr: false,
-  beforeLoad: async ({ location }) => {
+  beforeLoad: async () => {
     const { data } = await supabase.auth.getSession();
     if (!data.session?.access_token) {
-      throw redirect({ to: "/auth", search: { redirect: location.href } });
+      throw redirect({ to: "/auth" });
     }
     return { accessToken: data.session.access_token };
   },
