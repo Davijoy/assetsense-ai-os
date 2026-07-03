@@ -3,6 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useServerFn } from "@tanstack/react-start";
 import { getBISnapshot } from "@/lib/bi.functions";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import {
   Package,
   AlertTriangle,
@@ -12,6 +14,7 @@ import {
   Layers,
   Gauge,
   ShieldCheck,
+  RefreshCw,
 } from "lucide-react";
 
 export const Route = createFileRoute("/app/inventory")({
@@ -60,7 +63,7 @@ const RECS = [
 function Inventory() {
   const fetchSnapshot = useServerFn(getBISnapshot);
   const { accessToken } = Route.useRouteContext();
-  const { data } = useQuery({
+  const { data, isError, error, refetch } = useQuery({
     queryKey: ["bi-snapshot"],
     queryFn: () => fetchSnapshot(),
     refetchInterval: 30_000,
@@ -84,6 +87,22 @@ function Inventory() {
           Health scores, absorption velocity, and AI-triggered incentive workflows across every tower.
         </p>
       </header>
+
+      {isError && (
+        <Alert variant="destructive" className="rounded-2xl border-destructive/40">
+          <AlertTriangle className="h-4 w-4 text-destructive" />
+          <AlertTitle>Data sync failed</AlertTitle>
+          <AlertDescription className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <span className="text-muted-foreground">
+              {error instanceof Error ? error.message : "Could not refresh the live snapshot. Displaying cached data."}
+            </span>
+            <Button variant="outline" size="sm" onClick={() => refetch()} className="shrink-0 gap-2">
+              <RefreshCw className="h-3.5 w-3.5" />
+              Retry
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
         <Kpi icon={Layers} label="Total Units" value={totalUnits.toString()} delta={`${TOWERS.length} towers`} muted />
