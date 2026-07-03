@@ -63,7 +63,7 @@ const RECS = [
 function Inventory() {
   const fetchSnapshot = useServerFn(getBISnapshot);
   const { accessToken } = Route.useRouteContext();
-  const { data } = useQuery({
+  const { data, isError, error, refetch } = useQuery({
     queryKey: ["bi-snapshot"],
     queryFn: () => fetchSnapshot(),
     refetchInterval: 30_000,
