@@ -1,5 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { useServerFn } from "@tanstack/react-start";
 import { getBISnapshot } from "@/lib/bi.functions";
 import {
@@ -15,6 +16,14 @@ import {
 
 export const Route = createFileRoute("/app/inventory")({
   head: () => ({ meta: [{ title: "Inventory Intelligence — Sentinel KIE" }] }),
+  ssr: false,
+  beforeLoad: async ({ location }) => {
+    const { data } = await supabase.auth.getSession();
+    if (!data.session?.access_token) {
+      throw redirect({ to: "/auth", search: { redirect: location.href } });
+    }
+    return { accessToken: data.session.access_token };
+  },
   component: Inventory,
 });
 
@@ -50,10 +59,12 @@ const RECS = [
 
 function Inventory() {
   const fetchSnapshot = useServerFn(getBISnapshot);
+  const { accessToken } = Route.useRouteContext();
   const { data } = useQuery({
     queryKey: ["bi-snapshot"],
     queryFn: () => fetchSnapshot(),
     refetchInterval: 30_000,
+    enabled: !!accessToken,
   });
   const totalUnits = TOWERS.reduce((s, t) => s + t.total, 0);
   const soldUnits = TOWERS.reduce((s, t) => s + t.sold, 0);
