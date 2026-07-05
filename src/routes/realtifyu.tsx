@@ -285,6 +285,12 @@ function RealtifyU() {
             >
               Talk to Us
             </a>
+            <Link
+              to="/realtifyu/connections"
+              className="hidden rounded-md border border-border bg-surface/50 px-4 py-2 text-sm text-foreground hover:bg-surface sm:inline-flex"
+            >
+              Connections
+            </Link>
           </nav>
         </div>
       </header>
