@@ -116,6 +116,136 @@ const distribution = [
   { icon: Globe2, label: "REITs & PropTech" },
 ];
 
+function ConnectionStatusPanel() {
+  const { user, loading: authLoading } = useAuth();
+  const qc = useQueryClient();
+  const statusFn = useServerFn(getRealtifyuStatus);
+  const startFn = useServerFn(startRealtifyuOAuth);
+  const disconnectFn = useServerFn(disconnectRealtifyu);
+
+  const status = useQuery({
+    queryKey: ["realtifyu-status"],
+    queryFn: () => statusFn(),
+    enabled: !!user,
+  });
+
+  const connect = useMutation({
+    mutationFn: () => startFn({ data: { returnTo: "/realtifyu" } }),
+    onSuccess: (res) => { window.location.href = res.authorizeUrl; },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const disconnect = useMutation({
+    mutationFn: () => disconnectFn(),
+    onSuccess: () => {
+      toast.success("Disconnected from RealtifyU");
+      qc.invalidateQueries({ queryKey: ["realtifyu-status"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const connected = status.data?.connected;
+  const conn = status.data?.connection;
+  const configured = status.data?.configured ?? true;
+
+  return (
+    <div className="mb-8 rounded-2xl border border-border bg-card/70 p-6 backdrop-blur">
+      <div className="flex flex-wrap items-start justify-between gap-6">
+        <div className="flex items-start gap-4">
+          <span
+            className={`grid h-11 w-11 place-items-center rounded-xl border ${
+              connected
+                ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400"
+                : "border-border bg-muted/40 text-muted-foreground"
+            }`}
+          >
+            {status.isLoading ? (
+              <Loader2 className="h-5 w-5 animate-spin" />
+            ) : connected ? (
+              <CheckCircle2 className="h-5 w-5" />
+            ) : (
+              <XCircle className="h-5 w-5" />
+            )}
+          </span>
+          <div>
+            <div className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+              RealtifyU Account
+            </div>
+            <div className="mt-1 font-display text-xl">
+              {authLoading
+                ? "Checking session…"
+                : !user
+                  ? "Sign in to link RealtifyU"
+                  : status.isLoading
+                    ? "Checking connection…"
+                    : connected
+                      ? "Connected"
+                      : "Not connected"}
+            </div>
+            {connected && conn && (
+              <div className="mt-1 text-sm text-muted-foreground">
+                {conn.account_name || conn.account_email || conn.account_id || "Linked account"}
+                {conn.account_email && conn.account_name ? ` · ${conn.account_email}` : ""}
+                {conn.connected_at && (
+                  <span className="opacity-70">
+                    {" "}· since {new Date(conn.connected_at).toLocaleDateString()}
+                  </span>
+                )}
+              </div>
+            )}
+            {!connected && !status.isLoading && (
+              <div className="mt-1 text-sm text-muted-foreground">
+                {configured
+                  ? "Link your RealtifyU account to sync intents, listings, and directives."
+                  : "OAuth credentials aren't configured yet. Add REALTIFYU_CLIENT_ID and REALTIFYU_CLIENT_SECRET in project secrets."}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          {!user ? (
+            <Link
+              to="/auth"
+              className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-glow hover:bg-primary/90"
+            >
+              Sign in
+            </Link>
+          ) : connected ? (
+            <button
+              type="button"
+              onClick={() => disconnect.mutate()}
+              disabled={disconnect.isPending}
+              className="inline-flex items-center gap-2 rounded-md border border-border bg-surface/50 px-4 py-2 text-sm text-foreground hover:bg-surface disabled:opacity-60"
+            >
+              {disconnect.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Unplug className="h-4 w-4" />
+              )}
+              Disconnect
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => connect.mutate()}
+              disabled={connect.isPending || !configured}
+              className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-glow hover:bg-primary/90 disabled:opacity-60"
+            >
+              {connect.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Link2 className="h-4 w-4" />
+              )}
+              Connect RealtifyU
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function RealtifyU() {
   useEffect(() => {
     const p = new URLSearchParams(window.location.search).get("realtifyu");
