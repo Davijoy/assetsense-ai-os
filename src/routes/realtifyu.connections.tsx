@@ -3,7 +3,12 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
-import { getRealtifyuConnectionsOverview, getRealtifyuLogs } from "@/lib/realtifyu.functions";
+import {
+  exportRealtifyuLogsCsv,
+  getRealtifyuConnectionsOverview,
+  getRealtifyuLogs,
+  getRealtifyuLogsPerf,
+} from "@/lib/realtifyu.functions";
 import {
   Activity,
   AlertTriangle,
@@ -12,7 +17,11 @@ import {
   ChevronLeft,
   ChevronRight,
   ChevronsUpDown,
+  Database,
+  Download,
   Filter,
+  Pause,
+  Play,
   Cpu,
   Gauge,
   Loader2,
@@ -190,6 +199,7 @@ type SortDir = "asc" | "desc";
 
 function LogsSection({ eventOptions }: { eventOptions: string[] }) {
   const logsFn = useServerFn(getRealtifyuLogs);
+  const exportFn = useServerFn(exportRealtifyuLogsCsv);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(25);
   const [sortBy, setSortBy] = useState<SortBy>("created_at");
@@ -199,6 +209,9 @@ function LogsSection({ eventOptions }: { eventOptions: string[] }) {
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [search, setSearch] = useState("");
+  const [autoRefresh, setAutoRefresh] = useState(true);
+  const [intervalMs, setIntervalMs] = useState(30_000);
+  const [exporting, setExporting] = useState(false);
 
   const filters = useMemo(
     () => ({
@@ -218,7 +231,7 @@ function LogsSection({ eventOptions }: { eventOptions: string[] }) {
   const q = useQuery({
     queryKey: ["realtifyu-logs", filters],
     queryFn: () => logsFn({ data: filters }),
-    refetchInterval: 30_000,
+    refetchInterval: autoRefresh ? intervalMs : false,
     placeholderData: (prev) => prev,
   });
 
@@ -236,16 +249,71 @@ function LogsSection({ eventOptions }: { eventOptions: string[] }) {
   const total = q.data?.total ?? 0;
   const totalPages = q.data?.totalPages ?? 1;
 
+  const handleExport = async () => {
+    setExporting(true);
+    try {
+      const { csv } = await exportFn({
+        data: {
+          sortBy, sortDir, event, status,
+          from: filters.from, to: filters.to, search: filters.search,
+        },
+      });
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `realtifyu-logs-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-")}.csv`;
+      document.body.appendChild(a); a.click(); a.remove();
+      URL.revokeObjectURL(url);
+    } finally {
+      setExporting(false);
+    }
+  };
+
   const inputCls = "h-9 rounded-md border border-border bg-surface/40 px-2 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary/40";
 
   return (
     <section>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-sm uppercase tracking-[0.22em] text-muted-foreground">Connection logs</h2>
-        <div className="text-xs text-muted-foreground">
-          {q.isFetching ? "Refreshing…" : `${total} event${total === 1 ? "" : "s"}`}
+        <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+          <span>{q.isFetching ? "Refreshing…" : `${total} event${total === 1 ? "" : "s"}`}</span>
+          <div className="ml-2 inline-flex items-center gap-1 rounded-md border border-border bg-surface/40 p-0.5">
+            <button
+              type="button"
+              onClick={() => setAutoRefresh((v) => !v)}
+              className={`inline-flex items-center gap-1 rounded px-2 py-1 text-[11px] ${autoRefresh ? "bg-primary/15 text-primary" : "text-muted-foreground hover:text-foreground"}`}
+              title={autoRefresh ? "Pause live refresh" : "Resume live refresh"}
+            >
+              {autoRefresh ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3" />}
+              Live
+            </button>
+            <select
+              value={intervalMs}
+              onChange={(e) => setIntervalMs(Number(e.target.value))}
+              disabled={!autoRefresh}
+              className="h-7 rounded bg-transparent px-1 text-[11px] text-foreground focus:outline-none disabled:opacity-50"
+            >
+              <option value={5000}>5s</option>
+              <option value={10000}>10s</option>
+              <option value={30000}>30s</option>
+              <option value={60000}>1m</option>
+              <option value={300000}>5m</option>
+            </select>
+          </div>
+          <button
+            type="button"
+            onClick={handleExport}
+            disabled={exporting || total === 0}
+            className="inline-flex items-center gap-1 rounded-md border border-border bg-surface/40 px-2 py-1 text-[11px] hover:bg-surface disabled:opacity-40"
+          >
+            {exporting ? <Loader2 className="h-3 w-3 animate-spin" /> : <Download className="h-3 w-3" />}
+            Export CSV
+          </button>
         </div>
       </div>
+
+      <PerformancePanel />
 
       {/* Filters */}
       <div className="mb-3 grid grid-cols-2 gap-2 rounded-2xl border border-border bg-card p-3 md:grid-cols-6">
@@ -370,6 +438,71 @@ function LogsSection({ eventOptions }: { eventOptions: string[] }) {
         </div>
       </div>
     </section>
+  );
+}
+
+function PerformancePanel() {
+  const perfFn = useServerFn(getRealtifyuLogsPerf);
+  const q = useQuery({
+    queryKey: ["realtifyu-logs-perf"],
+    queryFn: () => perfFn(),
+    refetchInterval: 60_000,
+  });
+
+  const health = q.data?.health;
+  const dot = health === "good" ? "bg-emerald-400" : health === "warn" ? "bg-amber-400" : health === "bad" ? "bg-red-400" : "bg-muted";
+
+  return (
+    <details className="mb-3 rounded-2xl border border-border bg-card">
+      <summary className="flex cursor-pointer items-center justify-between gap-3 px-4 py-3 text-xs uppercase tracking-[0.18em] text-muted-foreground">
+        <span className="inline-flex items-center gap-2">
+          <Database className="h-3.5 w-3.5 text-primary" /> Backend performance
+          <span className={`ml-2 inline-block h-2 w-2 rounded-full ${dot}`} />
+          {q.data && <span className="normal-case tracking-normal text-muted-foreground">· {q.data.totalMs} ms total</span>}
+        </span>
+        <span className="text-[10px] text-muted-foreground">click to expand</span>
+      </summary>
+      <div className="border-t border-border/60 p-4">
+        {q.isLoading ? (
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <Loader2 className="h-3 w-3 animate-spin" /> Sampling query latency…
+          </div>
+        ) : q.data ? (
+          <div className="grid gap-4 md:grid-cols-2">
+            <div>
+              <div className="mb-2 text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Query samples</div>
+              <ul className="space-y-1 text-xs">
+                {q.data.samples.map((s) => (
+                  <li key={s.label} className="flex items-center justify-between rounded border border-border/60 bg-surface/30 px-2 py-1">
+                    <span className="text-muted-foreground">{s.label}</span>
+                    <span className={`font-mono ${s.ms > 300 ? "text-amber-400" : "text-foreground"}`}>{s.ms} ms</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <div className="mb-2 text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Recommended indexes</div>
+              <ul className="space-y-1 text-xs">
+                {q.data.suggestions.map((s) => (
+                  <li key={s.name} className="rounded border border-border/60 bg-surface/30 px-2 py-1.5">
+                    <div className="flex items-center justify-between gap-2">
+                      <code className="truncate font-mono text-[11px] text-foreground">{s.name}</code>
+                      <span className={`text-[10px] uppercase tracking-[0.14em] ${s.present ? "text-emerald-400" : "text-amber-400"}`}>
+                        {s.present ? "present" : "missing"}
+                      </span>
+                    </div>
+                    <div className="mt-1 text-[10px] text-muted-foreground">{s.why}</div>
+                    <div className="mt-1 font-mono text-[10px] text-muted-foreground/70">{s.sql}</div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        ) : q.isError ? (
+          <div className="text-xs text-red-400">Failed to sample performance: {(q.error as Error).message}</div>
+        ) : null}
+      </div>
+    </details>
   );
 }
 
