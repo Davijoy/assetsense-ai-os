@@ -1,4 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { toast } from "sonner";
+import {
+  disconnectRealtifyu,
+  getRealtifyuStatus,
+  startRealtifyuOAuth,
+} from "@/lib/realtifyu.functions";
+import { useAuth } from "@/hooks/use-auth";
+import { useEffect } from "react";
 import {
   ShieldCheck,
   Cpu,
@@ -14,6 +24,11 @@ import {
   Target,
   Globe2,
   Sparkles,
+  CheckCircle2,
+  XCircle,
+  Loader2,
+  Unplug,
+  Link2,
 } from "lucide-react";
 
 export const Route = createFileRoute("/realtifyu")({
@@ -102,6 +117,15 @@ const distribution = [
 ];
 
 function RealtifyU() {
+  useEffect(() => {
+    const p = new URLSearchParams(window.location.search).get("realtifyu");
+    if (!p) return;
+    if (p === "connected") toast.success("RealtifyU account connected");
+    else toast.error(`RealtifyU: ${p.replace(/_/g, " ")}`);
+    const url = new URL(window.location.href);
+    url.searchParams.delete("realtifyu");
+    window.history.replaceState({}, "", url.toString());
+  }, []);
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Nav */}
@@ -321,6 +345,7 @@ function RealtifyU() {
       {/* CTA */}
       <section id="contact" className="border-t border-border/60 py-24">
         <div className="mx-auto max-w-5xl px-6">
+          <ConnectionStatusPanel />
           <div className="relative overflow-hidden rounded-3xl border border-primary/30 bg-gradient-to-br from-primary/10 via-card to-card p-10 md:p-14">
             <div className="absolute inset-0 bg-grid opacity-30" />
             <div className="relative flex flex-col items-start gap-6 md:flex-row md:items-center md:justify-between">
