@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as RealtifyuRouteImport } from './routes/realtifyu'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
@@ -40,6 +41,11 @@ import { Route as AppCollectionsRouteImport } from './routes/app.collections'
 import { Route as AppBiRouteImport } from './routes/app.bi'
 import { Route as AppSettingsBrandingRouteImport } from './routes/app.settings.branding'
 
+const RealtifyuRoute = RealtifyuRouteImport.update({
+  id: '/realtifyu',
+  path: '/realtifyu',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
@@ -195,6 +201,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/auth': typeof AuthRouteWithChildren
+  '/realtifyu': typeof RealtifyuRoute
   '/app/bi': typeof AppBiRoute
   '/app/collections': typeof AppCollectionsRoute
   '/app/command': typeof AppCommandRoute
@@ -226,6 +233,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRouteWithChildren
+  '/realtifyu': typeof RealtifyuRoute
   '/app/bi': typeof AppBiRoute
   '/app/collections': typeof AppCollectionsRoute
   '/app/command': typeof AppCommandRoute
@@ -259,6 +267,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/auth': typeof AuthRouteWithChildren
+  '/realtifyu': typeof RealtifyuRoute
   '/app/bi': typeof AppBiRoute
   '/app/collections': typeof AppCollectionsRoute
   '/app/command': typeof AppCommandRoute
@@ -293,6 +302,7 @@ export interface FileRouteTypes {
     | '/'
     | '/app'
     | '/auth'
+    | '/realtifyu'
     | '/app/bi'
     | '/app/collections'
     | '/app/command'
@@ -324,6 +334,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/realtifyu'
     | '/app/bi'
     | '/app/collections'
     | '/app/command'
@@ -356,6 +367,7 @@ export interface FileRouteTypes {
     | '/'
     | '/app'
     | '/auth'
+    | '/realtifyu'
     | '/app/bi'
     | '/app/collections'
     | '/app/command'
@@ -389,10 +401,18 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AppRoute: typeof AppRouteWithChildren
   AuthRoute: typeof AuthRouteWithChildren
+  RealtifyuRoute: typeof RealtifyuRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/realtifyu': {
+      id: '/realtifyu'
+      path: '/realtifyu'
+      fullPath: '/realtifyu'
+      preLoaderRoute: typeof RealtifyuRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth': {
       id: '/auth'
       path: '/auth'
@@ -680,17 +700,8 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AppRoute: AppRouteWithChildren,
   AuthRoute: AuthRouteWithChildren,
+  RealtifyuRoute: RealtifyuRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
