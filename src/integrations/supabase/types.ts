@@ -769,6 +769,39 @@ export type Database = {
           },
         ]
       }
+      realtifyu_connection_logs: {
+        Row: {
+          application: string
+          created_at: string
+          event: string
+          id: string
+          message: string | null
+          metadata: Json | null
+          status: string
+          user_id: string | null
+        }
+        Insert: {
+          application?: string
+          created_at?: string
+          event: string
+          id?: string
+          message?: string | null
+          metadata?: Json | null
+          status?: string
+          user_id?: string | null
+        }
+        Update: {
+          application?: string
+          created_at?: string
+          event?: string
+          id?: string
+          message?: string | null
+          metadata?: Json | null
+          status?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       realtifyu_connections: {
         Row: {
           access_token: string
