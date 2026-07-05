@@ -88,5 +88,51 @@ export const disconnectRealtifyu = createServerFn({ method: "POST" })
       .delete()
       .eq("user_id", context.userId);
     if (error) throw new Error(error.message);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await supabaseAdmin.from("realtifyu_connection_logs").insert({
+      user_id: context.userId,
+      event: "disconnect",
+      status: "ok",
+      message: "User disconnected RealtifyU account",
+    });
     return { ok: true };
+  });
+
+export const getRealtifyuConnectionsOverview = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const [{ data: conn }, { data: logs }] = await Promise.all([
+      context.supabase
+        .from("realtifyu_connections")
+        .select("account_email,account_name,account_id,scope,connected_at,expires_at")
+        .eq("user_id", context.userId)
+        .maybeSingle(),
+      context.supabase
+        .from("realtifyu_connection_logs")
+        .select("id,event,status,application,message,metadata,created_at")
+        .eq("user_id", context.userId)
+        .order("created_at", { ascending: false })
+        .limit(50),
+    ]);
+
+    const rows = logs ?? [];
+    const now = Date.now();
+    const dayMs = 24 * 60 * 60 * 1000;
+    const last24h = rows.filter((r) => now - new Date(r.created_at).getTime() < dayMs);
+    const last7d = rows.filter((r) => now - new Date(r.created_at).getTime() < 7 * dayMs);
+    const errors = rows.filter((r) => r.status === "error").length;
+    const byEvent: Record<string, number> = {};
+    for (const r of rows) byEvent[r.event] = (byEvent[r.event] ?? 0) + 1;
+
+    return {
+      connection: conn ?? null,
+      logs: rows,
+      consumption: {
+        events24h: last24h.length,
+        events7d: last7d.length,
+        totalEvents: rows.length,
+        errors,
+        byEvent,
+      },
+    };
   });

@@ -67,6 +67,18 @@ export const Route = createFileRoute("/api/public/realtifyu/callback")({
         }, { onConflict: "user_id" });
         if (upErr) return htmlClose(upErr.message, "/realtifyu?realtifyu=save_failed");
 
+        await supabaseAdmin.from("realtifyu_connection_logs").insert({
+          user_id: st.user_id,
+          event: "connect",
+          status: "ok",
+          message: "OAuth authorization completed",
+          metadata: {
+            scope: tok.scope ?? null,
+            expires_in: tok.expires_in ?? null,
+            account_email: (profile?.email as string) ?? null,
+          } as never,
+        });
+
         const returnTo = st.return_to && st.return_to.startsWith("/") ? st.return_to : "/realtifyu";
         return htmlClose("Connected to RealtifyU", `${returnTo}?realtifyu=connected`);
       },
