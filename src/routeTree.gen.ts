@@ -40,6 +40,7 @@ import { Route as AppCommandRouteImport } from './routes/app.command'
 import { Route as AppCollectionsRouteImport } from './routes/app.collections'
 import { Route as AppBiRouteImport } from './routes/app.bi'
 import { Route as AppSettingsBrandingRouteImport } from './routes/app.settings.branding'
+import { Route as ApiPublicRealtifyuCallbackRouteImport } from './routes/api/public/realtifyu.callback'
 
 const RealtifyuRoute = RealtifyuRouteImport.update({
   id: '/realtifyu',
@@ -196,6 +197,12 @@ const AppSettingsBrandingRoute = AppSettingsBrandingRouteImport.update({
   path: '/settings/branding',
   getParentRoute: () => AppRoute,
 } as any)
+const ApiPublicRealtifyuCallbackRoute =
+  ApiPublicRealtifyuCallbackRouteImport.update({
+    id: '/api/public/realtifyu/callback',
+    path: '/api/public/realtifyu/callback',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -229,6 +236,7 @@ export interface FileRoutesByFullPath {
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/app/': typeof AppIndexRoute
   '/app/settings/branding': typeof AppSettingsBrandingRoute
+  '/api/public/realtifyu/callback': typeof ApiPublicRealtifyuCallbackRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -261,6 +269,7 @@ export interface FileRoutesByTo {
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/app': typeof AppIndexRoute
   '/app/settings/branding': typeof AppSettingsBrandingRoute
+  '/api/public/realtifyu/callback': typeof ApiPublicRealtifyuCallbackRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -295,6 +304,7 @@ export interface FileRoutesById {
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/app/': typeof AppIndexRoute
   '/app/settings/branding': typeof AppSettingsBrandingRoute
+  '/api/public/realtifyu/callback': typeof ApiPublicRealtifyuCallbackRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -330,6 +340,7 @@ export interface FileRouteTypes {
     | '/auth/reset-password'
     | '/app/'
     | '/app/settings/branding'
+    | '/api/public/realtifyu/callback'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -362,6 +373,7 @@ export interface FileRouteTypes {
     | '/auth/reset-password'
     | '/app'
     | '/app/settings/branding'
+    | '/api/public/realtifyu/callback'
   id:
     | '__root__'
     | '/'
@@ -395,6 +407,7 @@ export interface FileRouteTypes {
     | '/auth/reset-password'
     | '/app/'
     | '/app/settings/branding'
+    | '/api/public/realtifyu/callback'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -402,6 +415,7 @@ export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
   AuthRoute: typeof AuthRouteWithChildren
   RealtifyuRoute: typeof RealtifyuRoute
+  ApiPublicRealtifyuCallbackRoute: typeof ApiPublicRealtifyuCallbackRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -623,6 +637,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSettingsBrandingRouteImport
       parentRoute: typeof AppRoute
     }
+    '/api/public/realtifyu/callback': {
+      id: '/api/public/realtifyu/callback'
+      path: '/api/public/realtifyu/callback'
+      fullPath: '/api/public/realtifyu/callback'
+      preLoaderRoute: typeof ApiPublicRealtifyuCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -701,6 +722,7 @@ const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
   AuthRoute: AuthRouteWithChildren,
   RealtifyuRoute: RealtifyuRoute,
+  ApiPublicRealtifyuCallbackRoute: ApiPublicRealtifyuCallbackRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

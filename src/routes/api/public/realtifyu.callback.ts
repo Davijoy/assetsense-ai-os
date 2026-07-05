@@ -63,7 +63,7 @@ export const Route = createFileRoute("/api/public/realtifyu/callback")({
           account_id: (profile?.id as string) ?? (profile?.sub as string) ?? null,
           account_email: (profile?.email as string) ?? null,
           account_name: (profile?.name as string) ?? (profile?.full_name as string) ?? null,
-          raw_profile: profile,
+          raw_profile: profile as never,
         }, { onConflict: "user_id" });
         if (upErr) return htmlClose(upErr.message, "/realtifyu?realtifyu=save_failed");
 
