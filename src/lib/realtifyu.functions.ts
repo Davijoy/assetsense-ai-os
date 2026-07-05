@@ -189,3 +189,104 @@ export const getRealtifyuLogs = createServerFn({ method: "GET" })
       totalPages: Math.max(1, Math.ceil((count ?? 0) / pageSize)),
     };
   });
+
+export const exportRealtifyuLogsCsv = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: Omit<LogsQuery, "page" | "pageSize"> | undefined) => d ?? {})
+  .handler(async ({ data, context }) => {
+    let q = context.supabase
+      .from("realtifyu_connection_logs")
+      .select("id,event,status,application,message,metadata,created_at")
+      .eq("user_id", context.userId);
+    if (data.event && data.event !== "all") q = q.eq("event", data.event);
+    if (data.status && data.status !== "all") q = q.eq("status", data.status);
+    if (data.from) q = q.gte("created_at", data.from);
+    if (data.to) q = q.lte("created_at", data.to);
+    if (data.search) q = q.ilike("message", `%${data.search}%`);
+    const { data: rows, error } = await q
+      .order(data.sortBy ?? "created_at", { ascending: (data.sortDir ?? "desc") === "asc" })
+      .limit(10000);
+    if (error) throw new Error(error.message);
+
+    const esc = (v: unknown) => {
+      if (v == null) return "";
+      const s = typeof v === "string" ? v : JSON.stringify(v);
+      return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    };
+    const header = ["created_at", "event", "status", "application", "message", "metadata"];
+    const lines = [header.join(",")];
+    for (const r of rows ?? []) {
+      lines.push([r.created_at, r.event, r.status, r.application, r.message, r.metadata].map(esc).join(","));
+    }
+    return { csv: lines.join("\n"), count: rows?.length ?? 0 };
+  });
+
+export const getRealtifyuLogsPerf = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const samples: { label: string; ms: number }[] = [];
+    const time = async (label: string, fn: () => Promise<unknown>) => {
+      const t0 = performance.now();
+      await fn();
+      samples.push({ label, ms: +(performance.now() - t0).toFixed(1) });
+    };
+
+    await time("page 1 (desc created_at, 25)", () =>
+      context.supabase
+        .from("realtifyu_connection_logs")
+        .select("id", { count: "exact" })
+        .eq("user_id", context.userId)
+        .order("created_at", { ascending: false })
+        .range(0, 24),
+    );
+    await time("filter event=connect", () =>
+      context.supabase
+        .from("realtifyu_connection_logs")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", context.userId)
+        .eq("event", "connect"),
+    );
+    await time("filter status=error", () =>
+      context.supabase
+        .from("realtifyu_connection_logs")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", context.userId)
+        .eq("status", "error"),
+    );
+
+    const { data: indexes } = await supabaseAdmin
+      .from("pg_indexes" as never)
+      .select("indexname,indexdef" as never)
+      .eq("tablename" as never, "realtifyu_connection_logs" as never)
+      .returns<{ indexname: string; indexdef: string }[]>();
+    const idxNames = (indexes ?? []).map((i) => i.indexname);
+
+    const suggestions: { name: string; sql: string; present: boolean; why: string }[] = [
+      {
+        name: "realtifyu_connection_logs_user_created_idx",
+        sql: "CREATE INDEX ... ON (user_id, created_at DESC)",
+        present: idxNames.includes("realtifyu_connection_logs_user_created_idx"),
+        why: "Default sort + pagination by newest first",
+      },
+      {
+        name: "realtifyu_connection_logs_user_event_created_idx",
+        sql: "CREATE INDEX ... ON (user_id, event, created_at DESC)",
+        present: idxNames.includes("realtifyu_connection_logs_user_event_created_idx"),
+        why: "Fast filtering by event type + sort",
+      },
+      {
+        name: "realtifyu_connection_logs_user_status_created_idx",
+        sql: "CREATE INDEX ... ON (user_id, status, created_at DESC)",
+        present: idxNames.includes("realtifyu_connection_logs_user_status_created_idx"),
+        why: "Fast filtering by status (e.g. errors) + sort",
+      },
+    ];
+
+    const totalMs = samples.reduce((s, x) => s + x.ms, 0);
+    const health: "good" | "warn" | "bad" =
+      totalMs < 300 ? "good" : totalMs < 900 ? "warn" : "bad";
+
+    return { samples, totalMs: +totalMs.toFixed(1), health, suggestions, indexes: idxNames };
+  });
