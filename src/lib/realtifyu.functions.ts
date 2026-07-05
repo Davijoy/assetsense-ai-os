@@ -233,28 +233,28 @@ export const getRealtifyuLogsPerf = createServerFn({ method: "GET" })
       samples.push({ label, ms: +(performance.now() - t0).toFixed(1) });
     };
 
-    await time("page 1 (desc created_at, 25)", () =>
-      context.supabase
+    await time("page 1 (desc created_at, 25)", async () => {
+      await context.supabase
         .from("realtifyu_connection_logs")
         .select("id", { count: "exact" })
         .eq("user_id", context.userId)
         .order("created_at", { ascending: false })
-        .range(0, 24),
-    );
-    await time("filter event=connect", () =>
-      context.supabase
+        .range(0, 24);
+    });
+    await time("filter event=connect", async () => {
+      await context.supabase
         .from("realtifyu_connection_logs")
         .select("id", { count: "exact", head: true })
         .eq("user_id", context.userId)
-        .eq("event", "connect"),
-    );
-    await time("filter status=error", () =>
-      context.supabase
+        .eq("event", "connect");
+    });
+    await time("filter status=error", async () => {
+      await context.supabase
         .from("realtifyu_connection_logs")
         .select("id", { count: "exact", head: true })
         .eq("user_id", context.userId)
-        .eq("status", "error"),
-    );
+        .eq("status", "error");
+    });
 
     const { data: indexes } = await supabaseAdmin
       .from("pg_indexes" as never)
