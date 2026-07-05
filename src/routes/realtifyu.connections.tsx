@@ -1,13 +1,18 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { useMemo, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
-import { getRealtifyuConnectionsOverview } from "@/lib/realtifyu.functions";
+import { getRealtifyuConnectionsOverview, getRealtifyuLogs } from "@/lib/realtifyu.functions";
 import {
   Activity,
   AlertTriangle,
   ArrowLeft,
   CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsUpDown,
+  Filter,
   Cpu,
   Gauge,
   Loader2,
@@ -99,7 +104,7 @@ function ConnectionsPage() {
 }
 
 function ContentGrid({ data }: { data: Awaited<ReturnType<ReturnType<typeof useServerFn<typeof getRealtifyuConnectionsOverview>>>> }) {
-  const { connection, logs, consumption } = data;
+  const { connection, consumption } = data;
   const connected = !!connection;
 
   const apps = [
@@ -175,51 +180,215 @@ function ContentGrid({ data }: { data: Awaited<ReturnType<ReturnType<typeof useS
       </section>
 
       {/* Logs */}
-      <section>
-        <h2 className="mb-4 text-sm uppercase tracking-[0.22em] text-muted-foreground">Connection logs</h2>
-        <div className="overflow-hidden rounded-2xl border border-border bg-card">
-          {logs.length === 0 ? (
-            <div className="flex flex-col items-center gap-2 p-10 text-center text-sm text-muted-foreground">
-              <ShieldCheck className="h-5 w-5 text-primary" />
-              No connection events yet. Connect RealtifyU from the main page to start streaming events.
-            </div>
-          ) : (
-            <table className="w-full text-sm">
-              <thead className="border-b border-border/60 text-left text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-                <tr>
-                  <th className="px-4 py-3">When</th>
-                  <th className="px-4 py-3">Event</th>
-                  <th className="px-4 py-3">Application</th>
-                  <th className="px-4 py-3">Message</th>
-                </tr>
-              </thead>
-              <tbody>
-                {logs.map((row) => {
-                  const b = eventBadge(row.event, row.status);
-                  return (
-                    <tr key={row.id} className="border-b border-border/40 last:border-0 hover:bg-muted/20">
-                      <td className="whitespace-nowrap px-4 py-3 text-muted-foreground">
-                        {new Date(row.created_at).toLocaleString()}
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] ${b.className}`}>
-                          {b.label}
-                        </span>
-                        {row.status === "error" && (
-                          <span className="ml-2 text-[11px] text-red-400">error</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3 text-foreground">{row.application}</td>
-                      <td className="px-4 py-3 text-muted-foreground">{row.message ?? "—"}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          )}
-        </div>
-      </section>
+      <LogsSection eventOptions={Object.keys(consumption.byEvent)} />
     </div>
+  );
+}
+
+type SortBy = "created_at" | "event" | "status" | "application";
+type SortDir = "asc" | "desc";
+
+function LogsSection({ eventOptions }: { eventOptions: string[] }) {
+  const logsFn = useServerFn(getRealtifyuLogs);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
+  const [sortBy, setSortBy] = useState<SortBy>("created_at");
+  const [sortDir, setSortDir] = useState<SortDir>("desc");
+  const [event, setEvent] = useState("all");
+  const [status, setStatus] = useState("all");
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
+  const [search, setSearch] = useState("");
+
+  const filters = useMemo(
+    () => ({
+      page,
+      pageSize,
+      sortBy,
+      sortDir,
+      event,
+      status,
+      from: from ? new Date(from).toISOString() : undefined,
+      to: to ? new Date(to).toISOString() : undefined,
+      search: search || undefined,
+    }),
+    [page, pageSize, sortBy, sortDir, event, status, from, to, search],
+  );
+
+  const q = useQuery({
+    queryKey: ["realtifyu-logs", filters],
+    queryFn: () => logsFn({ data: filters }),
+    refetchInterval: 30_000,
+    placeholderData: (prev) => prev,
+  });
+
+  const toggleSort = (col: SortBy) => {
+    if (sortBy === col) setSortDir(sortDir === "asc" ? "desc" : "asc");
+    else { setSortBy(col); setSortDir("desc"); }
+    setPage(1);
+  };
+
+  const resetFilters = () => {
+    setEvent("all"); setStatus("all"); setFrom(""); setTo(""); setSearch(""); setPage(1);
+  };
+
+  const rows = q.data?.rows ?? [];
+  const total = q.data?.total ?? 0;
+  const totalPages = q.data?.totalPages ?? 1;
+
+  const inputCls = "h-9 rounded-md border border-border bg-surface/40 px-2 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary/40";
+
+  return (
+    <section>
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <h2 className="text-sm uppercase tracking-[0.22em] text-muted-foreground">Connection logs</h2>
+        <div className="text-xs text-muted-foreground">
+          {q.isFetching ? "Refreshing…" : `${total} event${total === 1 ? "" : "s"}`}
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div className="mb-3 grid grid-cols-2 gap-2 rounded-2xl border border-border bg-card p-3 md:grid-cols-6">
+        <label className="col-span-2 flex flex-col gap-1 text-[10px] uppercase tracking-[0.16em] text-muted-foreground md:col-span-1">
+          <span className="inline-flex items-center gap-1"><Filter className="h-3 w-3" /> Event</span>
+          <select className={inputCls} value={event} onChange={(e) => { setEvent(e.target.value); setPage(1); }}>
+            <option value="all">All events</option>
+            {["connect","disconnect","refresh","api_call", ...eventOptions.filter(e => !["connect","disconnect","refresh","api_call"].includes(e))].map((e) => (
+              <option key={e} value={e}>{e}</option>
+            ))}
+          </select>
+        </label>
+        <label className="flex flex-col gap-1 text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
+          Status
+          <select className={inputCls} value={status} onChange={(e) => { setStatus(e.target.value); setPage(1); }}>
+            <option value="all">All</option>
+            <option value="ok">ok</option>
+            <option value="error">error</option>
+            <option value="pending">pending</option>
+          </select>
+        </label>
+        <label className="flex flex-col gap-1 text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
+          From
+          <input type="datetime-local" className={inputCls} value={from} onChange={(e) => { setFrom(e.target.value); setPage(1); }} />
+        </label>
+        <label className="flex flex-col gap-1 text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
+          To
+          <input type="datetime-local" className={inputCls} value={to} onChange={(e) => { setTo(e.target.value); setPage(1); }} />
+        </label>
+        <label className="col-span-2 flex flex-col gap-1 text-[10px] uppercase tracking-[0.16em] text-muted-foreground md:col-span-1">
+          Search message
+          <input type="text" placeholder="contains…" className={inputCls} value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} />
+        </label>
+        <div className="col-span-2 flex items-end justify-end md:col-span-1">
+          <button type="button" onClick={resetFilters} className="h-9 rounded-md border border-border bg-surface/40 px-3 text-xs text-muted-foreground hover:bg-surface hover:text-foreground">
+            Reset
+          </button>
+        </div>
+      </div>
+
+      <div className="overflow-hidden rounded-2xl border border-border bg-card">
+        {q.isLoading ? (
+          <div className="flex items-center justify-center gap-2 p-10 text-sm text-muted-foreground">
+            <Loader2 className="h-4 w-4 animate-spin" /> Loading logs…
+          </div>
+        ) : rows.length === 0 ? (
+          <div className="flex flex-col items-center gap-2 p-10 text-center text-sm text-muted-foreground">
+            <ShieldCheck className="h-5 w-5 text-primary" />
+            No connection events match the current filters.
+          </div>
+        ) : (
+          <table className="w-full text-sm">
+            <thead className="border-b border-border/60 text-left text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+              <tr>
+                <SortableTh label="When" col="created_at" sortBy={sortBy} sortDir={sortDir} onToggle={toggleSort} />
+                <SortableTh label="Event" col="event" sortBy={sortBy} sortDir={sortDir} onToggle={toggleSort} />
+                <SortableTh label="Status" col="status" sortBy={sortBy} sortDir={sortDir} onToggle={toggleSort} />
+                <SortableTh label="Application" col="application" sortBy={sortBy} sortDir={sortDir} onToggle={toggleSort} />
+                <th className="px-4 py-3">Message</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((row) => {
+                const b = eventBadge(row.event, row.status);
+                return (
+                  <tr key={row.id} className="border-b border-border/40 last:border-0 hover:bg-muted/20">
+                    <td className="whitespace-nowrap px-4 py-3 text-muted-foreground">
+                      {new Date(row.created_at).toLocaleString()}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] ${b.className}`}>
+                        {b.label}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className={`text-[11px] ${row.status === "error" ? "text-red-400" : "text-muted-foreground"}`}>
+                        {row.status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-foreground">{row.application}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{row.message ?? "—"}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
+      </div>
+
+      {/* Pagination */}
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-xs text-muted-foreground">
+        <div className="inline-flex items-center gap-2">
+          <span>Rows per page</span>
+          <select
+            className={inputCls}
+            value={pageSize}
+            onChange={(e) => { setPageSize(Number(e.target.value)); setPage(1); }}
+          >
+            {[10, 25, 50, 100].map((n) => <option key={n} value={n}>{n}</option>)}
+          </select>
+        </div>
+        <div className="inline-flex items-center gap-3">
+          <span>Page {page} of {totalPages}</span>
+          <div className="inline-flex items-center gap-1">
+            <button
+              type="button"
+              disabled={page <= 1}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-border bg-surface/40 disabled:opacity-40 hover:bg-surface"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              disabled={page >= totalPages}
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-border bg-surface/40 disabled:opacity-40 hover:bg-surface"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function SortableTh({
+  label, col, sortBy, sortDir, onToggle,
+}: { label: string; col: SortBy; sortBy: SortBy; sortDir: SortDir; onToggle: (c: SortBy) => void }) {
+  const active = sortBy === col;
+  return (
+    <th className="px-4 py-3">
+      <button
+        type="button"
+        onClick={() => onToggle(col)}
+        className={`inline-flex items-center gap-1 uppercase tracking-[0.18em] ${active ? "text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+      >
+        {label}
+        <ChevronsUpDown className={`h-3 w-3 ${active ? "opacity-100" : "opacity-40"}`} />
+        {active && <span className="text-[9px]">{sortDir}</span>}
+      </button>
+    </th>
   );
 }
 
