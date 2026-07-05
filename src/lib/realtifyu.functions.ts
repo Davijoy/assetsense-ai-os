@@ -101,7 +101,18 @@ export const disconnectRealtifyu = createServerFn({ method: "POST" })
 export const getRealtifyuConnectionsOverview = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const [{ data: conn }, { data: logs }] = await Promise.all([
+    const now = Date.now();
+    const dayMs = 24 * 60 * 60 * 1000;
+    const since24h = new Date(now - dayMs).toISOString();
+    const since7d = new Date(now - 7 * dayMs).toISOString();
+
+    const base = () =>
+      context.supabase
+        .from("realtifyu_connection_logs")
+        .select("event", { count: "exact", head: false })
+        .eq("user_id", context.userId);
+
+    const [{ data: conn }, allEvents, c24, c7, cErr] = await Promise.all([
       context.supabase
         .from("realtifyu_connections")
         .select("account_email,account_name,account_id,scope,connected_at,expires_at")
@@ -109,30 +120,72 @@ export const getRealtifyuConnectionsOverview = createServerFn({ method: "GET" })
         .maybeSingle(),
       context.supabase
         .from("realtifyu_connection_logs")
-        .select("id,event,status,application,message,metadata,created_at")
-        .eq("user_id", context.userId)
-        .order("created_at", { ascending: false })
-        .limit(50),
+        .select("event", { count: "exact" })
+        .eq("user_id", context.userId),
+      base().gte("created_at", since24h),
+      base().gte("created_at", since7d),
+      base().eq("status", "error"),
     ]);
 
-    const rows = logs ?? [];
-    const now = Date.now();
-    const dayMs = 24 * 60 * 60 * 1000;
-    const last24h = rows.filter((r) => now - new Date(r.created_at).getTime() < dayMs);
-    const last7d = rows.filter((r) => now - new Date(r.created_at).getTime() < 7 * dayMs);
-    const errors = rows.filter((r) => r.status === "error").length;
     const byEvent: Record<string, number> = {};
-    for (const r of rows) byEvent[r.event] = (byEvent[r.event] ?? 0) + 1;
+    for (const r of allEvents.data ?? []) byEvent[r.event] = (byEvent[r.event] ?? 0) + 1;
 
     return {
       connection: conn ?? null,
-      logs: rows,
       consumption: {
-        events24h: last24h.length,
-        events7d: last7d.length,
-        totalEvents: rows.length,
-        errors,
+        events24h: c24.count ?? 0,
+        events7d: c7.count ?? 0,
+        totalEvents: allEvents.count ?? 0,
+        errors: cErr.count ?? 0,
         byEvent,
       },
+    };
+  });
+
+type LogsQuery = {
+  page?: number;
+  pageSize?: number;
+  sortBy?: "created_at" | "event" | "status" | "application";
+  sortDir?: "asc" | "desc";
+  event?: string;
+  status?: string;
+  from?: string;
+  to?: string;
+  search?: string;
+};
+
+export const getRealtifyuLogs = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: LogsQuery | undefined) => d ?? {})
+  .handler(async ({ data, context }) => {
+    const page = Math.max(1, data.page ?? 1);
+    const pageSize = Math.min(100, Math.max(5, data.pageSize ?? 25));
+    const sortBy = data.sortBy ?? "created_at";
+    const sortDir = data.sortDir ?? "desc";
+    const from = (page - 1) * pageSize;
+    const to = from + pageSize - 1;
+
+    let q = context.supabase
+      .from("realtifyu_connection_logs")
+      .select("id,event,status,application,message,metadata,created_at", { count: "exact" })
+      .eq("user_id", context.userId);
+
+    if (data.event && data.event !== "all") q = q.eq("event", data.event);
+    if (data.status && data.status !== "all") q = q.eq("status", data.status);
+    if (data.from) q = q.gte("created_at", data.from);
+    if (data.to) q = q.lte("created_at", data.to);
+    if (data.search) q = q.ilike("message", `%${data.search}%`);
+
+    const { data: rows, count, error } = await q
+      .order(sortBy, { ascending: sortDir === "asc" })
+      .range(from, to);
+    if (error) throw new Error(error.message);
+
+    return {
+      rows: rows ?? [],
+      total: count ?? 0,
+      page,
+      pageSize,
+      totalPages: Math.max(1, Math.ceil((count ?? 0) / pageSize)),
     };
   });
