@@ -1,8 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
+import { supabase } from "@/integrations/supabase/client";
 import {
   exportRealtifyuLogsCsv,
   getRealtifyuConnectionsOverview,
@@ -28,6 +29,7 @@ import {
   Network,
   Plug,
   RefreshCw,
+  Radio,
   ShieldCheck,
   Zap,
 } from "lucide-react";
@@ -198,6 +200,8 @@ type SortBy = "created_at" | "event" | "status" | "application";
 type SortDir = "asc" | "desc";
 
 function LogsSection({ eventOptions }: { eventOptions: string[] }) {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
   const logsFn = useServerFn(getRealtifyuLogs);
   const exportFn = useServerFn(exportRealtifyuLogsCsv);
   const [page, setPage] = useState(1);
@@ -212,6 +216,10 @@ function LogsSection({ eventOptions }: { eventOptions: string[] }) {
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [intervalMs, setIntervalMs] = useState(30_000);
   const [exporting, setExporting] = useState(false);
+  const [realtime, setRealtime] = useState(true);
+  const [rtStatus, setRtStatus] = useState<"connecting" | "live" | "off" | "error">("off");
+  const [newSince, setNewSince] = useState(0);
+  const lastPulse = useRef(0);
 
   const filters = useMemo(
     () => ({
@@ -234,6 +242,48 @@ function LogsSection({ eventOptions }: { eventOptions: string[] }) {
     refetchInterval: autoRefresh ? intervalMs : false,
     placeholderData: (prev) => prev,
   });
+
+  // Reset the "new since last view" counter when the user changes filters/page
+  useEffect(() => {
+    setNewSince(0);
+  }, [filters]);
+
+  // Subscribe to Supabase Realtime for instant log updates
+  useEffect(() => {
+    if (!user || !realtime) {
+      setRtStatus("off");
+      return;
+    }
+    setRtStatus("connecting");
+    const channel = supabase
+      .channel(`realtifyu-logs-${user.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "realtifyu_connection_logs",
+          filter: `user_id=eq.${user.id}`,
+        },
+        () => {
+          const now = Date.now();
+          // Debounce bursts of inserts into a single refetch
+          if (now - lastPulse.current < 400) return;
+          lastPulse.current = now;
+          setNewSince((n) => n + 1);
+          queryClient.invalidateQueries({ queryKey: ["realtifyu-logs"] });
+          queryClient.invalidateQueries({ queryKey: ["realtifyu-overview"] });
+        },
+      )
+      .subscribe((status) => {
+        if (status === "SUBSCRIBED") setRtStatus("live");
+        else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") setRtStatus("error");
+      });
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, realtime, queryClient]);
 
   const toggleSort = (col: SortBy) => {
     if (sortBy === col) setSortDir(sortDir === "asc" ? "desc" : "asc");
@@ -278,6 +328,34 @@ function LogsSection({ eventOptions }: { eventOptions: string[] }) {
         <h2 className="text-sm uppercase tracking-[0.22em] text-muted-foreground">Connection logs</h2>
         <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
           <span>{q.isFetching ? "Refreshing…" : `${total} event${total === 1 ? "" : "s"}`}</span>
+          <button
+            type="button"
+            onClick={() => setRealtime((v) => !v)}
+            title={realtime ? "Disable realtime stream" : "Enable realtime stream"}
+            className={`inline-flex items-center gap-1 rounded-md border px-2 py-1 text-[11px] ${
+              rtStatus === "live"
+                ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400"
+                : rtStatus === "connecting"
+                ? "border-sky-500/40 bg-sky-500/10 text-sky-400"
+                : rtStatus === "error"
+                ? "border-red-500/40 bg-red-500/10 text-red-400"
+                : "border-border bg-surface/40 text-muted-foreground"
+            }`}
+          >
+            <Radio className={`h-3 w-3 ${rtStatus === "live" ? "animate-pulse" : ""}`} />
+            {rtStatus === "live"
+              ? "Realtime"
+              : rtStatus === "connecting"
+              ? "Connecting"
+              : rtStatus === "error"
+              ? "Realtime error"
+              : "Realtime off"}
+            {newSince > 0 && rtStatus === "live" && (
+              <span className="ml-1 rounded-full bg-emerald-500/20 px-1.5 font-mono text-[10px]">
+                +{newSince}
+              </span>
+            )}
+          </button>
           <div className="ml-2 inline-flex items-center gap-1 rounded-md border border-border bg-surface/40 p-0.5">
             <button
               type="button"
