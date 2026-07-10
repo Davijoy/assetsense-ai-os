@@ -56,6 +56,31 @@ function PressPage() {
           <a href="mailto:press@sentinelfort.com">press@sentinelfort.com</a>
         </p>
       </section>
+
+      <section>
+        <h2>Press kit</h2>
+        <p>
+          The Sentinel Fort Group press kit includes primary and secondary logos, wordmarks,
+          shield mark, product screenshots, executive photography and boilerplate copy in short
+          and long form. Written requests are turned around within one business day.
+        </p>
+        <ul>
+          <li>Primary wordmark and shield mark (SVG + PNG)</li>
+          <li>Product screenshots of CRM, Marketplace, AI Voice, KIE and BI</li>
+          <li>Executive photography and bios</li>
+          <li>Short and long-form company boilerplate</li>
+          <li>Approved product taglines</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Future announcements</h2>
+        <ul>
+          <li>Sentinel Enterprise Cloud with region-aware data residency (upcoming).</li>
+          <li>Marketplace expansion into commercial and pre-leased inventory (upcoming).</li>
+          <li>Executive Command Center — public beta (upcoming).</li>
+        </ul>
+      </section>
     </PageShell>
   );
 }
