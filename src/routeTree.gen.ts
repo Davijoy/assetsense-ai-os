@@ -23,7 +23,17 @@ import { Route as AppRouteImport } from './routes/app'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
+import { Route as SolutionsEnterprisesRouteImport } from './routes/solutions.enterprises'
+import { Route as SolutionsDevelopersRouteImport } from './routes/solutions.developers'
+import { Route as SolutionsChannelPartnersRouteImport } from './routes/solutions.channel-partners'
+import { Route as SolutionsBrokersRouteImport } from './routes/solutions.brokers'
 import { Route as RealtifyuConnectionsRouteImport } from './routes/realtifyu.connections'
+import { Route as ProductMarketplaceRouteImport } from './routes/product.marketplace'
+import { Route as ProductMarketingCloudRouteImport } from './routes/product.marketing-cloud'
+import { Route as ProductErpRouteImport } from './routes/product.erp'
+import { Route as ProductCrmRouteImport } from './routes/product.crm'
+import { Route as ProductBiRouteImport } from './routes/product.bi'
+import { Route as ProductAiVoiceRouteImport } from './routes/product.ai-voice'
 import { Route as AuthResetPasswordRouteImport } from './routes/auth.reset-password'
 import { Route as AuthForgotPasswordRouteImport } from './routes/auth.forgot-password'
 import { Route as AppWorkflowsRouteImport } from './routes/app.workflows'
@@ -122,10 +132,61 @@ const AppIndexRoute = AppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppRoute,
 } as any)
+const SolutionsEnterprisesRoute = SolutionsEnterprisesRouteImport.update({
+  id: '/solutions/enterprises',
+  path: '/solutions/enterprises',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SolutionsDevelopersRoute = SolutionsDevelopersRouteImport.update({
+  id: '/solutions/developers',
+  path: '/solutions/developers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SolutionsChannelPartnersRoute =
+  SolutionsChannelPartnersRouteImport.update({
+    id: '/solutions/channel-partners',
+    path: '/solutions/channel-partners',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const SolutionsBrokersRoute = SolutionsBrokersRouteImport.update({
+  id: '/solutions/brokers',
+  path: '/solutions/brokers',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RealtifyuConnectionsRoute = RealtifyuConnectionsRouteImport.update({
   id: '/connections',
   path: '/connections',
   getParentRoute: () => RealtifyuRoute,
+} as any)
+const ProductMarketplaceRoute = ProductMarketplaceRouteImport.update({
+  id: '/product/marketplace',
+  path: '/product/marketplace',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProductMarketingCloudRoute = ProductMarketingCloudRouteImport.update({
+  id: '/product/marketing-cloud',
+  path: '/product/marketing-cloud',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProductErpRoute = ProductErpRouteImport.update({
+  id: '/product/erp',
+  path: '/product/erp',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProductCrmRoute = ProductCrmRouteImport.update({
+  id: '/product/crm',
+  path: '/product/crm',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProductBiRoute = ProductBiRouteImport.update({
+  id: '/product/bi',
+  path: '/product/bi',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProductAiVoiceRoute = ProductAiVoiceRouteImport.update({
+  id: '/product/ai-voice',
+  path: '/product/ai-voice',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AuthResetPasswordRoute = AuthResetPasswordRouteImport.update({
   id: '/reset-password',
@@ -303,7 +364,17 @@ export interface FileRoutesByFullPath {
   '/app/workflows': typeof AppWorkflowsRoute
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
+  '/product/ai-voice': typeof ProductAiVoiceRoute
+  '/product/bi': typeof ProductBiRoute
+  '/product/crm': typeof ProductCrmRoute
+  '/product/erp': typeof ProductErpRoute
+  '/product/marketing-cloud': typeof ProductMarketingCloudRoute
+  '/product/marketplace': typeof ProductMarketplaceRoute
   '/realtifyu/connections': typeof RealtifyuConnectionsRoute
+  '/solutions/brokers': typeof SolutionsBrokersRoute
+  '/solutions/channel-partners': typeof SolutionsChannelPartnersRoute
+  '/solutions/developers': typeof SolutionsDevelopersRoute
+  '/solutions/enterprises': typeof SolutionsEnterprisesRoute
   '/app/': typeof AppIndexRoute
   '/app/settings/branding': typeof AppSettingsBrandingRoute
   '/api/public/realtifyu/callback': typeof ApiPublicRealtifyuCallbackRoute
@@ -346,7 +417,17 @@ export interface FileRoutesByTo {
   '/app/workflows': typeof AppWorkflowsRoute
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
+  '/product/ai-voice': typeof ProductAiVoiceRoute
+  '/product/bi': typeof ProductBiRoute
+  '/product/crm': typeof ProductCrmRoute
+  '/product/erp': typeof ProductErpRoute
+  '/product/marketing-cloud': typeof ProductMarketingCloudRoute
+  '/product/marketplace': typeof ProductMarketplaceRoute
   '/realtifyu/connections': typeof RealtifyuConnectionsRoute
+  '/solutions/brokers': typeof SolutionsBrokersRoute
+  '/solutions/channel-partners': typeof SolutionsChannelPartnersRoute
+  '/solutions/developers': typeof SolutionsDevelopersRoute
+  '/solutions/enterprises': typeof SolutionsEnterprisesRoute
   '/app': typeof AppIndexRoute
   '/app/settings/branding': typeof AppSettingsBrandingRoute
   '/api/public/realtifyu/callback': typeof ApiPublicRealtifyuCallbackRoute
@@ -391,7 +472,17 @@ export interface FileRoutesById {
   '/app/workflows': typeof AppWorkflowsRoute
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
+  '/product/ai-voice': typeof ProductAiVoiceRoute
+  '/product/bi': typeof ProductBiRoute
+  '/product/crm': typeof ProductCrmRoute
+  '/product/erp': typeof ProductErpRoute
+  '/product/marketing-cloud': typeof ProductMarketingCloudRoute
+  '/product/marketplace': typeof ProductMarketplaceRoute
   '/realtifyu/connections': typeof RealtifyuConnectionsRoute
+  '/solutions/brokers': typeof SolutionsBrokersRoute
+  '/solutions/channel-partners': typeof SolutionsChannelPartnersRoute
+  '/solutions/developers': typeof SolutionsDevelopersRoute
+  '/solutions/enterprises': typeof SolutionsEnterprisesRoute
   '/app/': typeof AppIndexRoute
   '/app/settings/branding': typeof AppSettingsBrandingRoute
   '/api/public/realtifyu/callback': typeof ApiPublicRealtifyuCallbackRoute
@@ -437,7 +528,17 @@ export interface FileRouteTypes {
     | '/app/workflows'
     | '/auth/forgot-password'
     | '/auth/reset-password'
+    | '/product/ai-voice'
+    | '/product/bi'
+    | '/product/crm'
+    | '/product/erp'
+    | '/product/marketing-cloud'
+    | '/product/marketplace'
     | '/realtifyu/connections'
+    | '/solutions/brokers'
+    | '/solutions/channel-partners'
+    | '/solutions/developers'
+    | '/solutions/enterprises'
     | '/app/'
     | '/app/settings/branding'
     | '/api/public/realtifyu/callback'
@@ -480,7 +581,17 @@ export interface FileRouteTypes {
     | '/app/workflows'
     | '/auth/forgot-password'
     | '/auth/reset-password'
+    | '/product/ai-voice'
+    | '/product/bi'
+    | '/product/crm'
+    | '/product/erp'
+    | '/product/marketing-cloud'
+    | '/product/marketplace'
     | '/realtifyu/connections'
+    | '/solutions/brokers'
+    | '/solutions/channel-partners'
+    | '/solutions/developers'
+    | '/solutions/enterprises'
     | '/app'
     | '/app/settings/branding'
     | '/api/public/realtifyu/callback'
@@ -524,7 +635,17 @@ export interface FileRouteTypes {
     | '/app/workflows'
     | '/auth/forgot-password'
     | '/auth/reset-password'
+    | '/product/ai-voice'
+    | '/product/bi'
+    | '/product/crm'
+    | '/product/erp'
+    | '/product/marketing-cloud'
+    | '/product/marketplace'
     | '/realtifyu/connections'
+    | '/solutions/brokers'
+    | '/solutions/channel-partners'
+    | '/solutions/developers'
+    | '/solutions/enterprises'
     | '/app/'
     | '/app/settings/branding'
     | '/api/public/realtifyu/callback'
@@ -544,6 +665,16 @@ export interface RootRouteChildren {
   SecurityRoute: typeof SecurityRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TermsRoute: typeof TermsRoute
+  ProductAiVoiceRoute: typeof ProductAiVoiceRoute
+  ProductBiRoute: typeof ProductBiRoute
+  ProductCrmRoute: typeof ProductCrmRoute
+  ProductErpRoute: typeof ProductErpRoute
+  ProductMarketingCloudRoute: typeof ProductMarketingCloudRoute
+  ProductMarketplaceRoute: typeof ProductMarketplaceRoute
+  SolutionsBrokersRoute: typeof SolutionsBrokersRoute
+  SolutionsChannelPartnersRoute: typeof SolutionsChannelPartnersRoute
+  SolutionsDevelopersRoute: typeof SolutionsDevelopersRoute
+  SolutionsEnterprisesRoute: typeof SolutionsEnterprisesRoute
   ApiPublicRealtifyuCallbackRoute: typeof ApiPublicRealtifyuCallbackRoute
 }
 
@@ -647,12 +778,82 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/solutions/enterprises': {
+      id: '/solutions/enterprises'
+      path: '/solutions/enterprises'
+      fullPath: '/solutions/enterprises'
+      preLoaderRoute: typeof SolutionsEnterprisesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/solutions/developers': {
+      id: '/solutions/developers'
+      path: '/solutions/developers'
+      fullPath: '/solutions/developers'
+      preLoaderRoute: typeof SolutionsDevelopersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/solutions/channel-partners': {
+      id: '/solutions/channel-partners'
+      path: '/solutions/channel-partners'
+      fullPath: '/solutions/channel-partners'
+      preLoaderRoute: typeof SolutionsChannelPartnersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/solutions/brokers': {
+      id: '/solutions/brokers'
+      path: '/solutions/brokers'
+      fullPath: '/solutions/brokers'
+      preLoaderRoute: typeof SolutionsBrokersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/realtifyu/connections': {
       id: '/realtifyu/connections'
       path: '/connections'
       fullPath: '/realtifyu/connections'
       preLoaderRoute: typeof RealtifyuConnectionsRouteImport
       parentRoute: typeof RealtifyuRoute
+    }
+    '/product/marketplace': {
+      id: '/product/marketplace'
+      path: '/product/marketplace'
+      fullPath: '/product/marketplace'
+      preLoaderRoute: typeof ProductMarketplaceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/product/marketing-cloud': {
+      id: '/product/marketing-cloud'
+      path: '/product/marketing-cloud'
+      fullPath: '/product/marketing-cloud'
+      preLoaderRoute: typeof ProductMarketingCloudRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/product/erp': {
+      id: '/product/erp'
+      path: '/product/erp'
+      fullPath: '/product/erp'
+      preLoaderRoute: typeof ProductErpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/product/crm': {
+      id: '/product/crm'
+      path: '/product/crm'
+      fullPath: '/product/crm'
+      preLoaderRoute: typeof ProductCrmRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/product/bi': {
+      id: '/product/bi'
+      path: '/product/bi'
+      fullPath: '/product/bi'
+      preLoaderRoute: typeof ProductBiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/product/ai-voice': {
+      id: '/product/ai-voice'
+      path: '/product/ai-voice'
+      fullPath: '/product/ai-voice'
+      preLoaderRoute: typeof ProductAiVoiceRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/auth/reset-password': {
       id: '/auth/reset-password'
@@ -942,18 +1143,18 @@ const rootRouteChildren: RootRouteChildren = {
   SecurityRoute: SecurityRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TermsRoute: TermsRoute,
+  ProductAiVoiceRoute: ProductAiVoiceRoute,
+  ProductBiRoute: ProductBiRoute,
+  ProductCrmRoute: ProductCrmRoute,
+  ProductErpRoute: ProductErpRoute,
+  ProductMarketingCloudRoute: ProductMarketingCloudRoute,
+  ProductMarketplaceRoute: ProductMarketplaceRoute,
+  SolutionsBrokersRoute: SolutionsBrokersRoute,
+  SolutionsChannelPartnersRoute: SolutionsChannelPartnersRoute,
+  SolutionsDevelopersRoute: SolutionsDevelopersRoute,
+  SolutionsEnterprisesRoute: SolutionsEnterprisesRoute,
   ApiPublicRealtifyuCallbackRoute: ApiPublicRealtifyuCallbackRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
