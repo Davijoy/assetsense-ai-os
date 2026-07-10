@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TermsRouteImport } from './routes/terms'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SecurityRouteImport } from './routes/security'
 import { Route as RealtifyuRouteImport } from './routes/realtifyu'
 import { Route as PrivacyRouteImport } from './routes/privacy'
@@ -54,6 +55,11 @@ import { Route as ApiPublicRealtifyuCallbackRouteImport } from './routes/api/pub
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
   path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SecurityRoute = SecurityRouteImport.update({
@@ -270,6 +276,7 @@ export interface FileRoutesByFullPath {
   '/privacy': typeof PrivacyRoute
   '/realtifyu': typeof RealtifyuRouteWithChildren
   '/security': typeof SecurityRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/app/bi': typeof AppBiRoute
   '/app/collections': typeof AppCollectionsRoute
@@ -312,6 +319,7 @@ export interface FileRoutesByTo {
   '/privacy': typeof PrivacyRoute
   '/realtifyu': typeof RealtifyuRouteWithChildren
   '/security': typeof SecurityRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/app/bi': typeof AppBiRoute
   '/app/collections': typeof AppCollectionsRoute
@@ -356,6 +364,7 @@ export interface FileRoutesById {
   '/privacy': typeof PrivacyRoute
   '/realtifyu': typeof RealtifyuRouteWithChildren
   '/security': typeof SecurityRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/app/bi': typeof AppBiRoute
   '/app/collections': typeof AppCollectionsRoute
@@ -401,6 +410,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/realtifyu'
     | '/security'
+    | '/sitemap.xml'
     | '/terms'
     | '/app/bi'
     | '/app/collections'
@@ -443,6 +453,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/realtifyu'
     | '/security'
+    | '/sitemap.xml'
     | '/terms'
     | '/app/bi'
     | '/app/collections'
@@ -486,6 +497,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/realtifyu'
     | '/security'
+    | '/sitemap.xml'
     | '/terms'
     | '/app/bi'
     | '/app/collections'
@@ -530,6 +542,7 @@ export interface RootRouteChildren {
   PrivacyRoute: typeof PrivacyRoute
   RealtifyuRoute: typeof RealtifyuRouteWithChildren
   SecurityRoute: typeof SecurityRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TermsRoute: typeof TermsRoute
   ApiPublicRealtifyuCallbackRoute: typeof ApiPublicRealtifyuCallbackRoute
 }
@@ -541,6 +554,13 @@ declare module '@tanstack/react-router' {
       path: '/terms'
       fullPath: '/terms'
       preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/security': {
@@ -920,6 +940,7 @@ const rootRouteChildren: RootRouteChildren = {
   PrivacyRoute: PrivacyRoute,
   RealtifyuRoute: RealtifyuRouteWithChildren,
   SecurityRoute: SecurityRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   TermsRoute: TermsRoute,
   ApiPublicRealtifyuCallbackRoute: ApiPublicRealtifyuCallbackRoute,
 }
