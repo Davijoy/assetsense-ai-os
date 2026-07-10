@@ -25,6 +25,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as RealtifyuConnectionsRouteImport } from './routes/realtifyu.connections'
 import { Route as ProductMarketplaceRouteImport } from './routes/product.marketplace'
+import { Route as ProductMarketingCloudRouteImport } from './routes/product.marketing-cloud'
 import { Route as ProductErpRouteImport } from './routes/product.erp'
 import { Route as ProductCrmRouteImport } from './routes/product.crm'
 import { Route as ProductAiVoiceRouteImport } from './routes/product.ai-voice'
@@ -134,6 +135,11 @@ const RealtifyuConnectionsRoute = RealtifyuConnectionsRouteImport.update({
 const ProductMarketplaceRoute = ProductMarketplaceRouteImport.update({
   id: '/product/marketplace',
   path: '/product/marketplace',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProductMarketingCloudRoute = ProductMarketingCloudRouteImport.update({
+  id: '/product/marketing-cloud',
+  path: '/product/marketing-cloud',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProductErpRoute = ProductErpRouteImport.update({
@@ -330,6 +336,7 @@ export interface FileRoutesByFullPath {
   '/product/ai-voice': typeof ProductAiVoiceRoute
   '/product/crm': typeof ProductCrmRoute
   '/product/erp': typeof ProductErpRoute
+  '/product/marketing-cloud': typeof ProductMarketingCloudRoute
   '/product/marketplace': typeof ProductMarketplaceRoute
   '/realtifyu/connections': typeof RealtifyuConnectionsRoute
   '/app/': typeof AppIndexRoute
@@ -377,6 +384,7 @@ export interface FileRoutesByTo {
   '/product/ai-voice': typeof ProductAiVoiceRoute
   '/product/crm': typeof ProductCrmRoute
   '/product/erp': typeof ProductErpRoute
+  '/product/marketing-cloud': typeof ProductMarketingCloudRoute
   '/product/marketplace': typeof ProductMarketplaceRoute
   '/realtifyu/connections': typeof RealtifyuConnectionsRoute
   '/app': typeof AppIndexRoute
@@ -426,6 +434,7 @@ export interface FileRoutesById {
   '/product/ai-voice': typeof ProductAiVoiceRoute
   '/product/crm': typeof ProductCrmRoute
   '/product/erp': typeof ProductErpRoute
+  '/product/marketing-cloud': typeof ProductMarketingCloudRoute
   '/product/marketplace': typeof ProductMarketplaceRoute
   '/realtifyu/connections': typeof RealtifyuConnectionsRoute
   '/app/': typeof AppIndexRoute
@@ -476,6 +485,7 @@ export interface FileRouteTypes {
     | '/product/ai-voice'
     | '/product/crm'
     | '/product/erp'
+    | '/product/marketing-cloud'
     | '/product/marketplace'
     | '/realtifyu/connections'
     | '/app/'
@@ -523,6 +533,7 @@ export interface FileRouteTypes {
     | '/product/ai-voice'
     | '/product/crm'
     | '/product/erp'
+    | '/product/marketing-cloud'
     | '/product/marketplace'
     | '/realtifyu/connections'
     | '/app'
@@ -571,6 +582,7 @@ export interface FileRouteTypes {
     | '/product/ai-voice'
     | '/product/crm'
     | '/product/erp'
+    | '/product/marketing-cloud'
     | '/product/marketplace'
     | '/realtifyu/connections'
     | '/app/'
@@ -595,6 +607,7 @@ export interface RootRouteChildren {
   ProductAiVoiceRoute: typeof ProductAiVoiceRoute
   ProductCrmRoute: typeof ProductCrmRoute
   ProductErpRoute: typeof ProductErpRoute
+  ProductMarketingCloudRoute: typeof ProductMarketingCloudRoute
   ProductMarketplaceRoute: typeof ProductMarketplaceRoute
   ApiPublicRealtifyuCallbackRoute: typeof ApiPublicRealtifyuCallbackRoute
 }
@@ -711,6 +724,13 @@ declare module '@tanstack/react-router' {
       path: '/product/marketplace'
       fullPath: '/product/marketplace'
       preLoaderRoute: typeof ProductMarketplaceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/product/marketing-cloud': {
+      id: '/product/marketing-cloud'
+      path: '/product/marketing-cloud'
+      fullPath: '/product/marketing-cloud'
+      preLoaderRoute: typeof ProductMarketingCloudRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/product/erp': {
@@ -1025,6 +1045,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProductAiVoiceRoute: ProductAiVoiceRoute,
   ProductCrmRoute: ProductCrmRoute,
   ProductErpRoute: ProductErpRoute,
+  ProductMarketingCloudRoute: ProductMarketingCloudRoute,
   ProductMarketplaceRoute: ProductMarketplaceRoute,
   ApiPublicRealtifyuCallbackRoute: ApiPublicRealtifyuCallbackRoute,
 }
