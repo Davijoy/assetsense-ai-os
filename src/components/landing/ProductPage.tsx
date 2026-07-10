@@ -2,6 +2,9 @@ import { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { Nav } from "@/components/landing/Nav";
 import { Footer } from "@/components/landing/Footer";
+import { Breadcrumbs } from "@/components/landing/Breadcrumbs";
+import { RelatedArticles } from "@/components/landing/RelatedArticles";
+import { useRouterState } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -54,6 +57,7 @@ export function ProductPage({
   faq,
   children,
 }: ProductPageProps) {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Nav />
@@ -70,6 +74,7 @@ export function ProductPage({
           />
           <div className="mx-auto max-w-6xl px-6 py-20 sm:py-28">
             <div className="max-w-3xl">
+              <Breadcrumbs to={pathname} />
               <div className="inline-flex items-center gap-2 rounded-full border border-gold/30 bg-gold/5 px-3 py-1 text-[11px] uppercase tracking-[0.24em] text-gold">
                 <Sparkles className="h-3 w-3" /> {eyebrow}
               </div>
@@ -235,6 +240,7 @@ export function ProductPage({
             </div>
           </div>
         </section>
+        <RelatedArticles to={pathname} />
       </main>
       <Footer />
     </div>

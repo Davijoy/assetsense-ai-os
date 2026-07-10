@@ -7,7 +7,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Search } from "lucide-react";
 
 const productLinks = [
   { label: "CRM", to: "/product/crm" },
@@ -88,6 +88,13 @@ export function Nav() {
           <NavDropdown label="Legal" items={legalLinks} />
         </nav>
         <div className="flex items-center gap-3">
+          <Link
+            to="/search"
+            aria-label="Search"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-surface/60 transition-colors"
+          >
+            <Search className="h-4 w-4" />
+          </Link>
           <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
             <Link to="/app">Open Console</Link>
           </Button>
