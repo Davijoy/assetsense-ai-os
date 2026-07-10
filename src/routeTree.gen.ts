@@ -24,6 +24,7 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as SolutionsDevelopersRouteImport } from './routes/solutions.developers'
+import { Route as SolutionsBrokersRouteImport } from './routes/solutions.brokers'
 import { Route as RealtifyuConnectionsRouteImport } from './routes/realtifyu.connections'
 import { Route as ProductMarketplaceRouteImport } from './routes/product.marketplace'
 import { Route as ProductMarketingCloudRouteImport } from './routes/product.marketing-cloud'
@@ -132,6 +133,11 @@ const AppIndexRoute = AppIndexRouteImport.update({
 const SolutionsDevelopersRoute = SolutionsDevelopersRouteImport.update({
   id: '/solutions/developers',
   path: '/solutions/developers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SolutionsBrokersRoute = SolutionsBrokersRouteImport.update({
+  id: '/solutions/brokers',
+  path: '/solutions/brokers',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RealtifyuConnectionsRoute = RealtifyuConnectionsRouteImport.update({
@@ -352,6 +358,7 @@ export interface FileRoutesByFullPath {
   '/product/marketing-cloud': typeof ProductMarketingCloudRoute
   '/product/marketplace': typeof ProductMarketplaceRoute
   '/realtifyu/connections': typeof RealtifyuConnectionsRoute
+  '/solutions/brokers': typeof SolutionsBrokersRoute
   '/solutions/developers': typeof SolutionsDevelopersRoute
   '/app/': typeof AppIndexRoute
   '/app/settings/branding': typeof AppSettingsBrandingRoute
@@ -402,6 +409,7 @@ export interface FileRoutesByTo {
   '/product/marketing-cloud': typeof ProductMarketingCloudRoute
   '/product/marketplace': typeof ProductMarketplaceRoute
   '/realtifyu/connections': typeof RealtifyuConnectionsRoute
+  '/solutions/brokers': typeof SolutionsBrokersRoute
   '/solutions/developers': typeof SolutionsDevelopersRoute
   '/app': typeof AppIndexRoute
   '/app/settings/branding': typeof AppSettingsBrandingRoute
@@ -454,6 +462,7 @@ export interface FileRoutesById {
   '/product/marketing-cloud': typeof ProductMarketingCloudRoute
   '/product/marketplace': typeof ProductMarketplaceRoute
   '/realtifyu/connections': typeof RealtifyuConnectionsRoute
+  '/solutions/brokers': typeof SolutionsBrokersRoute
   '/solutions/developers': typeof SolutionsDevelopersRoute
   '/app/': typeof AppIndexRoute
   '/app/settings/branding': typeof AppSettingsBrandingRoute
@@ -507,6 +516,7 @@ export interface FileRouteTypes {
     | '/product/marketing-cloud'
     | '/product/marketplace'
     | '/realtifyu/connections'
+    | '/solutions/brokers'
     | '/solutions/developers'
     | '/app/'
     | '/app/settings/branding'
@@ -557,6 +567,7 @@ export interface FileRouteTypes {
     | '/product/marketing-cloud'
     | '/product/marketplace'
     | '/realtifyu/connections'
+    | '/solutions/brokers'
     | '/solutions/developers'
     | '/app'
     | '/app/settings/branding'
@@ -608,6 +619,7 @@ export interface FileRouteTypes {
     | '/product/marketing-cloud'
     | '/product/marketplace'
     | '/realtifyu/connections'
+    | '/solutions/brokers'
     | '/solutions/developers'
     | '/app/'
     | '/app/settings/branding'
@@ -634,6 +646,7 @@ export interface RootRouteChildren {
   ProductErpRoute: typeof ProductErpRoute
   ProductMarketingCloudRoute: typeof ProductMarketingCloudRoute
   ProductMarketplaceRoute: typeof ProductMarketplaceRoute
+  SolutionsBrokersRoute: typeof SolutionsBrokersRoute
   SolutionsDevelopersRoute: typeof SolutionsDevelopersRoute
   ApiPublicRealtifyuCallbackRoute: typeof ApiPublicRealtifyuCallbackRoute
 }
@@ -743,6 +756,13 @@ declare module '@tanstack/react-router' {
       path: '/solutions/developers'
       fullPath: '/solutions/developers'
       preLoaderRoute: typeof SolutionsDevelopersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/solutions/brokers': {
+      id: '/solutions/brokers'
+      path: '/solutions/brokers'
+      fullPath: '/solutions/brokers'
+      preLoaderRoute: typeof SolutionsBrokersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/realtifyu/connections': {
@@ -1088,6 +1108,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProductErpRoute: ProductErpRoute,
   ProductMarketingCloudRoute: ProductMarketingCloudRoute,
   ProductMarketplaceRoute: ProductMarketplaceRoute,
+  SolutionsBrokersRoute: SolutionsBrokersRoute,
   SolutionsDevelopersRoute: SolutionsDevelopersRoute,
   ApiPublicRealtifyuCallbackRoute: ApiPublicRealtifyuCallbackRoute,
 }
