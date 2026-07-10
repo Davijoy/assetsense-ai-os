@@ -27,6 +27,7 @@ import { Route as RealtifyuConnectionsRouteImport } from './routes/realtifyu.con
 import { Route as ProductMarketplaceRouteImport } from './routes/product.marketplace'
 import { Route as ProductErpRouteImport } from './routes/product.erp'
 import { Route as ProductCrmRouteImport } from './routes/product.crm'
+import { Route as ProductAiVoiceRouteImport } from './routes/product.ai-voice'
 import { Route as AuthResetPasswordRouteImport } from './routes/auth.reset-password'
 import { Route as AuthForgotPasswordRouteImport } from './routes/auth.forgot-password'
 import { Route as AppWorkflowsRouteImport } from './routes/app.workflows'
@@ -143,6 +144,11 @@ const ProductErpRoute = ProductErpRouteImport.update({
 const ProductCrmRoute = ProductCrmRouteImport.update({
   id: '/product/crm',
   path: '/product/crm',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProductAiVoiceRoute = ProductAiVoiceRouteImport.update({
+  id: '/product/ai-voice',
+  path: '/product/ai-voice',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthResetPasswordRoute = AuthResetPasswordRouteImport.update({
@@ -321,6 +327,7 @@ export interface FileRoutesByFullPath {
   '/app/workflows': typeof AppWorkflowsRoute
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
+  '/product/ai-voice': typeof ProductAiVoiceRoute
   '/product/crm': typeof ProductCrmRoute
   '/product/erp': typeof ProductErpRoute
   '/product/marketplace': typeof ProductMarketplaceRoute
@@ -367,6 +374,7 @@ export interface FileRoutesByTo {
   '/app/workflows': typeof AppWorkflowsRoute
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
+  '/product/ai-voice': typeof ProductAiVoiceRoute
   '/product/crm': typeof ProductCrmRoute
   '/product/erp': typeof ProductErpRoute
   '/product/marketplace': typeof ProductMarketplaceRoute
@@ -415,6 +423,7 @@ export interface FileRoutesById {
   '/app/workflows': typeof AppWorkflowsRoute
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
+  '/product/ai-voice': typeof ProductAiVoiceRoute
   '/product/crm': typeof ProductCrmRoute
   '/product/erp': typeof ProductErpRoute
   '/product/marketplace': typeof ProductMarketplaceRoute
@@ -464,6 +473,7 @@ export interface FileRouteTypes {
     | '/app/workflows'
     | '/auth/forgot-password'
     | '/auth/reset-password'
+    | '/product/ai-voice'
     | '/product/crm'
     | '/product/erp'
     | '/product/marketplace'
@@ -510,6 +520,7 @@ export interface FileRouteTypes {
     | '/app/workflows'
     | '/auth/forgot-password'
     | '/auth/reset-password'
+    | '/product/ai-voice'
     | '/product/crm'
     | '/product/erp'
     | '/product/marketplace'
@@ -557,6 +568,7 @@ export interface FileRouteTypes {
     | '/app/workflows'
     | '/auth/forgot-password'
     | '/auth/reset-password'
+    | '/product/ai-voice'
     | '/product/crm'
     | '/product/erp'
     | '/product/marketplace'
@@ -580,6 +592,7 @@ export interface RootRouteChildren {
   SecurityRoute: typeof SecurityRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TermsRoute: typeof TermsRoute
+  ProductAiVoiceRoute: typeof ProductAiVoiceRoute
   ProductCrmRoute: typeof ProductCrmRoute
   ProductErpRoute: typeof ProductErpRoute
   ProductMarketplaceRoute: typeof ProductMarketplaceRoute
@@ -712,6 +725,13 @@ declare module '@tanstack/react-router' {
       path: '/product/crm'
       fullPath: '/product/crm'
       preLoaderRoute: typeof ProductCrmRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/product/ai-voice': {
+      id: '/product/ai-voice'
+      path: '/product/ai-voice'
+      fullPath: '/product/ai-voice'
+      preLoaderRoute: typeof ProductAiVoiceRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth/reset-password': {
@@ -1002,6 +1022,7 @@ const rootRouteChildren: RootRouteChildren = {
   SecurityRoute: SecurityRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TermsRoute: TermsRoute,
+  ProductAiVoiceRoute: ProductAiVoiceRoute,
   ProductCrmRoute: ProductCrmRoute,
   ProductErpRoute: ProductErpRoute,
   ProductMarketplaceRoute: ProductMarketplaceRoute,
