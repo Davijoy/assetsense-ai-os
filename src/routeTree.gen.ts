@@ -9,9 +9,17 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TermsRouteImport } from './routes/terms'
+import { Route as SecurityRouteImport } from './routes/security'
 import { Route as RealtifyuRouteImport } from './routes/realtifyu'
+import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as PressRouteImport } from './routes/press'
+import { Route as DpaRouteImport } from './routes/dpa'
+import { Route as ContactRouteImport } from './routes/contact'
+import { Route as CareersRouteImport } from './routes/careers'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AppRouteImport } from './routes/app'
+import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as RealtifyuConnectionsRouteImport } from './routes/realtifyu.connections'
@@ -43,9 +51,44 @@ import { Route as AppBiRouteImport } from './routes/app.bi'
 import { Route as AppSettingsBrandingRouteImport } from './routes/app.settings.branding'
 import { Route as ApiPublicRealtifyuCallbackRouteImport } from './routes/api/public/realtifyu.callback'
 
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SecurityRoute = SecurityRouteImport.update({
+  id: '/security',
+  path: '/security',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RealtifyuRoute = RealtifyuRouteImport.update({
   id: '/realtifyu',
   path: '/realtifyu',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PressRoute = PressRouteImport.update({
+  id: '/press',
+  path: '/press',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DpaRoute = DpaRouteImport.update({
+  id: '/dpa',
+  path: '/dpa',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CareersRoute = CareersRouteImport.update({
+  id: '/careers',
+  path: '/careers',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -56,6 +99,11 @@ const AuthRoute = AuthRouteImport.update({
 const AppRoute = AppRouteImport.update({
   id: '/app',
   path: '/app',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AboutRoute = AboutRouteImport.update({
+  id: '/about',
+  path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -212,9 +260,17 @@ const ApiPublicRealtifyuCallbackRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/app': typeof AppRouteWithChildren
   '/auth': typeof AuthRouteWithChildren
+  '/careers': typeof CareersRoute
+  '/contact': typeof ContactRoute
+  '/dpa': typeof DpaRoute
+  '/press': typeof PressRoute
+  '/privacy': typeof PrivacyRoute
   '/realtifyu': typeof RealtifyuRouteWithChildren
+  '/security': typeof SecurityRoute
+  '/terms': typeof TermsRoute
   '/app/bi': typeof AppBiRoute
   '/app/collections': typeof AppCollectionsRoute
   '/app/command': typeof AppCommandRoute
@@ -247,8 +303,16 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/auth': typeof AuthRouteWithChildren
+  '/careers': typeof CareersRoute
+  '/contact': typeof ContactRoute
+  '/dpa': typeof DpaRoute
+  '/press': typeof PressRoute
+  '/privacy': typeof PrivacyRoute
   '/realtifyu': typeof RealtifyuRouteWithChildren
+  '/security': typeof SecurityRoute
+  '/terms': typeof TermsRoute
   '/app/bi': typeof AppBiRoute
   '/app/collections': typeof AppCollectionsRoute
   '/app/command': typeof AppCommandRoute
@@ -282,9 +346,17 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/app': typeof AppRouteWithChildren
   '/auth': typeof AuthRouteWithChildren
+  '/careers': typeof CareersRoute
+  '/contact': typeof ContactRoute
+  '/dpa': typeof DpaRoute
+  '/press': typeof PressRoute
+  '/privacy': typeof PrivacyRoute
   '/realtifyu': typeof RealtifyuRouteWithChildren
+  '/security': typeof SecurityRoute
+  '/terms': typeof TermsRoute
   '/app/bi': typeof AppBiRoute
   '/app/collections': typeof AppCollectionsRoute
   '/app/command': typeof AppCommandRoute
@@ -319,9 +391,17 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/about'
     | '/app'
     | '/auth'
+    | '/careers'
+    | '/contact'
+    | '/dpa'
+    | '/press'
+    | '/privacy'
     | '/realtifyu'
+    | '/security'
+    | '/terms'
     | '/app/bi'
     | '/app/collections'
     | '/app/command'
@@ -354,8 +434,16 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/about'
     | '/auth'
+    | '/careers'
+    | '/contact'
+    | '/dpa'
+    | '/press'
+    | '/privacy'
     | '/realtifyu'
+    | '/security'
+    | '/terms'
     | '/app/bi'
     | '/app/collections'
     | '/app/command'
@@ -388,9 +476,17 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/about'
     | '/app'
     | '/auth'
+    | '/careers'
+    | '/contact'
+    | '/dpa'
+    | '/press'
+    | '/privacy'
     | '/realtifyu'
+    | '/security'
+    | '/terms'
     | '/app/bi'
     | '/app/collections'
     | '/app/command'
@@ -424,19 +520,76 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AboutRoute: typeof AboutRoute
   AppRoute: typeof AppRouteWithChildren
   AuthRoute: typeof AuthRouteWithChildren
+  CareersRoute: typeof CareersRoute
+  ContactRoute: typeof ContactRoute
+  DpaRoute: typeof DpaRoute
+  PressRoute: typeof PressRoute
+  PrivacyRoute: typeof PrivacyRoute
   RealtifyuRoute: typeof RealtifyuRouteWithChildren
+  SecurityRoute: typeof SecurityRoute
+  TermsRoute: typeof TermsRoute
   ApiPublicRealtifyuCallbackRoute: typeof ApiPublicRealtifyuCallbackRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/security': {
+      id: '/security'
+      path: '/security'
+      fullPath: '/security'
+      preLoaderRoute: typeof SecurityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/realtifyu': {
       id: '/realtifyu'
       path: '/realtifyu'
       fullPath: '/realtifyu'
       preLoaderRoute: typeof RealtifyuRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/press': {
+      id: '/press'
+      path: '/press'
+      fullPath: '/press'
+      preLoaderRoute: typeof PressRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dpa': {
+      id: '/dpa'
+      path: '/dpa'
+      fullPath: '/dpa'
+      preLoaderRoute: typeof DpaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/careers': {
+      id: '/careers'
+      path: '/careers'
+      fullPath: '/careers'
+      preLoaderRoute: typeof CareersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -451,6 +604,13 @@ declare module '@tanstack/react-router' {
       path: '/app'
       fullPath: '/app'
       preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -750,9 +910,17 @@ const RealtifyuRouteWithChildren = RealtifyuRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AboutRoute: AboutRoute,
   AppRoute: AppRouteWithChildren,
   AuthRoute: AuthRouteWithChildren,
+  CareersRoute: CareersRoute,
+  ContactRoute: ContactRoute,
+  DpaRoute: DpaRoute,
+  PressRoute: PressRoute,
+  PrivacyRoute: PrivacyRoute,
   RealtifyuRoute: RealtifyuRouteWithChildren,
+  SecurityRoute: SecurityRoute,
+  TermsRoute: TermsRoute,
   ApiPublicRealtifyuCallbackRoute: ApiPublicRealtifyuCallbackRoute,
 }
 export const routeTree = rootRouteImport
