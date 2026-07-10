@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as RealtifyuRouteImport } from './routes/realtifyu'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PressRouteImport } from './routes/press'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as CareersRouteImport } from './routes/careers'
@@ -50,6 +51,11 @@ import { Route as ApiPublicRealtifyuCallbackRouteImport } from './routes/api/pub
 const RealtifyuRoute = RealtifyuRouteImport.update({
   id: '/realtifyu',
   path: '/realtifyu',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PressRoute = PressRouteImport.update({
@@ -242,6 +248,7 @@ export interface FileRoutesByFullPath {
   '/careers': typeof CareersRoute
   '/contact': typeof ContactRoute
   '/press': typeof PressRoute
+  '/privacy': typeof PrivacyRoute
   '/realtifyu': typeof RealtifyuRouteWithChildren
   '/app/bi': typeof AppBiRoute
   '/app/collections': typeof AppCollectionsRoute
@@ -280,6 +287,7 @@ export interface FileRoutesByTo {
   '/careers': typeof CareersRoute
   '/contact': typeof ContactRoute
   '/press': typeof PressRoute
+  '/privacy': typeof PrivacyRoute
   '/realtifyu': typeof RealtifyuRouteWithChildren
   '/app/bi': typeof AppBiRoute
   '/app/collections': typeof AppCollectionsRoute
@@ -320,6 +328,7 @@ export interface FileRoutesById {
   '/careers': typeof CareersRoute
   '/contact': typeof ContactRoute
   '/press': typeof PressRoute
+  '/privacy': typeof PrivacyRoute
   '/realtifyu': typeof RealtifyuRouteWithChildren
   '/app/bi': typeof AppBiRoute
   '/app/collections': typeof AppCollectionsRoute
@@ -361,6 +370,7 @@ export interface FileRouteTypes {
     | '/careers'
     | '/contact'
     | '/press'
+    | '/privacy'
     | '/realtifyu'
     | '/app/bi'
     | '/app/collections'
@@ -399,6 +409,7 @@ export interface FileRouteTypes {
     | '/careers'
     | '/contact'
     | '/press'
+    | '/privacy'
     | '/realtifyu'
     | '/app/bi'
     | '/app/collections'
@@ -438,6 +449,7 @@ export interface FileRouteTypes {
     | '/careers'
     | '/contact'
     | '/press'
+    | '/privacy'
     | '/realtifyu'
     | '/app/bi'
     | '/app/collections'
@@ -478,6 +490,7 @@ export interface RootRouteChildren {
   CareersRoute: typeof CareersRoute
   ContactRoute: typeof ContactRoute
   PressRoute: typeof PressRoute
+  PrivacyRoute: typeof PrivacyRoute
   RealtifyuRoute: typeof RealtifyuRouteWithChildren
   ApiPublicRealtifyuCallbackRoute: typeof ApiPublicRealtifyuCallbackRoute
 }
@@ -489,6 +502,13 @@ declare module '@tanstack/react-router' {
       path: '/realtifyu'
       fullPath: '/realtifyu'
       preLoaderRoute: typeof RealtifyuRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/press': {
@@ -836,6 +856,7 @@ const rootRouteChildren: RootRouteChildren = {
   CareersRoute: CareersRoute,
   ContactRoute: ContactRoute,
   PressRoute: PressRoute,
+  PrivacyRoute: PrivacyRoute,
   RealtifyuRoute: RealtifyuRouteWithChildren,
   ApiPublicRealtifyuCallbackRoute: ApiPublicRealtifyuCallbackRoute,
 }
