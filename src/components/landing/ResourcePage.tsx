@@ -106,6 +106,7 @@ export function ResourcePage({ eyebrow, title, lead, highlights, sections, cta, 
             </div>
           </section>
         ) : null}
+        <RelatedArticles to={pathname} title="More resources" />
       </main>
       <Footer />
     </div>
