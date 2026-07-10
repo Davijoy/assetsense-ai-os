@@ -24,6 +24,7 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as RealtifyuConnectionsRouteImport } from './routes/realtifyu.connections'
+import { Route as ProductCrmRouteImport } from './routes/product.crm'
 import { Route as AuthResetPasswordRouteImport } from './routes/auth.reset-password'
 import { Route as AuthForgotPasswordRouteImport } from './routes/auth.forgot-password'
 import { Route as AppWorkflowsRouteImport } from './routes/app.workflows'
@@ -126,6 +127,11 @@ const RealtifyuConnectionsRoute = RealtifyuConnectionsRouteImport.update({
   id: '/connections',
   path: '/connections',
   getParentRoute: () => RealtifyuRoute,
+} as any)
+const ProductCrmRoute = ProductCrmRouteImport.update({
+  id: '/product/crm',
+  path: '/product/crm',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AuthResetPasswordRoute = AuthResetPasswordRouteImport.update({
   id: '/reset-password',
@@ -303,6 +309,7 @@ export interface FileRoutesByFullPath {
   '/app/workflows': typeof AppWorkflowsRoute
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
+  '/product/crm': typeof ProductCrmRoute
   '/realtifyu/connections': typeof RealtifyuConnectionsRoute
   '/app/': typeof AppIndexRoute
   '/app/settings/branding': typeof AppSettingsBrandingRoute
@@ -346,6 +353,7 @@ export interface FileRoutesByTo {
   '/app/workflows': typeof AppWorkflowsRoute
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
+  '/product/crm': typeof ProductCrmRoute
   '/realtifyu/connections': typeof RealtifyuConnectionsRoute
   '/app': typeof AppIndexRoute
   '/app/settings/branding': typeof AppSettingsBrandingRoute
@@ -391,6 +399,7 @@ export interface FileRoutesById {
   '/app/workflows': typeof AppWorkflowsRoute
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
+  '/product/crm': typeof ProductCrmRoute
   '/realtifyu/connections': typeof RealtifyuConnectionsRoute
   '/app/': typeof AppIndexRoute
   '/app/settings/branding': typeof AppSettingsBrandingRoute
@@ -437,6 +446,7 @@ export interface FileRouteTypes {
     | '/app/workflows'
     | '/auth/forgot-password'
     | '/auth/reset-password'
+    | '/product/crm'
     | '/realtifyu/connections'
     | '/app/'
     | '/app/settings/branding'
@@ -480,6 +490,7 @@ export interface FileRouteTypes {
     | '/app/workflows'
     | '/auth/forgot-password'
     | '/auth/reset-password'
+    | '/product/crm'
     | '/realtifyu/connections'
     | '/app'
     | '/app/settings/branding'
@@ -524,6 +535,7 @@ export interface FileRouteTypes {
     | '/app/workflows'
     | '/auth/forgot-password'
     | '/auth/reset-password'
+    | '/product/crm'
     | '/realtifyu/connections'
     | '/app/'
     | '/app/settings/branding'
@@ -544,6 +556,7 @@ export interface RootRouteChildren {
   SecurityRoute: typeof SecurityRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TermsRoute: typeof TermsRoute
+  ProductCrmRoute: typeof ProductCrmRoute
   ApiPublicRealtifyuCallbackRoute: typeof ApiPublicRealtifyuCallbackRoute
 }
 
@@ -653,6 +666,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/realtifyu/connections'
       preLoaderRoute: typeof RealtifyuConnectionsRouteImport
       parentRoute: typeof RealtifyuRoute
+    }
+    '/product/crm': {
+      id: '/product/crm'
+      path: '/product/crm'
+      fullPath: '/product/crm'
+      preLoaderRoute: typeof ProductCrmRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/auth/reset-password': {
       id: '/auth/reset-password'
@@ -942,6 +962,7 @@ const rootRouteChildren: RootRouteChildren = {
   SecurityRoute: SecurityRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TermsRoute: TermsRoute,
+  ProductCrmRoute: ProductCrmRoute,
   ApiPublicRealtifyuCallbackRoute: ApiPublicRealtifyuCallbackRoute,
 }
 export const routeTree = rootRouteImport
