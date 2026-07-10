@@ -28,6 +28,7 @@ import { Route as ProductMarketplaceRouteImport } from './routes/product.marketp
 import { Route as ProductMarketingCloudRouteImport } from './routes/product.marketing-cloud'
 import { Route as ProductErpRouteImport } from './routes/product.erp'
 import { Route as ProductCrmRouteImport } from './routes/product.crm'
+import { Route as ProductBiRouteImport } from './routes/product.bi'
 import { Route as ProductAiVoiceRouteImport } from './routes/product.ai-voice'
 import { Route as AuthResetPasswordRouteImport } from './routes/auth.reset-password'
 import { Route as AuthForgotPasswordRouteImport } from './routes/auth.forgot-password'
@@ -150,6 +151,11 @@ const ProductErpRoute = ProductErpRouteImport.update({
 const ProductCrmRoute = ProductCrmRouteImport.update({
   id: '/product/crm',
   path: '/product/crm',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProductBiRoute = ProductBiRouteImport.update({
+  id: '/product/bi',
+  path: '/product/bi',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProductAiVoiceRoute = ProductAiVoiceRouteImport.update({
@@ -334,6 +340,7 @@ export interface FileRoutesByFullPath {
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/product/ai-voice': typeof ProductAiVoiceRoute
+  '/product/bi': typeof ProductBiRoute
   '/product/crm': typeof ProductCrmRoute
   '/product/erp': typeof ProductErpRoute
   '/product/marketing-cloud': typeof ProductMarketingCloudRoute
@@ -382,6 +389,7 @@ export interface FileRoutesByTo {
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/product/ai-voice': typeof ProductAiVoiceRoute
+  '/product/bi': typeof ProductBiRoute
   '/product/crm': typeof ProductCrmRoute
   '/product/erp': typeof ProductErpRoute
   '/product/marketing-cloud': typeof ProductMarketingCloudRoute
@@ -432,6 +440,7 @@ export interface FileRoutesById {
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/product/ai-voice': typeof ProductAiVoiceRoute
+  '/product/bi': typeof ProductBiRoute
   '/product/crm': typeof ProductCrmRoute
   '/product/erp': typeof ProductErpRoute
   '/product/marketing-cloud': typeof ProductMarketingCloudRoute
@@ -483,6 +492,7 @@ export interface FileRouteTypes {
     | '/auth/forgot-password'
     | '/auth/reset-password'
     | '/product/ai-voice'
+    | '/product/bi'
     | '/product/crm'
     | '/product/erp'
     | '/product/marketing-cloud'
@@ -531,6 +541,7 @@ export interface FileRouteTypes {
     | '/auth/forgot-password'
     | '/auth/reset-password'
     | '/product/ai-voice'
+    | '/product/bi'
     | '/product/crm'
     | '/product/erp'
     | '/product/marketing-cloud'
@@ -580,6 +591,7 @@ export interface FileRouteTypes {
     | '/auth/forgot-password'
     | '/auth/reset-password'
     | '/product/ai-voice'
+    | '/product/bi'
     | '/product/crm'
     | '/product/erp'
     | '/product/marketing-cloud'
@@ -605,6 +617,7 @@ export interface RootRouteChildren {
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TermsRoute: typeof TermsRoute
   ProductAiVoiceRoute: typeof ProductAiVoiceRoute
+  ProductBiRoute: typeof ProductBiRoute
   ProductCrmRoute: typeof ProductCrmRoute
   ProductErpRoute: typeof ProductErpRoute
   ProductMarketingCloudRoute: typeof ProductMarketingCloudRoute
@@ -745,6 +758,13 @@ declare module '@tanstack/react-router' {
       path: '/product/crm'
       fullPath: '/product/crm'
       preLoaderRoute: typeof ProductCrmRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/product/bi': {
+      id: '/product/bi'
+      path: '/product/bi'
+      fullPath: '/product/bi'
+      preLoaderRoute: typeof ProductBiRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/product/ai-voice': {
@@ -1043,6 +1063,7 @@ const rootRouteChildren: RootRouteChildren = {
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TermsRoute: TermsRoute,
   ProductAiVoiceRoute: ProductAiVoiceRoute,
+  ProductBiRoute: ProductBiRoute,
   ProductCrmRoute: ProductCrmRoute,
   ProductErpRoute: ProductErpRoute,
   ProductMarketingCloudRoute: ProductMarketingCloudRoute,
