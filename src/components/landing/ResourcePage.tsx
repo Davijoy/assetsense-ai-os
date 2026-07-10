@@ -1,7 +1,9 @@
 import { ReactNode } from "react";
 import { Nav } from "@/components/landing/Nav";
 import { Footer } from "@/components/landing/Footer";
-import { Link } from "@tanstack/react-router";
+import { Link, useRouterState } from "@tanstack/react-router";
+import { Breadcrumbs } from "@/components/landing/Breadcrumbs";
+import { RelatedArticles } from "@/components/landing/RelatedArticles";
 import { ArrowRight, type LucideIcon } from "lucide-react";
 
 type Section = { title: string; description: string; icon?: LucideIcon };
@@ -19,6 +21,7 @@ type Props = {
 };
 
 export function ResourcePage({ eyebrow, title, lead, highlights, sections, cta, related, children }: Props) {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Nav />
@@ -27,6 +30,7 @@ export function ResourcePage({ eyebrow, title, lead, highlights, sections, cta, 
         <section className="relative overflow-hidden border-b border-gold/10">
           <div className="absolute inset-0 bg-gradient-to-b from-emerald-900/10 via-transparent to-transparent pointer-events-none" />
           <div className="relative mx-auto max-w-6xl px-6 py-16 sm:py-20">
+            <Breadcrumbs to={pathname} />
             <div className="text-[11px] uppercase tracking-[0.28em] text-gold/80">{eyebrow}</div>
             <h1 className="mt-4 font-display text-4xl sm:text-5xl leading-tight max-w-3xl">{title}</h1>
             <p className="mt-5 max-w-2xl text-base text-muted-foreground">{lead}</p>
