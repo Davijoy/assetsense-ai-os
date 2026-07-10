@@ -24,6 +24,7 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as RealtifyuConnectionsRouteImport } from './routes/realtifyu.connections'
+import { Route as ProductMarketplaceRouteImport } from './routes/product.marketplace'
 import { Route as ProductErpRouteImport } from './routes/product.erp'
 import { Route as ProductCrmRouteImport } from './routes/product.crm'
 import { Route as AuthResetPasswordRouteImport } from './routes/auth.reset-password'
@@ -128,6 +129,11 @@ const RealtifyuConnectionsRoute = RealtifyuConnectionsRouteImport.update({
   id: '/connections',
   path: '/connections',
   getParentRoute: () => RealtifyuRoute,
+} as any)
+const ProductMarketplaceRoute = ProductMarketplaceRouteImport.update({
+  id: '/product/marketplace',
+  path: '/product/marketplace',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ProductErpRoute = ProductErpRouteImport.update({
   id: '/product/erp',
@@ -317,6 +323,7 @@ export interface FileRoutesByFullPath {
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/product/crm': typeof ProductCrmRoute
   '/product/erp': typeof ProductErpRoute
+  '/product/marketplace': typeof ProductMarketplaceRoute
   '/realtifyu/connections': typeof RealtifyuConnectionsRoute
   '/app/': typeof AppIndexRoute
   '/app/settings/branding': typeof AppSettingsBrandingRoute
@@ -362,6 +369,7 @@ export interface FileRoutesByTo {
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/product/crm': typeof ProductCrmRoute
   '/product/erp': typeof ProductErpRoute
+  '/product/marketplace': typeof ProductMarketplaceRoute
   '/realtifyu/connections': typeof RealtifyuConnectionsRoute
   '/app': typeof AppIndexRoute
   '/app/settings/branding': typeof AppSettingsBrandingRoute
@@ -409,6 +417,7 @@ export interface FileRoutesById {
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/product/crm': typeof ProductCrmRoute
   '/product/erp': typeof ProductErpRoute
+  '/product/marketplace': typeof ProductMarketplaceRoute
   '/realtifyu/connections': typeof RealtifyuConnectionsRoute
   '/app/': typeof AppIndexRoute
   '/app/settings/branding': typeof AppSettingsBrandingRoute
@@ -457,6 +466,7 @@ export interface FileRouteTypes {
     | '/auth/reset-password'
     | '/product/crm'
     | '/product/erp'
+    | '/product/marketplace'
     | '/realtifyu/connections'
     | '/app/'
     | '/app/settings/branding'
@@ -502,6 +512,7 @@ export interface FileRouteTypes {
     | '/auth/reset-password'
     | '/product/crm'
     | '/product/erp'
+    | '/product/marketplace'
     | '/realtifyu/connections'
     | '/app'
     | '/app/settings/branding'
@@ -548,6 +559,7 @@ export interface FileRouteTypes {
     | '/auth/reset-password'
     | '/product/crm'
     | '/product/erp'
+    | '/product/marketplace'
     | '/realtifyu/connections'
     | '/app/'
     | '/app/settings/branding'
@@ -570,6 +582,7 @@ export interface RootRouteChildren {
   TermsRoute: typeof TermsRoute
   ProductCrmRoute: typeof ProductCrmRoute
   ProductErpRoute: typeof ProductErpRoute
+  ProductMarketplaceRoute: typeof ProductMarketplaceRoute
   ApiPublicRealtifyuCallbackRoute: typeof ApiPublicRealtifyuCallbackRoute
 }
 
@@ -679,6 +692,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/realtifyu/connections'
       preLoaderRoute: typeof RealtifyuConnectionsRouteImport
       parentRoute: typeof RealtifyuRoute
+    }
+    '/product/marketplace': {
+      id: '/product/marketplace'
+      path: '/product/marketplace'
+      fullPath: '/product/marketplace'
+      preLoaderRoute: typeof ProductMarketplaceRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/product/erp': {
       id: '/product/erp'
@@ -984,6 +1004,7 @@ const rootRouteChildren: RootRouteChildren = {
   TermsRoute: TermsRoute,
   ProductCrmRoute: ProductCrmRoute,
   ProductErpRoute: ProductErpRoute,
+  ProductMarketplaceRoute: ProductMarketplaceRoute,
   ApiPublicRealtifyuCallbackRoute: ApiPublicRealtifyuCallbackRoute,
 }
 export const routeTree = rootRouteImport
