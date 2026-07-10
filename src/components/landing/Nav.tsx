@@ -10,12 +10,19 @@ import {
 import { ChevronDown } from "lucide-react";
 
 const productLinks = [
-  { label: "Solutions", href: "#solutions" },
-  { label: "Marketplace", href: "#marketplace" },
-  { label: "AI Voice", href: "#ai-voice" },
-  { label: "Knowledge Engine", href: "#intelligence" },
-  { label: "Business Intelligence", href: "#intelligence" },
-  { label: "Pricing", href: "#pricing" },
+  { label: "CRM", to: "/product/crm" },
+  { label: "ERP", to: "/product/erp" },
+  { label: "Marketplace", to: "/product/marketplace" },
+  { label: "AI Voice", to: "/product/ai-voice" },
+  { label: "Marketing Cloud", to: "/product/marketing-cloud" },
+  { label: "BI", to: "/product/bi" },
+];
+
+const solutionsLinks = [
+  { label: "Developers", to: "/solutions/developers" },
+  { label: "Brokers", to: "/solutions/brokers" },
+  { label: "Channel Partners", to: "/solutions/channel-partners" },
+  { label: "Enterprises", to: "/solutions/enterprises" },
 ];
 
 const companyLinks = [
@@ -60,11 +67,9 @@ export function Nav() {
           <SentinelWordmark />
         </Link>
         <nav className="hidden md:flex items-center gap-6 lg:gap-8">
-          {productLinks.map((l) => (
-            <a key={l.href} href={l.href} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-              {l.label}
-            </a>
-          ))}
+          <NavDropdown label="Product" items={productLinks} />
+          <NavDropdown label="Solutions" items={solutionsLinks} />
+          <a href="/#pricing" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Pricing</a>
           <NavDropdown label="Company" items={companyLinks} />
           <NavDropdown label="Legal" items={legalLinks} />
         </nav>
