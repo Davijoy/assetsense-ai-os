@@ -24,6 +24,7 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as SolutionsDevelopersRouteImport } from './routes/solutions.developers'
+import { Route as SolutionsChannelPartnersRouteImport } from './routes/solutions.channel-partners'
 import { Route as SolutionsBrokersRouteImport } from './routes/solutions.brokers'
 import { Route as RealtifyuConnectionsRouteImport } from './routes/realtifyu.connections'
 import { Route as ProductMarketplaceRouteImport } from './routes/product.marketplace'
@@ -135,6 +136,12 @@ const SolutionsDevelopersRoute = SolutionsDevelopersRouteImport.update({
   path: '/solutions/developers',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SolutionsChannelPartnersRoute =
+  SolutionsChannelPartnersRouteImport.update({
+    id: '/solutions/channel-partners',
+    path: '/solutions/channel-partners',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const SolutionsBrokersRoute = SolutionsBrokersRouteImport.update({
   id: '/solutions/brokers',
   path: '/solutions/brokers',
@@ -359,6 +366,7 @@ export interface FileRoutesByFullPath {
   '/product/marketplace': typeof ProductMarketplaceRoute
   '/realtifyu/connections': typeof RealtifyuConnectionsRoute
   '/solutions/brokers': typeof SolutionsBrokersRoute
+  '/solutions/channel-partners': typeof SolutionsChannelPartnersRoute
   '/solutions/developers': typeof SolutionsDevelopersRoute
   '/app/': typeof AppIndexRoute
   '/app/settings/branding': typeof AppSettingsBrandingRoute
@@ -410,6 +418,7 @@ export interface FileRoutesByTo {
   '/product/marketplace': typeof ProductMarketplaceRoute
   '/realtifyu/connections': typeof RealtifyuConnectionsRoute
   '/solutions/brokers': typeof SolutionsBrokersRoute
+  '/solutions/channel-partners': typeof SolutionsChannelPartnersRoute
   '/solutions/developers': typeof SolutionsDevelopersRoute
   '/app': typeof AppIndexRoute
   '/app/settings/branding': typeof AppSettingsBrandingRoute
@@ -463,6 +472,7 @@ export interface FileRoutesById {
   '/product/marketplace': typeof ProductMarketplaceRoute
   '/realtifyu/connections': typeof RealtifyuConnectionsRoute
   '/solutions/brokers': typeof SolutionsBrokersRoute
+  '/solutions/channel-partners': typeof SolutionsChannelPartnersRoute
   '/solutions/developers': typeof SolutionsDevelopersRoute
   '/app/': typeof AppIndexRoute
   '/app/settings/branding': typeof AppSettingsBrandingRoute
@@ -517,6 +527,7 @@ export interface FileRouteTypes {
     | '/product/marketplace'
     | '/realtifyu/connections'
     | '/solutions/brokers'
+    | '/solutions/channel-partners'
     | '/solutions/developers'
     | '/app/'
     | '/app/settings/branding'
@@ -568,6 +579,7 @@ export interface FileRouteTypes {
     | '/product/marketplace'
     | '/realtifyu/connections'
     | '/solutions/brokers'
+    | '/solutions/channel-partners'
     | '/solutions/developers'
     | '/app'
     | '/app/settings/branding'
@@ -620,6 +632,7 @@ export interface FileRouteTypes {
     | '/product/marketplace'
     | '/realtifyu/connections'
     | '/solutions/brokers'
+    | '/solutions/channel-partners'
     | '/solutions/developers'
     | '/app/'
     | '/app/settings/branding'
@@ -647,6 +660,7 @@ export interface RootRouteChildren {
   ProductMarketingCloudRoute: typeof ProductMarketingCloudRoute
   ProductMarketplaceRoute: typeof ProductMarketplaceRoute
   SolutionsBrokersRoute: typeof SolutionsBrokersRoute
+  SolutionsChannelPartnersRoute: typeof SolutionsChannelPartnersRoute
   SolutionsDevelopersRoute: typeof SolutionsDevelopersRoute
   ApiPublicRealtifyuCallbackRoute: typeof ApiPublicRealtifyuCallbackRoute
 }
@@ -756,6 +770,13 @@ declare module '@tanstack/react-router' {
       path: '/solutions/developers'
       fullPath: '/solutions/developers'
       preLoaderRoute: typeof SolutionsDevelopersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/solutions/channel-partners': {
+      id: '/solutions/channel-partners'
+      path: '/solutions/channel-partners'
+      fullPath: '/solutions/channel-partners'
+      preLoaderRoute: typeof SolutionsChannelPartnersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/solutions/brokers': {
@@ -1109,6 +1130,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProductMarketingCloudRoute: ProductMarketingCloudRoute,
   ProductMarketplaceRoute: ProductMarketplaceRoute,
   SolutionsBrokersRoute: SolutionsBrokersRoute,
+  SolutionsChannelPartnersRoute: SolutionsChannelPartnersRoute,
   SolutionsDevelopersRoute: SolutionsDevelopersRoute,
   ApiPublicRealtifyuCallbackRoute: ApiPublicRealtifyuCallbackRoute,
 }
