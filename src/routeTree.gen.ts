@@ -27,6 +27,7 @@ import { Route as SolutionsEnterprisesRouteImport } from './routes/solutions.ent
 import { Route as SolutionsDevelopersRouteImport } from './routes/solutions.developers'
 import { Route as SolutionsChannelPartnersRouteImport } from './routes/solutions.channel-partners'
 import { Route as SolutionsBrokersRouteImport } from './routes/solutions.brokers'
+import { Route as ResourcesDocumentationRouteImport } from './routes/resources.documentation'
 import { Route as RealtifyuConnectionsRouteImport } from './routes/realtifyu.connections'
 import { Route as ProductMarketplaceRouteImport } from './routes/product.marketplace'
 import { Route as ProductMarketingCloudRouteImport } from './routes/product.marketing-cloud'
@@ -151,6 +152,11 @@ const SolutionsChannelPartnersRoute =
 const SolutionsBrokersRoute = SolutionsBrokersRouteImport.update({
   id: '/solutions/brokers',
   path: '/solutions/brokers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResourcesDocumentationRoute = ResourcesDocumentationRouteImport.update({
+  id: '/resources/documentation',
+  path: '/resources/documentation',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RealtifyuConnectionsRoute = RealtifyuConnectionsRouteImport.update({
@@ -371,6 +377,7 @@ export interface FileRoutesByFullPath {
   '/product/marketing-cloud': typeof ProductMarketingCloudRoute
   '/product/marketplace': typeof ProductMarketplaceRoute
   '/realtifyu/connections': typeof RealtifyuConnectionsRoute
+  '/resources/documentation': typeof ResourcesDocumentationRoute
   '/solutions/brokers': typeof SolutionsBrokersRoute
   '/solutions/channel-partners': typeof SolutionsChannelPartnersRoute
   '/solutions/developers': typeof SolutionsDevelopersRoute
@@ -424,6 +431,7 @@ export interface FileRoutesByTo {
   '/product/marketing-cloud': typeof ProductMarketingCloudRoute
   '/product/marketplace': typeof ProductMarketplaceRoute
   '/realtifyu/connections': typeof RealtifyuConnectionsRoute
+  '/resources/documentation': typeof ResourcesDocumentationRoute
   '/solutions/brokers': typeof SolutionsBrokersRoute
   '/solutions/channel-partners': typeof SolutionsChannelPartnersRoute
   '/solutions/developers': typeof SolutionsDevelopersRoute
@@ -479,6 +487,7 @@ export interface FileRoutesById {
   '/product/marketing-cloud': typeof ProductMarketingCloudRoute
   '/product/marketplace': typeof ProductMarketplaceRoute
   '/realtifyu/connections': typeof RealtifyuConnectionsRoute
+  '/resources/documentation': typeof ResourcesDocumentationRoute
   '/solutions/brokers': typeof SolutionsBrokersRoute
   '/solutions/channel-partners': typeof SolutionsChannelPartnersRoute
   '/solutions/developers': typeof SolutionsDevelopersRoute
@@ -535,6 +544,7 @@ export interface FileRouteTypes {
     | '/product/marketing-cloud'
     | '/product/marketplace'
     | '/realtifyu/connections'
+    | '/resources/documentation'
     | '/solutions/brokers'
     | '/solutions/channel-partners'
     | '/solutions/developers'
@@ -588,6 +598,7 @@ export interface FileRouteTypes {
     | '/product/marketing-cloud'
     | '/product/marketplace'
     | '/realtifyu/connections'
+    | '/resources/documentation'
     | '/solutions/brokers'
     | '/solutions/channel-partners'
     | '/solutions/developers'
@@ -642,6 +653,7 @@ export interface FileRouteTypes {
     | '/product/marketing-cloud'
     | '/product/marketplace'
     | '/realtifyu/connections'
+    | '/resources/documentation'
     | '/solutions/brokers'
     | '/solutions/channel-partners'
     | '/solutions/developers'
@@ -671,6 +683,7 @@ export interface RootRouteChildren {
   ProductErpRoute: typeof ProductErpRoute
   ProductMarketingCloudRoute: typeof ProductMarketingCloudRoute
   ProductMarketplaceRoute: typeof ProductMarketplaceRoute
+  ResourcesDocumentationRoute: typeof ResourcesDocumentationRoute
   SolutionsBrokersRoute: typeof SolutionsBrokersRoute
   SolutionsChannelPartnersRoute: typeof SolutionsChannelPartnersRoute
   SolutionsDevelopersRoute: typeof SolutionsDevelopersRoute
@@ -804,6 +817,13 @@ declare module '@tanstack/react-router' {
       path: '/solutions/brokers'
       fullPath: '/solutions/brokers'
       preLoaderRoute: typeof SolutionsBrokersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/resources/documentation': {
+      id: '/resources/documentation'
+      path: '/resources/documentation'
+      fullPath: '/resources/documentation'
+      preLoaderRoute: typeof ResourcesDocumentationRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/realtifyu/connections': {
@@ -1149,6 +1169,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProductErpRoute: ProductErpRoute,
   ProductMarketingCloudRoute: ProductMarketingCloudRoute,
   ProductMarketplaceRoute: ProductMarketplaceRoute,
+  ResourcesDocumentationRoute: ResourcesDocumentationRoute,
   SolutionsBrokersRoute: SolutionsBrokersRoute,
   SolutionsChannelPartnersRoute: SolutionsChannelPartnersRoute,
   SolutionsDevelopersRoute: SolutionsDevelopersRoute,
