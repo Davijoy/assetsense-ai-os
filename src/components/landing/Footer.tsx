@@ -23,6 +23,18 @@ export function Footer() {
       { label: "Press", to: "/press" },
       { label: "Contact", to: "/contact" },
     ]},
+    { h: "Resources", l: [
+      { label: "Documentation", to: "/resources/documentation" },
+      { label: "Knowledge Base", to: "/resources/knowledge-base" },
+      { label: "Blog", to: "/resources/blog" },
+      { label: "API Docs", to: "/resources/api" },
+      { label: "Release Notes", to: "/resources/release-notes" },
+      { label: "Case Studies", to: "/resources/case-studies" },
+      { label: "Customer Stories", to: "/resources/customers" },
+      { label: "Help Center", to: "/resources/help" },
+      { label: "Community", to: "/resources/community" },
+      { label: "System Status", to: "/resources/status" },
+    ]},
     { h: "Legal", l: [
       { label: "Privacy", to: "/privacy" },
       { label: "Terms", to: "/terms" },
@@ -46,7 +58,7 @@ export function Footer() {
               India's Intelligent Real Estate Operating System.
             </p>
           </div>
-          <div className="grid grid-cols-2 gap-8 sm:grid-cols-4">
+          <div className="grid grid-cols-2 gap-8 sm:grid-cols-3 lg:grid-cols-5">
             {cols.map((c) => (
               <div key={c.h}>
                 <div className="text-sm font-medium text-foreground">{c.h}</div>
