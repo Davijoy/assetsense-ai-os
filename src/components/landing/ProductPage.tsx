@@ -240,6 +240,7 @@ export function ProductPage({
             </div>
           </div>
         </section>
+        <RelatedArticles to={pathname} />
       </main>
       <Footer />
     </div>
