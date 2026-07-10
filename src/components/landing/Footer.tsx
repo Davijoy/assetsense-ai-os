@@ -1,11 +1,34 @@
 import { SentinelMark } from "@/components/brand/Logo";
+import { Link } from "@tanstack/react-router";
 
 export function Footer() {
-  const cols = [
-    { h: "Product", l: ["CRM","ERP","Marketplace","AI Voice","Marketing Cloud","BI"] },
-    { h: "Solutions", l: ["Developers","Brokers","Channel Partners","Enterprises"] },
-    { h: "Company", l: ["About","Careers","Press","Contact"] },
-    { h: "Legal", l: ["Privacy","Terms","Security","DPA"] },
+  const cols: { h: string; l: { label: string; to?: string; href?: string }[] }[] = [
+    { h: "Product", l: [
+      { label: "CRM", href: "#solutions" },
+      { label: "ERP", href: "#solutions" },
+      { label: "Marketplace", href: "#marketplace" },
+      { label: "AI Voice", href: "#ai-voice" },
+      { label: "Marketing Cloud", href: "#solutions" },
+      { label: "BI", href: "#intelligence" },
+    ]},
+    { h: "Solutions", l: [
+      { label: "Developers", href: "#solutions" },
+      { label: "Brokers", href: "#solutions" },
+      { label: "Channel Partners", href: "#solutions" },
+      { label: "Enterprises", href: "#solutions" },
+    ]},
+    { h: "Company", l: [
+      { label: "About", to: "/about" },
+      { label: "Careers", to: "/careers" },
+      { label: "Press", to: "/press" },
+      { label: "Contact", to: "/contact" },
+    ]},
+    { h: "Legal", l: [
+      { label: "Privacy", to: "/privacy" },
+      { label: "Terms", to: "/terms" },
+      { label: "Security", to: "/security" },
+      { label: "DPA", to: "/dpa" },
+    ]},
   ];
   return (
     <footer className="border-t border-border bg-surface/30 py-16">
@@ -28,7 +51,15 @@ export function Footer() {
               <div key={c.h}>
                 <div className="text-sm font-medium text-foreground">{c.h}</div>
                 <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
-                  {c.l.map((x) => <li key={x}><a href="#" className="hover:text-foreground transition-colors">{x}</a></li>)}
+                  {c.l.map((x) => (
+                    <li key={x.label}>
+                      {x.to ? (
+                        <Link to={x.to} className="hover:text-foreground transition-colors">{x.label}</Link>
+                      ) : (
+                        <a href={x.href ?? "#"} className="hover:text-foreground transition-colors">{x.label}</a>
+                      )}
+                    </li>
+                  ))}
                 </ul>
               </div>
             ))}

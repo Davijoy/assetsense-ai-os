@@ -14,6 +14,7 @@ import { Route as SecurityRouteImport } from './routes/security'
 import { Route as RealtifyuRouteImport } from './routes/realtifyu'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PressRouteImport } from './routes/press'
+import { Route as DpaRouteImport } from './routes/dpa'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as CareersRouteImport } from './routes/careers'
 import { Route as AuthRouteImport } from './routes/auth'
@@ -73,6 +74,11 @@ const PrivacyRoute = PrivacyRouteImport.update({
 const PressRoute = PressRouteImport.update({
   id: '/press',
   path: '/press',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DpaRoute = DpaRouteImport.update({
+  id: '/dpa',
+  path: '/dpa',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ContactRoute = ContactRouteImport.update({
@@ -259,6 +265,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRouteWithChildren
   '/careers': typeof CareersRoute
   '/contact': typeof ContactRoute
+  '/dpa': typeof DpaRoute
   '/press': typeof PressRoute
   '/privacy': typeof PrivacyRoute
   '/realtifyu': typeof RealtifyuRouteWithChildren
@@ -300,6 +307,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRouteWithChildren
   '/careers': typeof CareersRoute
   '/contact': typeof ContactRoute
+  '/dpa': typeof DpaRoute
   '/press': typeof PressRoute
   '/privacy': typeof PrivacyRoute
   '/realtifyu': typeof RealtifyuRouteWithChildren
@@ -343,6 +351,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRouteWithChildren
   '/careers': typeof CareersRoute
   '/contact': typeof ContactRoute
+  '/dpa': typeof DpaRoute
   '/press': typeof PressRoute
   '/privacy': typeof PrivacyRoute
   '/realtifyu': typeof RealtifyuRouteWithChildren
@@ -387,6 +396,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/careers'
     | '/contact'
+    | '/dpa'
     | '/press'
     | '/privacy'
     | '/realtifyu'
@@ -428,6 +438,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/careers'
     | '/contact'
+    | '/dpa'
     | '/press'
     | '/privacy'
     | '/realtifyu'
@@ -470,6 +481,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/careers'
     | '/contact'
+    | '/dpa'
     | '/press'
     | '/privacy'
     | '/realtifyu'
@@ -513,6 +525,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRouteWithChildren
   CareersRoute: typeof CareersRoute
   ContactRoute: typeof ContactRoute
+  DpaRoute: typeof DpaRoute
   PressRoute: typeof PressRoute
   PrivacyRoute: typeof PrivacyRoute
   RealtifyuRoute: typeof RealtifyuRouteWithChildren
@@ -556,6 +569,13 @@ declare module '@tanstack/react-router' {
       path: '/press'
       fullPath: '/press'
       preLoaderRoute: typeof PressRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dpa': {
+      id: '/dpa'
+      path: '/dpa'
+      fullPath: '/dpa'
+      preLoaderRoute: typeof DpaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/contact': {
@@ -895,6 +915,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRouteWithChildren,
   CareersRoute: CareersRoute,
   ContactRoute: ContactRoute,
+  DpaRoute: DpaRoute,
   PressRoute: PressRoute,
   PrivacyRoute: PrivacyRoute,
   RealtifyuRoute: RealtifyuRouteWithChildren,
