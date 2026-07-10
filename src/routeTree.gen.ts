@@ -23,6 +23,7 @@ import { Route as AppRouteImport } from './routes/app'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
+import { Route as SolutionsEnterprisesRouteImport } from './routes/solutions.enterprises'
 import { Route as SolutionsDevelopersRouteImport } from './routes/solutions.developers'
 import { Route as SolutionsChannelPartnersRouteImport } from './routes/solutions.channel-partners'
 import { Route as SolutionsBrokersRouteImport } from './routes/solutions.brokers'
@@ -130,6 +131,11 @@ const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AppRoute,
+} as any)
+const SolutionsEnterprisesRoute = SolutionsEnterprisesRouteImport.update({
+  id: '/solutions/enterprises',
+  path: '/solutions/enterprises',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const SolutionsDevelopersRoute = SolutionsDevelopersRouteImport.update({
   id: '/solutions/developers',
@@ -368,6 +374,7 @@ export interface FileRoutesByFullPath {
   '/solutions/brokers': typeof SolutionsBrokersRoute
   '/solutions/channel-partners': typeof SolutionsChannelPartnersRoute
   '/solutions/developers': typeof SolutionsDevelopersRoute
+  '/solutions/enterprises': typeof SolutionsEnterprisesRoute
   '/app/': typeof AppIndexRoute
   '/app/settings/branding': typeof AppSettingsBrandingRoute
   '/api/public/realtifyu/callback': typeof ApiPublicRealtifyuCallbackRoute
@@ -420,6 +427,7 @@ export interface FileRoutesByTo {
   '/solutions/brokers': typeof SolutionsBrokersRoute
   '/solutions/channel-partners': typeof SolutionsChannelPartnersRoute
   '/solutions/developers': typeof SolutionsDevelopersRoute
+  '/solutions/enterprises': typeof SolutionsEnterprisesRoute
   '/app': typeof AppIndexRoute
   '/app/settings/branding': typeof AppSettingsBrandingRoute
   '/api/public/realtifyu/callback': typeof ApiPublicRealtifyuCallbackRoute
@@ -474,6 +482,7 @@ export interface FileRoutesById {
   '/solutions/brokers': typeof SolutionsBrokersRoute
   '/solutions/channel-partners': typeof SolutionsChannelPartnersRoute
   '/solutions/developers': typeof SolutionsDevelopersRoute
+  '/solutions/enterprises': typeof SolutionsEnterprisesRoute
   '/app/': typeof AppIndexRoute
   '/app/settings/branding': typeof AppSettingsBrandingRoute
   '/api/public/realtifyu/callback': typeof ApiPublicRealtifyuCallbackRoute
@@ -529,6 +538,7 @@ export interface FileRouteTypes {
     | '/solutions/brokers'
     | '/solutions/channel-partners'
     | '/solutions/developers'
+    | '/solutions/enterprises'
     | '/app/'
     | '/app/settings/branding'
     | '/api/public/realtifyu/callback'
@@ -581,6 +591,7 @@ export interface FileRouteTypes {
     | '/solutions/brokers'
     | '/solutions/channel-partners'
     | '/solutions/developers'
+    | '/solutions/enterprises'
     | '/app'
     | '/app/settings/branding'
     | '/api/public/realtifyu/callback'
@@ -634,6 +645,7 @@ export interface FileRouteTypes {
     | '/solutions/brokers'
     | '/solutions/channel-partners'
     | '/solutions/developers'
+    | '/solutions/enterprises'
     | '/app/'
     | '/app/settings/branding'
     | '/api/public/realtifyu/callback'
@@ -662,6 +674,7 @@ export interface RootRouteChildren {
   SolutionsBrokersRoute: typeof SolutionsBrokersRoute
   SolutionsChannelPartnersRoute: typeof SolutionsChannelPartnersRoute
   SolutionsDevelopersRoute: typeof SolutionsDevelopersRoute
+  SolutionsEnterprisesRoute: typeof SolutionsEnterprisesRoute
   ApiPublicRealtifyuCallbackRoute: typeof ApiPublicRealtifyuCallbackRoute
 }
 
@@ -764,6 +777,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/'
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
+    }
+    '/solutions/enterprises': {
+      id: '/solutions/enterprises'
+      path: '/solutions/enterprises'
+      fullPath: '/solutions/enterprises'
+      preLoaderRoute: typeof SolutionsEnterprisesRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/solutions/developers': {
       id: '/solutions/developers'
@@ -1132,6 +1152,7 @@ const rootRouteChildren: RootRouteChildren = {
   SolutionsBrokersRoute: SolutionsBrokersRoute,
   SolutionsChannelPartnersRoute: SolutionsChannelPartnersRoute,
   SolutionsDevelopersRoute: SolutionsDevelopersRoute,
+  SolutionsEnterprisesRoute: SolutionsEnterprisesRoute,
   ApiPublicRealtifyuCallbackRoute: ApiPublicRealtifyuCallbackRoute,
 }
 export const routeTree = rootRouteImport
