@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SecurityRouteImport } from './routes/security'
+import { Route as SearchRouteImport } from './routes/search'
 import { Route as RealtifyuRouteImport } from './routes/realtifyu'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PressRouteImport } from './routes/press'
@@ -86,6 +87,11 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
 const SecurityRoute = SecurityRouteImport.update({
   id: '/security',
   path: '/security',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SearchRoute = SearchRouteImport.update({
+  id: '/search',
+  path: '/search',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RealtifyuRoute = RealtifyuRouteImport.update({
@@ -402,6 +408,7 @@ export interface FileRoutesByFullPath {
   '/press': typeof PressRoute
   '/privacy': typeof PrivacyRoute
   '/realtifyu': typeof RealtifyuRouteWithChildren
+  '/search': typeof SearchRoute
   '/security': typeof SecurityRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
@@ -466,6 +473,7 @@ export interface FileRoutesByTo {
   '/press': typeof PressRoute
   '/privacy': typeof PrivacyRoute
   '/realtifyu': typeof RealtifyuRouteWithChildren
+  '/search': typeof SearchRoute
   '/security': typeof SecurityRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
@@ -532,6 +540,7 @@ export interface FileRoutesById {
   '/press': typeof PressRoute
   '/privacy': typeof PrivacyRoute
   '/realtifyu': typeof RealtifyuRouteWithChildren
+  '/search': typeof SearchRoute
   '/security': typeof SecurityRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
@@ -599,6 +608,7 @@ export interface FileRouteTypes {
     | '/press'
     | '/privacy'
     | '/realtifyu'
+    | '/search'
     | '/security'
     | '/sitemap.xml'
     | '/terms'
@@ -663,6 +673,7 @@ export interface FileRouteTypes {
     | '/press'
     | '/privacy'
     | '/realtifyu'
+    | '/search'
     | '/security'
     | '/sitemap.xml'
     | '/terms'
@@ -728,6 +739,7 @@ export interface FileRouteTypes {
     | '/press'
     | '/privacy'
     | '/realtifyu'
+    | '/search'
     | '/security'
     | '/sitemap.xml'
     | '/terms'
@@ -794,6 +806,7 @@ export interface RootRouteChildren {
   PressRoute: typeof PressRoute
   PrivacyRoute: typeof PrivacyRoute
   RealtifyuRoute: typeof RealtifyuRouteWithChildren
+  SearchRoute: typeof SearchRoute
   SecurityRoute: typeof SecurityRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TermsRoute: typeof TermsRoute
@@ -842,6 +855,13 @@ declare module '@tanstack/react-router' {
       path: '/security'
       fullPath: '/security'
       preLoaderRoute: typeof SecurityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/search': {
+      id: '/search'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof SearchRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/realtifyu': {
@@ -1360,6 +1380,7 @@ const rootRouteChildren: RootRouteChildren = {
   PressRoute: PressRoute,
   PrivacyRoute: PrivacyRoute,
   RealtifyuRoute: RealtifyuRouteWithChildren,
+  SearchRoute: SearchRoute,
   SecurityRoute: SecurityRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TermsRoute: TermsRoute,
