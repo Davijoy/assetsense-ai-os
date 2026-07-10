@@ -22,11 +22,22 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ResourcesIndexRouteImport } from './routes/resources.index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as SolutionsEnterprisesRouteImport } from './routes/solutions.enterprises'
 import { Route as SolutionsDevelopersRouteImport } from './routes/solutions.developers'
 import { Route as SolutionsChannelPartnersRouteImport } from './routes/solutions.channel-partners'
 import { Route as SolutionsBrokersRouteImport } from './routes/solutions.brokers'
+import { Route as ResourcesStatusRouteImport } from './routes/resources.status'
+import { Route as ResourcesReleaseNotesRouteImport } from './routes/resources.release-notes'
+import { Route as ResourcesKnowledgeBaseRouteImport } from './routes/resources.knowledge-base'
+import { Route as ResourcesHelpRouteImport } from './routes/resources.help'
+import { Route as ResourcesDocumentationRouteImport } from './routes/resources.documentation'
+import { Route as ResourcesCustomersRouteImport } from './routes/resources.customers'
+import { Route as ResourcesCommunityRouteImport } from './routes/resources.community'
+import { Route as ResourcesCaseStudiesRouteImport } from './routes/resources.case-studies'
+import { Route as ResourcesBlogRouteImport } from './routes/resources.blog'
+import { Route as ResourcesApiRouteImport } from './routes/resources.api'
 import { Route as RealtifyuConnectionsRouteImport } from './routes/realtifyu.connections'
 import { Route as ProductMarketplaceRouteImport } from './routes/product.marketplace'
 import { Route as ProductMarketingCloudRouteImport } from './routes/product.marketing-cloud'
@@ -127,6 +138,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ResourcesIndexRoute = ResourcesIndexRouteImport.update({
+  id: '/resources/',
+  path: '/resources/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -151,6 +167,56 @@ const SolutionsChannelPartnersRoute =
 const SolutionsBrokersRoute = SolutionsBrokersRouteImport.update({
   id: '/solutions/brokers',
   path: '/solutions/brokers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResourcesStatusRoute = ResourcesStatusRouteImport.update({
+  id: '/resources/status',
+  path: '/resources/status',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResourcesReleaseNotesRoute = ResourcesReleaseNotesRouteImport.update({
+  id: '/resources/release-notes',
+  path: '/resources/release-notes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResourcesKnowledgeBaseRoute = ResourcesKnowledgeBaseRouteImport.update({
+  id: '/resources/knowledge-base',
+  path: '/resources/knowledge-base',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResourcesHelpRoute = ResourcesHelpRouteImport.update({
+  id: '/resources/help',
+  path: '/resources/help',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResourcesDocumentationRoute = ResourcesDocumentationRouteImport.update({
+  id: '/resources/documentation',
+  path: '/resources/documentation',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResourcesCustomersRoute = ResourcesCustomersRouteImport.update({
+  id: '/resources/customers',
+  path: '/resources/customers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResourcesCommunityRoute = ResourcesCommunityRouteImport.update({
+  id: '/resources/community',
+  path: '/resources/community',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResourcesCaseStudiesRoute = ResourcesCaseStudiesRouteImport.update({
+  id: '/resources/case-studies',
+  path: '/resources/case-studies',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResourcesBlogRoute = ResourcesBlogRouteImport.update({
+  id: '/resources/blog',
+  path: '/resources/blog',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResourcesApiRoute = ResourcesApiRouteImport.update({
+  id: '/resources/api',
+  path: '/resources/api',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RealtifyuConnectionsRoute = RealtifyuConnectionsRouteImport.update({
@@ -371,11 +437,22 @@ export interface FileRoutesByFullPath {
   '/product/marketing-cloud': typeof ProductMarketingCloudRoute
   '/product/marketplace': typeof ProductMarketplaceRoute
   '/realtifyu/connections': typeof RealtifyuConnectionsRoute
+  '/resources/api': typeof ResourcesApiRoute
+  '/resources/blog': typeof ResourcesBlogRoute
+  '/resources/case-studies': typeof ResourcesCaseStudiesRoute
+  '/resources/community': typeof ResourcesCommunityRoute
+  '/resources/customers': typeof ResourcesCustomersRoute
+  '/resources/documentation': typeof ResourcesDocumentationRoute
+  '/resources/help': typeof ResourcesHelpRoute
+  '/resources/knowledge-base': typeof ResourcesKnowledgeBaseRoute
+  '/resources/release-notes': typeof ResourcesReleaseNotesRoute
+  '/resources/status': typeof ResourcesStatusRoute
   '/solutions/brokers': typeof SolutionsBrokersRoute
   '/solutions/channel-partners': typeof SolutionsChannelPartnersRoute
   '/solutions/developers': typeof SolutionsDevelopersRoute
   '/solutions/enterprises': typeof SolutionsEnterprisesRoute
   '/app/': typeof AppIndexRoute
+  '/resources/': typeof ResourcesIndexRoute
   '/app/settings/branding': typeof AppSettingsBrandingRoute
   '/api/public/realtifyu/callback': typeof ApiPublicRealtifyuCallbackRoute
 }
@@ -424,11 +501,22 @@ export interface FileRoutesByTo {
   '/product/marketing-cloud': typeof ProductMarketingCloudRoute
   '/product/marketplace': typeof ProductMarketplaceRoute
   '/realtifyu/connections': typeof RealtifyuConnectionsRoute
+  '/resources/api': typeof ResourcesApiRoute
+  '/resources/blog': typeof ResourcesBlogRoute
+  '/resources/case-studies': typeof ResourcesCaseStudiesRoute
+  '/resources/community': typeof ResourcesCommunityRoute
+  '/resources/customers': typeof ResourcesCustomersRoute
+  '/resources/documentation': typeof ResourcesDocumentationRoute
+  '/resources/help': typeof ResourcesHelpRoute
+  '/resources/knowledge-base': typeof ResourcesKnowledgeBaseRoute
+  '/resources/release-notes': typeof ResourcesReleaseNotesRoute
+  '/resources/status': typeof ResourcesStatusRoute
   '/solutions/brokers': typeof SolutionsBrokersRoute
   '/solutions/channel-partners': typeof SolutionsChannelPartnersRoute
   '/solutions/developers': typeof SolutionsDevelopersRoute
   '/solutions/enterprises': typeof SolutionsEnterprisesRoute
   '/app': typeof AppIndexRoute
+  '/resources': typeof ResourcesIndexRoute
   '/app/settings/branding': typeof AppSettingsBrandingRoute
   '/api/public/realtifyu/callback': typeof ApiPublicRealtifyuCallbackRoute
 }
@@ -479,11 +567,22 @@ export interface FileRoutesById {
   '/product/marketing-cloud': typeof ProductMarketingCloudRoute
   '/product/marketplace': typeof ProductMarketplaceRoute
   '/realtifyu/connections': typeof RealtifyuConnectionsRoute
+  '/resources/api': typeof ResourcesApiRoute
+  '/resources/blog': typeof ResourcesBlogRoute
+  '/resources/case-studies': typeof ResourcesCaseStudiesRoute
+  '/resources/community': typeof ResourcesCommunityRoute
+  '/resources/customers': typeof ResourcesCustomersRoute
+  '/resources/documentation': typeof ResourcesDocumentationRoute
+  '/resources/help': typeof ResourcesHelpRoute
+  '/resources/knowledge-base': typeof ResourcesKnowledgeBaseRoute
+  '/resources/release-notes': typeof ResourcesReleaseNotesRoute
+  '/resources/status': typeof ResourcesStatusRoute
   '/solutions/brokers': typeof SolutionsBrokersRoute
   '/solutions/channel-partners': typeof SolutionsChannelPartnersRoute
   '/solutions/developers': typeof SolutionsDevelopersRoute
   '/solutions/enterprises': typeof SolutionsEnterprisesRoute
   '/app/': typeof AppIndexRoute
+  '/resources/': typeof ResourcesIndexRoute
   '/app/settings/branding': typeof AppSettingsBrandingRoute
   '/api/public/realtifyu/callback': typeof ApiPublicRealtifyuCallbackRoute
 }
@@ -535,11 +634,22 @@ export interface FileRouteTypes {
     | '/product/marketing-cloud'
     | '/product/marketplace'
     | '/realtifyu/connections'
+    | '/resources/api'
+    | '/resources/blog'
+    | '/resources/case-studies'
+    | '/resources/community'
+    | '/resources/customers'
+    | '/resources/documentation'
+    | '/resources/help'
+    | '/resources/knowledge-base'
+    | '/resources/release-notes'
+    | '/resources/status'
     | '/solutions/brokers'
     | '/solutions/channel-partners'
     | '/solutions/developers'
     | '/solutions/enterprises'
     | '/app/'
+    | '/resources/'
     | '/app/settings/branding'
     | '/api/public/realtifyu/callback'
   fileRoutesByTo: FileRoutesByTo
@@ -588,11 +698,22 @@ export interface FileRouteTypes {
     | '/product/marketing-cloud'
     | '/product/marketplace'
     | '/realtifyu/connections'
+    | '/resources/api'
+    | '/resources/blog'
+    | '/resources/case-studies'
+    | '/resources/community'
+    | '/resources/customers'
+    | '/resources/documentation'
+    | '/resources/help'
+    | '/resources/knowledge-base'
+    | '/resources/release-notes'
+    | '/resources/status'
     | '/solutions/brokers'
     | '/solutions/channel-partners'
     | '/solutions/developers'
     | '/solutions/enterprises'
     | '/app'
+    | '/resources'
     | '/app/settings/branding'
     | '/api/public/realtifyu/callback'
   id:
@@ -642,11 +763,22 @@ export interface FileRouteTypes {
     | '/product/marketing-cloud'
     | '/product/marketplace'
     | '/realtifyu/connections'
+    | '/resources/api'
+    | '/resources/blog'
+    | '/resources/case-studies'
+    | '/resources/community'
+    | '/resources/customers'
+    | '/resources/documentation'
+    | '/resources/help'
+    | '/resources/knowledge-base'
+    | '/resources/release-notes'
+    | '/resources/status'
     | '/solutions/brokers'
     | '/solutions/channel-partners'
     | '/solutions/developers'
     | '/solutions/enterprises'
     | '/app/'
+    | '/resources/'
     | '/app/settings/branding'
     | '/api/public/realtifyu/callback'
   fileRoutesById: FileRoutesById
@@ -671,10 +803,21 @@ export interface RootRouteChildren {
   ProductErpRoute: typeof ProductErpRoute
   ProductMarketingCloudRoute: typeof ProductMarketingCloudRoute
   ProductMarketplaceRoute: typeof ProductMarketplaceRoute
+  ResourcesApiRoute: typeof ResourcesApiRoute
+  ResourcesBlogRoute: typeof ResourcesBlogRoute
+  ResourcesCaseStudiesRoute: typeof ResourcesCaseStudiesRoute
+  ResourcesCommunityRoute: typeof ResourcesCommunityRoute
+  ResourcesCustomersRoute: typeof ResourcesCustomersRoute
+  ResourcesDocumentationRoute: typeof ResourcesDocumentationRoute
+  ResourcesHelpRoute: typeof ResourcesHelpRoute
+  ResourcesKnowledgeBaseRoute: typeof ResourcesKnowledgeBaseRoute
+  ResourcesReleaseNotesRoute: typeof ResourcesReleaseNotesRoute
+  ResourcesStatusRoute: typeof ResourcesStatusRoute
   SolutionsBrokersRoute: typeof SolutionsBrokersRoute
   SolutionsChannelPartnersRoute: typeof SolutionsChannelPartnersRoute
   SolutionsDevelopersRoute: typeof SolutionsDevelopersRoute
   SolutionsEnterprisesRoute: typeof SolutionsEnterprisesRoute
+  ResourcesIndexRoute: typeof ResourcesIndexRoute
   ApiPublicRealtifyuCallbackRoute: typeof ApiPublicRealtifyuCallbackRoute
 }
 
@@ -771,6 +914,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/resources/': {
+      id: '/resources/'
+      path: '/resources'
+      fullPath: '/resources/'
+      preLoaderRoute: typeof ResourcesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/app/': {
       id: '/app/'
       path: '/'
@@ -804,6 +954,76 @@ declare module '@tanstack/react-router' {
       path: '/solutions/brokers'
       fullPath: '/solutions/brokers'
       preLoaderRoute: typeof SolutionsBrokersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/resources/status': {
+      id: '/resources/status'
+      path: '/resources/status'
+      fullPath: '/resources/status'
+      preLoaderRoute: typeof ResourcesStatusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/resources/release-notes': {
+      id: '/resources/release-notes'
+      path: '/resources/release-notes'
+      fullPath: '/resources/release-notes'
+      preLoaderRoute: typeof ResourcesReleaseNotesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/resources/knowledge-base': {
+      id: '/resources/knowledge-base'
+      path: '/resources/knowledge-base'
+      fullPath: '/resources/knowledge-base'
+      preLoaderRoute: typeof ResourcesKnowledgeBaseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/resources/help': {
+      id: '/resources/help'
+      path: '/resources/help'
+      fullPath: '/resources/help'
+      preLoaderRoute: typeof ResourcesHelpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/resources/documentation': {
+      id: '/resources/documentation'
+      path: '/resources/documentation'
+      fullPath: '/resources/documentation'
+      preLoaderRoute: typeof ResourcesDocumentationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/resources/customers': {
+      id: '/resources/customers'
+      path: '/resources/customers'
+      fullPath: '/resources/customers'
+      preLoaderRoute: typeof ResourcesCustomersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/resources/community': {
+      id: '/resources/community'
+      path: '/resources/community'
+      fullPath: '/resources/community'
+      preLoaderRoute: typeof ResourcesCommunityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/resources/case-studies': {
+      id: '/resources/case-studies'
+      path: '/resources/case-studies'
+      fullPath: '/resources/case-studies'
+      preLoaderRoute: typeof ResourcesCaseStudiesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/resources/blog': {
+      id: '/resources/blog'
+      path: '/resources/blog'
+      fullPath: '/resources/blog'
+      preLoaderRoute: typeof ResourcesBlogRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/resources/api': {
+      id: '/resources/api'
+      path: '/resources/api'
+      fullPath: '/resources/api'
+      preLoaderRoute: typeof ResourcesApiRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/realtifyu/connections': {
@@ -1149,10 +1369,21 @@ const rootRouteChildren: RootRouteChildren = {
   ProductErpRoute: ProductErpRoute,
   ProductMarketingCloudRoute: ProductMarketingCloudRoute,
   ProductMarketplaceRoute: ProductMarketplaceRoute,
+  ResourcesApiRoute: ResourcesApiRoute,
+  ResourcesBlogRoute: ResourcesBlogRoute,
+  ResourcesCaseStudiesRoute: ResourcesCaseStudiesRoute,
+  ResourcesCommunityRoute: ResourcesCommunityRoute,
+  ResourcesCustomersRoute: ResourcesCustomersRoute,
+  ResourcesDocumentationRoute: ResourcesDocumentationRoute,
+  ResourcesHelpRoute: ResourcesHelpRoute,
+  ResourcesKnowledgeBaseRoute: ResourcesKnowledgeBaseRoute,
+  ResourcesReleaseNotesRoute: ResourcesReleaseNotesRoute,
+  ResourcesStatusRoute: ResourcesStatusRoute,
   SolutionsBrokersRoute: SolutionsBrokersRoute,
   SolutionsChannelPartnersRoute: SolutionsChannelPartnersRoute,
   SolutionsDevelopersRoute: SolutionsDevelopersRoute,
   SolutionsEnterprisesRoute: SolutionsEnterprisesRoute,
+  ResourcesIndexRoute: ResourcesIndexRoute,
   ApiPublicRealtifyuCallbackRoute: ApiPublicRealtifyuCallbackRoute,
 }
 export const routeTree = rootRouteImport

@@ -32,6 +32,19 @@ const companyLinks = [
   { label: "Contact", to: "/contact" },
 ];
 
+const resourcesLinks = [
+  { label: "Documentation", to: "/resources/documentation" },
+  { label: "Knowledge Base", to: "/resources/knowledge-base" },
+  { label: "Blog", to: "/resources/blog" },
+  { label: "API Docs", to: "/resources/api" },
+  { label: "Release Notes", to: "/resources/release-notes" },
+  { label: "Case Studies", to: "/resources/case-studies" },
+  { label: "Customer Stories", to: "/resources/customers" },
+  { label: "Help Center", to: "/resources/help" },
+  { label: "Community", to: "/resources/community" },
+  { label: "System Status", to: "/resources/status" },
+];
+
 const legalLinks = [
   { label: "Privacy", to: "/privacy" },
   { label: "Terms", to: "/terms" },
@@ -70,6 +83,7 @@ export function Nav() {
           <NavDropdown label="Product" items={productLinks} />
           <NavDropdown label="Solutions" items={solutionsLinks} />
           <a href="/#pricing" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Pricing</a>
+          <NavDropdown label="Resources" items={resourcesLinks} />
           <NavDropdown label="Company" items={companyLinks} />
           <NavDropdown label="Legal" items={legalLinks} />
         </nav>
