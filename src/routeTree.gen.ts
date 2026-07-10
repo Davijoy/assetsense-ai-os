@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as RealtifyuRouteImport } from './routes/realtifyu'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PressRouteImport } from './routes/press'
@@ -48,6 +49,11 @@ import { Route as AppBiRouteImport } from './routes/app.bi'
 import { Route as AppSettingsBrandingRouteImport } from './routes/app.settings.branding'
 import { Route as ApiPublicRealtifyuCallbackRouteImport } from './routes/api/public/realtifyu.callback'
 
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RealtifyuRoute = RealtifyuRouteImport.update({
   id: '/realtifyu',
   path: '/realtifyu',
@@ -250,6 +256,7 @@ export interface FileRoutesByFullPath {
   '/press': typeof PressRoute
   '/privacy': typeof PrivacyRoute
   '/realtifyu': typeof RealtifyuRouteWithChildren
+  '/terms': typeof TermsRoute
   '/app/bi': typeof AppBiRoute
   '/app/collections': typeof AppCollectionsRoute
   '/app/command': typeof AppCommandRoute
@@ -289,6 +296,7 @@ export interface FileRoutesByTo {
   '/press': typeof PressRoute
   '/privacy': typeof PrivacyRoute
   '/realtifyu': typeof RealtifyuRouteWithChildren
+  '/terms': typeof TermsRoute
   '/app/bi': typeof AppBiRoute
   '/app/collections': typeof AppCollectionsRoute
   '/app/command': typeof AppCommandRoute
@@ -330,6 +338,7 @@ export interface FileRoutesById {
   '/press': typeof PressRoute
   '/privacy': typeof PrivacyRoute
   '/realtifyu': typeof RealtifyuRouteWithChildren
+  '/terms': typeof TermsRoute
   '/app/bi': typeof AppBiRoute
   '/app/collections': typeof AppCollectionsRoute
   '/app/command': typeof AppCommandRoute
@@ -372,6 +381,7 @@ export interface FileRouteTypes {
     | '/press'
     | '/privacy'
     | '/realtifyu'
+    | '/terms'
     | '/app/bi'
     | '/app/collections'
     | '/app/command'
@@ -411,6 +421,7 @@ export interface FileRouteTypes {
     | '/press'
     | '/privacy'
     | '/realtifyu'
+    | '/terms'
     | '/app/bi'
     | '/app/collections'
     | '/app/command'
@@ -451,6 +462,7 @@ export interface FileRouteTypes {
     | '/press'
     | '/privacy'
     | '/realtifyu'
+    | '/terms'
     | '/app/bi'
     | '/app/collections'
     | '/app/command'
@@ -492,11 +504,19 @@ export interface RootRouteChildren {
   PressRoute: typeof PressRoute
   PrivacyRoute: typeof PrivacyRoute
   RealtifyuRoute: typeof RealtifyuRouteWithChildren
+  TermsRoute: typeof TermsRoute
   ApiPublicRealtifyuCallbackRoute: typeof ApiPublicRealtifyuCallbackRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/realtifyu': {
       id: '/realtifyu'
       path: '/realtifyu'
@@ -858,6 +878,7 @@ const rootRouteChildren: RootRouteChildren = {
   PressRoute: PressRoute,
   PrivacyRoute: PrivacyRoute,
   RealtifyuRoute: RealtifyuRouteWithChildren,
+  TermsRoute: TermsRoute,
   ApiPublicRealtifyuCallbackRoute: ApiPublicRealtifyuCallbackRoute,
 }
 export const routeTree = rootRouteImport
