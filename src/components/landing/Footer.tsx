@@ -4,18 +4,18 @@ import { Link } from "@tanstack/react-router";
 export function Footer() {
   const cols: { h: string; l: { label: string; to?: string; href?: string }[] }[] = [
     { h: "Product", l: [
-      { label: "CRM", href: "#solutions" },
-      { label: "ERP", href: "#solutions" },
-      { label: "Marketplace", href: "#marketplace" },
-      { label: "AI Voice", href: "#ai-voice" },
-      { label: "Marketing Cloud", href: "#solutions" },
-      { label: "BI", href: "#intelligence" },
+      { label: "CRM", to: "/product/crm" },
+      { label: "ERP", to: "/product/erp" },
+      { label: "Marketplace", to: "/product/marketplace" },
+      { label: "AI Voice", to: "/product/ai-voice" },
+      { label: "Marketing Cloud", to: "/product/marketing-cloud" },
+      { label: "BI", to: "/product/bi" },
     ]},
     { h: "Solutions", l: [
-      { label: "Developers", href: "#solutions" },
-      { label: "Brokers", href: "#solutions" },
-      { label: "Channel Partners", href: "#solutions" },
-      { label: "Enterprises", href: "#solutions" },
+      { label: "Developers", to: "/solutions/developers" },
+      { label: "Brokers", to: "/solutions/brokers" },
+      { label: "Channel Partners", to: "/solutions/channel-partners" },
+      { label: "Enterprises", to: "/solutions/enterprises" },
     ]},
     { h: "Company", l: [
       { label: "About", to: "/about" },
