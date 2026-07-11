@@ -106,7 +106,7 @@ const stages: { id: string; title: string; tint: string; leads: Lead[] }[] = [
 const activity = [
   { who: "AI Voice Agent", what: "Qualified Arjun Patel — Intent: High (94)", when: "2m ago", icon: Sparkles, tint: "text-primary" },
   { who: "Aarav Mehta", what: "Logged a call with Riya Kapoor (8m)", when: "12m ago", icon: Phone, tint: "text-sky-400" },
-  { who: "Marketing", what: "Sent WhatsApp campaign to 318 leads", when: "1h ago", icon: MessageSquare, tint: "text-violet-400" },
+  { who: "Marketing", what: "Sent WhatsApp campaign to 318 leads", when: "1h ago", icon: WhatsAppIcon, tint: "text-violet-400" },
   { who: "System", what: "Synced 24 new leads from MagicBricks", when: "2h ago", icon: Mail, tint: "text-amber-400" },
 ];
 
