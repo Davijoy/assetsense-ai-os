@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Sparkles, Phone, Mail, MessageSquare, Filter, Download, X, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
+import { Sparkles, Phone, Mail, Filter, Download, X, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
 
 export const Route = createFileRoute("/app/leads")({
   head: () => ({ meta: [{ title: "Leads — Sentinel Fort Group" }] }),
