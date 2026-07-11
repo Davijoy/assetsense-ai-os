@@ -8,6 +8,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { PropertyWizard } from "./PropertyWizard";
+
+export const NewPropertyDialog = PropertyWizard;
 
 export function NewLeadDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
   const qc = useQueryClient();
@@ -134,116 +137,6 @@ export function NewLeadDialog({ open, onOpenChange }: { open: boolean; onOpenCha
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
             <Button type="submit" disabled={loading}>{loading ? "Creating…" : "Create lead"}</Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-export function NewPropertyDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
-  const qc = useQueryClient();
-  const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
-  const [form, setForm] = useState({
-    name: "",
-    city: "",
-    property_type: "apartment",
-    price_inr: "",
-    status: "available",
-    ai_score: 70,
-    developer: "",
-  });
-
-  const set = (k: string, v: string | number) => setForm((f) => ({ ...f, [k]: v }));
-
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!form.name.trim() || !form.city.trim() || !form.price_inr) {
-      toast.error("Name, city and price are required");
-      return;
-    }
-    setLoading(true);
-    const { error } = await supabase.from("properties").insert({
-      name: form.name.trim(),
-      city: form.city.trim(),
-      property_type: form.property_type,
-      price_inr: Number(form.price_inr),
-      status: form.status,
-      ai_score: Number(form.ai_score) || 0,
-      developer: form.developer.trim() || null,
-    });
-    setLoading(false);
-    if (error) {
-      toast.error(error.message.includes("row-level security") ? "You need admin or manager access to add properties." : error.message);
-      return;
-    }
-    toast.success("Property added to marketplace");
-    qc.invalidateQueries();
-    onOpenChange(false);
-    setForm({ name: "", city: "", property_type: "apartment", price_inr: "", status: "available", ai_score: 70, developer: "" });
-    navigate({ to: "/app/marketplace" });
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
-        <DialogHeader>
-          <DialogTitle>New Property</DialogTitle>
-          <DialogDescription>List a property on the Sentinel marketplace with an AI investment score.</DialogDescription>
-        </DialogHeader>
-        <form onSubmit={submit} className="grid gap-3">
-          <div className="grid grid-cols-2 gap-3">
-            <div className="col-span-2">
-              <Label htmlFor="p-name">Name *</Label>
-              <Input id="p-name" value={form.name} onChange={(e) => set("name", e.target.value)} required maxLength={160} />
-            </div>
-            <div>
-              <Label htmlFor="p-city">City *</Label>
-              <Input id="p-city" value={form.city} onChange={(e) => set("city", e.target.value)} required maxLength={80} />
-            </div>
-            <div>
-              <Label>Type</Label>
-              <Select value={form.property_type} onValueChange={(v) => set("property_type", v)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="apartment">Apartment</SelectItem>
-                  <SelectItem value="villa">Villa</SelectItem>
-                  <SelectItem value="plot">Plot</SelectItem>
-                  <SelectItem value="commercial">Commercial</SelectItem>
-                  <SelectItem value="office">Office</SelectItem>
-                  <SelectItem value="retail">Retail</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="p-price">Price (INR) *</Label>
-              <Input id="p-price" type="number" min={0} value={form.price_inr} onChange={(e) => set("price_inr", e.target.value)} required />
-            </div>
-            <div>
-              <Label>Status</Label>
-              <Select value={form.status} onValueChange={(v) => set("status", v)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="available">Available</SelectItem>
-                  <SelectItem value="reserved">Reserved</SelectItem>
-                  <SelectItem value="sold">Sold</SelectItem>
-                  <SelectItem value="off_market">Off market</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="p-score">AI investment score</Label>
-              <Input id="p-score" type="number" min={0} max={100} value={form.ai_score} onChange={(e) => set("ai_score", Number(e.target.value))} />
-            </div>
-            <div className="col-span-2">
-              <Label htmlFor="p-dev">Developer</Label>
-              <Input id="p-dev" value={form.developer} onChange={(e) => set("developer", e.target.value)} maxLength={160} />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button type="submit" disabled={loading}>{loading ? "Adding…" : "Add property"}</Button>
           </DialogFooter>
         </form>
       </DialogContent>
