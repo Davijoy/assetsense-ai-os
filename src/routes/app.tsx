@@ -1,7 +1,10 @@
 import { createFileRoute, Link, Outlet, useRouterState, useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { SentinelMark } from "@/components/brand/Logo";
 import { useAuth, type AppRole } from "@/hooks/use-auth";
+import { searchEntries } from "@/lib/search-index";
+import { toast } from "sonner";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -257,26 +260,154 @@ function AppShell() {
       </aside>
 
       <div className="flex h-screen flex-col md:pl-64">
-        <header className="flex h-16 shrink-0 items-center gap-4 border-b border-border/60 bg-background/70 px-6 backdrop-blur-xl">
-          <div className="flex flex-1 items-center gap-3">
-            <Search className="h-4 w-4 text-muted-foreground" />
-            <input
-              placeholder="Search leads, properties, deals…"
-              className="w-full max-w-md bg-transparent text-sm outline-none placeholder:text-muted-foreground"
-            />
-          </div>
-          <button className="relative rounded-md p-2 hover:bg-surface">
-            <Bell className="h-4 w-4" />
-            <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-primary" />
-          </button>
-          <button className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground shadow-glow hover:bg-primary/90">
-            <Plus className="h-3.5 w-3.5" /> New
-          </button>
-        </header>
+        <AppHeader />
         <main className="flex-1 overflow-y-auto px-6 py-8">
           <Outlet />
         </main>
       </div>
     </div>
+  );
+}
+
+function AppHeader() {
+  const navigate = useNavigate();
+  const [q, setQ] = useState("");
+  const [open, setOpen] = useState(false);
+  const results = useMemo(() => (q.trim() ? searchEntries(q).slice(0, 8) : []), [q]);
+
+  const quickCreate: { label: string; to: string }[] = [
+    { label: "New Lead", to: "/app/leads" },
+    { label: "New Deal Room", to: "/app/dealrooms" },
+    { label: "New Property", to: "/app/marketplace" },
+    { label: "New Voice Campaign", to: "/app/voice" },
+    { label: "New Document", to: "/app/documents" },
+    { label: "New Recommendation", to: "/app/recommendations" },
+  ];
+
+  const notifications = [
+    { title: "3 new high-intent leads", body: "Assigned to your CRM inbox.", to: "/app/leads", time: "just now" },
+    { title: "Deal room 'Skyline Towers' updated", body: "Health score moved to 82.", to: "/app/dealrooms", time: "12m" },
+    { title: "Forecast confidence rose to 91%", body: "Executive Command refreshed.", to: "/app/command", time: "1h" },
+  ];
+
+  return (
+    <header className="relative flex h-16 shrink-0 items-center gap-4 border-b border-border/60 bg-background/70 px-6 backdrop-blur-xl">
+      <div className="relative flex flex-1 items-center gap-3">
+        <Search className="h-4 w-4 text-muted-foreground" />
+        <input
+          value={q}
+          onChange={(e) => {
+            setQ(e.target.value);
+            setOpen(true);
+          }}
+          onFocus={() => setOpen(true)}
+          onBlur={() => setTimeout(() => setOpen(false), 150)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              setOpen(false);
+              navigate({ to: "/search", search: { q, cat: "All" } });
+            }
+            if (e.key === "Escape") setOpen(false);
+          }}
+          placeholder="Search leads, properties, deals…"
+          className="w-full max-w-md bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+        />
+        {open && q.trim() && (
+          <div className="absolute left-6 top-11 z-50 w-full max-w-md overflow-hidden rounded-lg border border-border/60 bg-surface shadow-2xl">
+            {results.length === 0 ? (
+              <div className="p-4 text-sm text-muted-foreground">No matches for "{q}"</div>
+            ) : (
+              <ul className="max-h-80 overflow-y-auto py-1">
+                {results.map((r) => (
+                  <li key={r.to}>
+                    <button
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => {
+                        setOpen(false);
+                        setQ("");
+                        navigate({ to: r.to });
+                      }}
+                      className="flex w-full flex-col items-start gap-0.5 px-3 py-2 text-left hover:bg-sidebar-accent"
+                    >
+                      <span className="text-[10px] uppercase tracking-[0.2em] text-gold/70">{r.category}</span>
+                      <span className="text-sm text-foreground">{r.title}</span>
+                      <span className="line-clamp-1 text-xs text-muted-foreground">{r.description}</span>
+                    </button>
+                  </li>
+                ))}
+                <li className="border-t border-border/60">
+                  <button
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => {
+                      setOpen(false);
+                      navigate({ to: "/search", search: { q, cat: "All" } });
+                    }}
+                    className="w-full px-3 py-2 text-left text-xs text-primary hover:bg-sidebar-accent"
+                  >
+                    See all results for "{q}" →
+                  </button>
+                </li>
+              </ul>
+            )}
+          </div>
+        )}
+      </div>
+
+      <Popover>
+        <PopoverTrigger asChild>
+          <button className="relative rounded-md p-2 hover:bg-surface" aria-label="Notifications">
+            <Bell className="h-4 w-4" />
+            <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-primary" />
+          </button>
+        </PopoverTrigger>
+        <PopoverContent align="end" className="w-80 p-0">
+          <div className="flex items-center justify-between border-b border-border/60 px-3 py-2">
+            <span className="text-sm font-medium">Notifications</span>
+            <button
+              onClick={() => toast.success("All notifications marked as read")}
+              className="text-[11px] text-muted-foreground hover:text-foreground"
+            >
+              Mark all read
+            </button>
+          </div>
+          <ul className="max-h-96 divide-y divide-border/60 overflow-y-auto">
+            {notifications.map((n) => (
+              <li key={n.title}>
+                <Link
+                  to={n.to}
+                  className="block px-3 py-2.5 hover:bg-sidebar-accent"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="text-sm text-foreground">{n.title}</span>
+                    <span className="shrink-0 text-[10px] text-muted-foreground">{n.time}</span>
+                  </div>
+                  <p className="mt-0.5 text-xs text-muted-foreground">{n.body}</p>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </PopoverContent>
+      </Popover>
+
+      <Popover>
+        <PopoverTrigger asChild>
+          <button className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground shadow-glow hover:bg-primary/90">
+            <Plus className="h-3.5 w-3.5" /> New
+          </button>
+        </PopoverTrigger>
+        <PopoverContent align="end" className="w-56 p-1">
+          {quickCreate.map((q) => (
+            <Link
+              key={q.to}
+              to={q.to}
+              className="flex items-center gap-2 rounded-md px-2.5 py-1.5 text-sm text-foreground hover:bg-sidebar-accent"
+            >
+              <Plus className="h-3.5 w-3.5 text-primary" />
+              {q.label}
+            </Link>
+          ))}
+        </PopoverContent>
+      </Popover>
+    </header>
   );
 }
