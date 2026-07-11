@@ -205,7 +205,7 @@ function Marketplace() {
             <input
               type="range"
               min={1}
-              max={50}
+              max={maxCr}
               value={budget}
               onChange={(e) => setBudget(Number(e.target.value))}
               className="flex-1 accent-[color:var(--primary)]"
