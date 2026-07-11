@@ -181,34 +181,67 @@ function CRM() {
                 </div>
               </div>
               <div className="space-y-2 p-3">
-                {stage.leads.map((l) => (
-                  <article
-                    key={l.name}
-                    className="group cursor-pointer rounded-xl border border-border bg-card p-3 transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-glow"
-                  >
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <div className="text-sm text-foreground">{l.name}</div>
-                        <div className="text-xs text-muted-foreground">{l.project}</div>
+                {stage.leads.map((l) => {
+                  const { tel, whatsapp, mailto } = leadContactLinks(l);
+                  return (
+                    <article
+                      key={l.name}
+                      className="group cursor-pointer rounded-xl border border-border bg-card p-3 transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-glow"
+                    >
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <div className="text-sm text-foreground">{l.name}</div>
+                          <div className="text-xs text-muted-foreground">{l.project}</div>
+                        </div>
+                        <span className="grid h-5 w-5 place-items-center rounded-full bg-surface-elevated text-[10px]">
+                          {l.owner}
+                        </span>
                       </div>
-                      <MoreHorizontal className="h-3.5 w-3.5 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
-                    </div>
-                    <div className="mt-3 flex items-center justify-between text-xs">
-                      <span className="font-medium text-foreground">{l.budget}</span>
-                      <span className="flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-primary">
-                        <Sparkles className="h-2.5 w-2.5" /> {l.score}
-                      </span>
-                    </div>
-                    <div className="mt-3 flex items-center justify-between border-t border-border/60 pt-2">
-                      <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                        {l.source}
-                      </span>
-                      <span className="grid h-5 w-5 place-items-center rounded-full bg-surface-elevated text-[10px]">
-                        {l.owner}
-                      </span>
-                    </div>
-                  </article>
-                ))}
+                      <div className="mt-3 flex items-center justify-between text-xs">
+                        <span className="font-medium text-foreground">{l.budget}</span>
+                        <span className="flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-primary">
+                          <Sparkles className="h-2.5 w-2.5" /> {l.score}
+                        </span>
+                      </div>
+                      <div className="mt-3 flex items-center justify-between border-t border-border/60 pt-2">
+                        <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                          {l.source}
+                        </span>
+                        <div className="flex items-center gap-0.5 text-muted-foreground">
+                          <a
+                            href={tel}
+                            onClick={() => toast.success(`Calling ${l.name}`)}
+                            aria-label={`Call ${l.name}`}
+                            title="Call"
+                            className="rounded p-1 hover:bg-surface hover:text-foreground"
+                          >
+                            <Phone className="h-3.5 w-3.5" />
+                          </a>
+                          <a
+                            href={whatsapp}
+                            target="_blank"
+                            rel="noreferrer"
+                            onClick={() => toast.success(`Opening WhatsApp for ${l.name}`)}
+                            aria-label={`WhatsApp ${l.name}`}
+                            title="WhatsApp"
+                            className="rounded p-1 hover:bg-surface hover:text-[#25D366]"
+                          >
+                            <WhatsAppIcon className="h-3.5 w-3.5" />
+                          </a>
+                          <a
+                            href={mailto}
+                            onClick={() => toast.success(`Emailing ${l.name}`)}
+                            aria-label={`Email ${l.name}`}
+                            title="Email"
+                            className="rounded p-1 hover:bg-surface hover:text-foreground"
+                          >
+                            <Mail className="h-3.5 w-3.5" />
+                          </a>
+                        </div>
+                      </div>
+                    </article>
+                  );
+                })}
               </div>
             </div>
           ))}
