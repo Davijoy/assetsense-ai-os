@@ -5,6 +5,7 @@ import { useAuth, type AppRole } from "@/hooks/use-auth";
 import { searchEntries } from "@/lib/search-index";
 import { toast } from "sonner";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { NewLeadDialog, NewPropertyDialog } from "@/components/app/QuickCreateDialogs";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -273,12 +274,15 @@ function AppHeader() {
   const navigate = useNavigate();
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
+  const [leadOpen, setLeadOpen] = useState(false);
+  const [propOpen, setPropOpen] = useState(false);
   const results = useMemo(() => (q.trim() ? searchEntries(q).slice(0, 8) : []), [q]);
 
-  const quickCreate: { label: string; to: string }[] = [
-    { label: "New Lead", to: "/app/leads" },
+  type QuickAction = { label: string; to?: string; onSelect?: () => void };
+  const quickCreate: QuickAction[] = [
+    { label: "New Lead", onSelect: () => setLeadOpen(true) },
     { label: "New Deal Room", to: "/app/dealrooms" },
-    { label: "New Property", to: "/app/marketplace" },
+    { label: "New Property", onSelect: () => setPropOpen(true) },
     { label: "New Voice Campaign", to: "/app/voice" },
     { label: "New Document", to: "/app/documents" },
     { label: "New Recommendation", to: "/app/recommendations" },
@@ -396,18 +400,32 @@ function AppHeader() {
           </button>
         </PopoverTrigger>
         <PopoverContent align="end" className="w-56 p-1">
-          {quickCreate.map((q) => (
-            <Link
-              key={q.to}
-              to={q.to}
-              className="flex items-center gap-2 rounded-md px-2.5 py-1.5 text-sm text-foreground hover:bg-sidebar-accent"
-            >
-              <Plus className="h-3.5 w-3.5 text-primary" />
-              {q.label}
-            </Link>
-          ))}
+          {quickCreate.map((item) =>
+            item.onSelect ? (
+              <button
+                key={item.label}
+                type="button"
+                onClick={item.onSelect}
+                className="flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-sm text-foreground hover:bg-sidebar-accent"
+              >
+                <Plus className="h-3.5 w-3.5 text-primary" />
+                {item.label}
+              </button>
+            ) : (
+              <Link
+                key={item.label}
+                to={item.to!}
+                className="flex items-center gap-2 rounded-md px-2.5 py-1.5 text-sm text-foreground hover:bg-sidebar-accent"
+              >
+                <Plus className="h-3.5 w-3.5 text-primary" />
+                {item.label}
+              </Link>
+            )
+          )}
         </PopoverContent>
       </Popover>
+      <NewLeadDialog open={leadOpen} onOpenChange={setLeadOpen} />
+      <NewPropertyDialog open={propOpen} onOpenChange={setPropOpen} />
     </header>
   );
 }
