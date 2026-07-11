@@ -520,10 +520,13 @@ export type Database = {
       properties: {
         Row: {
           ai_score: number
+          ai_score_generated_at: string | null
+          attributes: Json
           city: string
           created_at: string
           developer: string | null
           id: string
+          is_draft: boolean
           name: string
           price_inr: number
           property_type: string
@@ -532,10 +535,13 @@ export type Database = {
         }
         Insert: {
           ai_score?: number
+          ai_score_generated_at?: string | null
+          attributes?: Json
           city: string
           created_at?: string
           developer?: string | null
           id?: string
+          is_draft?: boolean
           name: string
           price_inr: number
           property_type: string
@@ -544,10 +550,13 @@ export type Database = {
         }
         Update: {
           ai_score?: number
+          ai_score_generated_at?: string | null
+          attributes?: Json
           city?: string
           created_at?: string
           developer?: string | null
           id?: string
+          is_draft?: boolean
           name?: string
           price_inr?: number
           property_type?: string
