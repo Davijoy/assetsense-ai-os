@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import {
   MapPin,
   Bed,
@@ -14,6 +16,7 @@ import {
 
 export const Route = createFileRoute("/app/marketplace")({
   head: () => ({ meta: [{ title: "Marketplace — Sentinel Fort Group" }] }),
+  ssr: false,
   component: Marketplace,
 });
 
@@ -46,8 +49,20 @@ const properties: Property[] = [
   { id: "9", name: "M3M Crown", builder: "M3M India", city: "Gurugram", area: "Sector 111", type: "Apartment", config: "3 BHK", size: "1,950 sqft", priceLabel: "₹3.85 Cr", priceCr: 3.85, score: 87, tag: "New", appreciation: "+15% YoY", status: "New Launch" },
 ];
 
-const cities = ["All", "Mumbai", "Bengaluru", "Pune", "Gurugram"];
 const types: Property["type"][] = ["Apartment", "Villa", "Plot", "Commercial"];
+
+function typeFromDb(t: string): Property["type"] {
+  const v = t.toLowerCase();
+  if (v.includes("villa")) return "Villa";
+  if (v.includes("plot")) return "Plot";
+  if (v.includes("commercial") || v.includes("office") || v.includes("retail")) return "Commercial";
+  return "Apartment";
+}
+
+function formatPriceCr(inr: number): string {
+  const cr = inr / 10_000_000;
+  return cr >= 1 ? `₹${cr.toFixed(2)} Cr` : `₹${(inr / 100_000).toFixed(1)} L`;
+}
 
 function Marketplace() {
   const [q, setQ] = useState("");
@@ -56,15 +71,66 @@ function Marketplace() {
   const [budget, setBudget] = useState(50);
   const [selected, setSelected] = useState<Property | null>(null);
 
+  const { data: liveRows = [] } = useQuery({
+    queryKey: ["marketplace-properties"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("properties")
+        .select("id,name,city,property_type,price_inr,status,ai_score,developer,created_at")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const liveProperties: Property[] = useMemo(
+    () =>
+      liveRows.map((r) => {
+        const priceCr = Number(r.price_inr) / 10_000_000;
+        const status: Property["status"] =
+          r.status === "sold" || r.status === "reserved" ? "Ready" : "New Launch";
+        return {
+          id: `db-${r.id}`,
+          name: r.name,
+          builder: r.developer ?? "—",
+          city: r.city,
+          area: r.city,
+          type: typeFromDb(r.property_type),
+          config: "—",
+          size: "—",
+          priceLabel: formatPriceCr(Number(r.price_inr)),
+          priceCr,
+          score: r.ai_score ?? 70,
+          tag: "New",
+          appreciation: "New listing",
+          status,
+        };
+      }),
+    [liveRows],
+  );
+
+  const combined = useMemo(() => [...liveProperties, ...properties], [liveProperties]);
+
+  const cities = useMemo(() => {
+    const set = new Set<string>(["Mumbai", "Bengaluru", "Pune", "Gurugram"]);
+    combined.forEach((p) => set.add(p.city));
+    return ["All", ...Array.from(set)];
+  }, [combined]);
+
+  const maxCr = useMemo(
+    () => Math.max(50, ...combined.map((p) => Math.ceil(p.priceCr))),
+    [combined],
+  );
+
   const filtered = useMemo(() => {
-    return properties.filter((p) => {
+    return combined.filter((p) => {
       if (q && !`${p.name} ${p.builder} ${p.area}`.toLowerCase().includes(q.toLowerCase())) return false;
       if (city !== "All" && p.city !== city) return false;
       if (activeTypes.length && !activeTypes.includes(p.type)) return false;
       if (p.priceCr > budget) return false;
       return true;
     });
-  }, [q, city, activeTypes, budget]);
+  }, [q, city, activeTypes, budget, combined]);
 
   return (
     <div className="space-y-6">
@@ -139,7 +205,7 @@ function Marketplace() {
             <input
               type="range"
               min={1}
-              max={50}
+              max={maxCr}
               value={budget}
               onChange={(e) => setBudget(Number(e.target.value))}
               className="flex-1 accent-[color:var(--primary)]"
