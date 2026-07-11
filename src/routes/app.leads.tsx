@@ -302,11 +302,44 @@ function Leads() {
                 </td>
                 <td className="px-5 py-4 text-xs text-muted-foreground">{l.last} ago</td>
                 <td className="px-5 py-4">
-                  <div className="flex items-center gap-1 text-muted-foreground">
-                    <button className="rounded p-1.5 hover:bg-surface hover:text-foreground"><Phone className="h-3.5 w-3.5" /></button>
-                    <button className="rounded p-1.5 hover:bg-surface hover:text-foreground"><MessageSquare className="h-3.5 w-3.5" /></button>
-                    <button className="rounded p-1.5 hover:bg-surface hover:text-foreground"><Mail className="h-3.5 w-3.5" /></button>
-                  </div>
+                  {(() => {
+                    const email = `${l.name.toLowerCase().replace(" ", ".")}@gmail.com`;
+                    const phone = "+910000000000";
+                    const smsBody = encodeURIComponent(`Hi ${l.name.split(" ")[0]}, following up on ${l.project}.`);
+                    const mailSubject = encodeURIComponent(`${l.project} — next steps`);
+                    const mailBody = encodeURIComponent(`Hi ${l.name.split(" ")[0]},\n\nFollowing up on your interest in ${l.project} (${l.budget}).`);
+                    return (
+                      <div className="flex items-center gap-1 text-muted-foreground">
+                        <a
+                          href={`tel:${phone}`}
+                          onClick={() => toast.success(`Calling ${l.name}`)}
+                          aria-label={`Call ${l.name}`}
+                          title="Call"
+                          className="rounded p-1.5 hover:bg-surface hover:text-foreground"
+                        >
+                          <Phone className="h-3.5 w-3.5" />
+                        </a>
+                        <a
+                          href={`sms:${phone}?body=${smsBody}`}
+                          onClick={() => toast.success(`Messaging ${l.name}`)}
+                          aria-label={`Message ${l.name}`}
+                          title="SMS"
+                          className="rounded p-1.5 hover:bg-surface hover:text-foreground"
+                        >
+                          <MessageSquare className="h-3.5 w-3.5" />
+                        </a>
+                        <a
+                          href={`mailto:${email}?subject=${mailSubject}&body=${mailBody}`}
+                          onClick={() => toast.success(`Emailing ${l.name}`)}
+                          aria-label={`Email ${l.name}`}
+                          title="Email"
+                          className="rounded p-1.5 hover:bg-surface hover:text-foreground"
+                        >
+                          <Mail className="h-3.5 w-3.5" />
+                        </a>
+                      </div>
+                    );
+                  })()}
                 </td>
               </tr>
             ))}
