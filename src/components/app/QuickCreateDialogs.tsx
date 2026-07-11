@@ -35,7 +35,7 @@ export function NewLeadDialog({ open, onOpenChange }: { open: boolean; onOpenCha
       return;
     }
     setLoading(true);
-    const payload: Record<string, unknown> = {
+    const payload = {
       name: form.name.trim(),
       email: form.email.trim() || null,
       phone: form.phone.trim() || null,
