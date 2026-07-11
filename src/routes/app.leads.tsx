@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Sparkles, Phone, Mail, MessageSquare, Filter, Download, X } from "lucide-react";
+import { Sparkles, Phone, Mail, MessageSquare, Filter, Download, X, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
 
 export const Route = createFileRoute("/app/leads")({
   head: () => ({ meta: [{ title: "Leads — Sentinel Fort Group" }] }),
@@ -27,25 +27,80 @@ const stageColor: Record<string, string> = {
   Booked: "bg-emerald-400/15 text-emerald-300",
 };
 
+const stageOrder: Record<string, number> = {
+  New: 0, Qualified: 1, Visit: 2, Negotiation: 3, Booked: 4,
+};
+
+// Parse "2m" / "1h" / "3d" into minutes (recency proxy — lower = newer).
+const parseAgo = (s: string): number => {
+  const m = /^(\d+)\s*([smhd])$/.exec(s.trim());
+  if (!m) return Number.POSITIVE_INFINITY;
+  const n = Number(m[1]);
+  return n * ({ s: 1 / 60, m: 1, h: 60, d: 1440 }[m[2] as "s" | "m" | "h" | "d"] ?? 1);
+};
+
+// "₹1.9 Cr" / "₹85 L" → INR number.
+const parseBudget = (s: string): number => {
+  const m = /([\d.]+)\s*(Cr|L|K)?/i.exec(s);
+  if (!m) return 0;
+  const n = Number(m[1]);
+  const unit = (m[2] ?? "").toLowerCase();
+  return unit === "cr" ? n * 1e7 : unit === "l" ? n * 1e5 : unit === "k" ? n * 1e3 : n;
+};
+
+type SortKey = "name" | "project" | "budget" | "source" | "stage" | "score" | "last";
+type SortDir = "asc" | "desc";
+
+const SORT_ACCESSORS: Record<SortKey, (l: typeof leads[number]) => string | number> = {
+  name: (l) => l.name.toLowerCase(),
+  project: (l) => l.project.toLowerCase(),
+  budget: (l) => parseBudget(l.budget),
+  source: (l) => l.source.toLowerCase(),
+  stage: (l) => stageOrder[l.stage] ?? 99,
+  score: (l) => l.score,
+  last: (l) => parseAgo(l.last),
+};
+
 function Leads() {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [stageFilter, setStageFilter] = useState<string>("all");
   const [sourceFilter, setSourceFilter] = useState<string>("all");
   const [minScore, setMinScore] = useState<number>(0);
   const [query, setQuery] = useState("");
+  const [sortKey, setSortKey] = useState<SortKey>("last");
+  const [sortDir, setSortDir] = useState<SortDir>("asc");
+
+  const toggleSort = (key: SortKey) => {
+    if (sortKey === key) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortKey(key);
+      setSortDir(key === "score" || key === "budget" ? "desc" : "asc");
+    }
+  };
 
   const stages = useMemo(() => Array.from(new Set(leads.map((l) => l.stage))), []);
   const sources = useMemo(() => Array.from(new Set(leads.map((l) => l.source))), []);
 
-  const filtered = useMemo(() => {
-    return leads.filter((l) => {
+  const filteredSorted = useMemo(() => {
+    const filtered = leads.filter((l) => {
       if (stageFilter !== "all" && l.stage !== stageFilter) return false;
       if (sourceFilter !== "all" && l.source !== sourceFilter) return false;
       if (l.score < minScore) return false;
       if (query && !`${l.name} ${l.project}`.toLowerCase().includes(query.toLowerCase())) return false;
       return true;
     });
-  }, [stageFilter, sourceFilter, minScore, query]);
+    const accessor = SORT_ACCESSORS[sortKey];
+    const dir = sortDir === "asc" ? 1 : -1;
+    return [...filtered].sort((a, b) => {
+      const av = accessor(a);
+      const bv = accessor(b);
+      if (av < bv) return -1 * dir;
+      if (av > bv) return 1 * dir;
+      return 0;
+    });
+  }, [stageFilter, sourceFilter, minScore, query, sortKey, sortDir]);
+  const filtered = filteredSorted;
 
   const activeFilterCount =
     (stageFilter !== "all" ? 1 : 0) +
@@ -76,6 +131,25 @@ function Leads() {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
     toast.success(`Exported ${filtered.length} lead${filtered.length === 1 ? "" : "s"} to CSV`);
+  };
+
+  const SortHeader = ({ label, k, align = "left" }: { label: string; k: SortKey; align?: "left" | "right" }) => {
+    const active = sortKey === k;
+    const Icon = active ? (sortDir === "asc" ? ArrowUp : ArrowDown) : ArrowUpDown;
+    return (
+      <th className={`px-5 py-3 font-normal ${align === "right" ? "text-right" : "text-left"}`}>
+        <button
+          type="button"
+          onClick={() => toggleSort(k)}
+          aria-sort={active ? (sortDir === "asc" ? "ascending" : "descending") : "none"}
+          className={`inline-flex items-center gap-1 rounded px-1 py-0.5 transition hover:text-foreground ${
+            active ? "text-primary" : ""
+          }`}
+        >
+          {label} <Icon className="h-3 w-3 opacity-70" />
+        </button>
+      </th>
+    );
   };
 
   return (
@@ -184,13 +258,13 @@ function Leads() {
         <table className="w-full text-sm">
           <thead className="bg-surface/60 text-xs uppercase tracking-wider text-muted-foreground">
             <tr>
-              <th className="px-5 py-3 text-left font-normal">Lead</th>
-              <th className="px-5 py-3 text-left font-normal">Project</th>
-              <th className="px-5 py-3 text-left font-normal">Budget</th>
-              <th className="px-5 py-3 text-left font-normal">Source</th>
-              <th className="px-5 py-3 text-left font-normal">Stage</th>
-              <th className="px-5 py-3 text-left font-normal">AI Score</th>
-              <th className="px-5 py-3 text-left font-normal">Last activity</th>
+              <SortHeader label="Lead" k="name" />
+              <SortHeader label="Project" k="project" />
+              <SortHeader label="Budget" k="budget" />
+              <SortHeader label="Source" k="source" />
+              <SortHeader label="Stage" k="stage" />
+              <SortHeader label="AI Score" k="score" />
+              <SortHeader label="Last activity" k="last" />
               <th className="px-5 py-3" />
             </tr>
           </thead>
