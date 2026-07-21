@@ -6,6 +6,7 @@ import {
   ingestKieDocument,
   chatWithKieDocs,
   listKieDocuments,
+  reserveKieUpload,
   type DocChatMessage,
 } from "@/lib/kie-rag.functions";
 import { extractTextFromFile } from "@/lib/pdf-extract";
@@ -44,6 +45,7 @@ type Doc = {
 function DocChat() {
   const list = useServerFn(listKieDocuments);
   const ingest = useServerFn(ingestKieDocument);
+  const reserve = useServerFn(reserveKieUpload);
   const ask = useServerFn(chatWithKieDocs);
   const qc = useQueryClient();
 
@@ -67,17 +69,24 @@ function DocChat() {
       setUploadMsg(`Extracting ${file.name}…`);
       const text = await extractTextFromFile(file);
       if (!text || text.length < 20) throw new Error("Could not extract text.");
-      setUploadMsg(`Uploading ${file.name}…`);
-      const path = `${crypto.randomUUID()}-${file.name}`;
-      await supabase.storage.from("kie-docs").upload(path, file, { upsert: false });
-      setUploadMsg(`Embedding ${text.length.toLocaleString()} chars…`);
       const docType = file.name.toLowerCase().endsWith(".pdf") ? "pdf" : "text";
+      setUploadMsg(`Reserving ${file.name}…`);
+      const { documentId, storagePath } = await reserve({
+        data: { name: file.name, docType, sizeBytes: file.size },
+      });
+      setUploadMsg(`Uploading ${file.name}…`);
+      const up = await supabase.storage
+        .from("kie-docs")
+        .upload(storagePath, file, { upsert: false });
+      if (up.error) throw new Error(up.error.message);
+      setUploadMsg(`Embedding ${text.length.toLocaleString()} chars…`);
       return ingest({
         data: {
+          documentId,
           name: file.name,
           docType,
           content: text,
-          storagePath: path,
+          storagePath,
           sizeBytes: file.size,
         },
       });

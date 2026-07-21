@@ -16,17 +16,16 @@ const messageSchema = z.object({
 
 export type CopilotMessage = z.infer<typeof messageSchema>["messages"][number];
 
-async function buildContext(): Promise<string> {
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+async function buildContext(supabase: any): Promise<string> {
   const [leadsRes, propsRes, callsRes] = await Promise.all([
-    supabaseAdmin.from("leads").select("stage,source,city,budget_inr,score"),
-    supabaseAdmin.from("properties").select("city,status,price_inr,property_type,ai_score"),
-    supabaseAdmin.from("calls").select("intent_label,sentiment,qualified,duration_sec"),
+    supabase.from("leads").select("stage,source,city,budget_inr,score"),
+    supabase.from("properties").select("city,status,price_inr,property_type,ai_score"),
+    supabase.from("calls").select("intent_label,sentiment,qualified,duration_sec"),
   ]);
 
-  const leads = leadsRes.data ?? [];
-  const properties = propsRes.data ?? [];
-  const calls = callsRes.data ?? [];
+  const leads: any[] = leadsRes.data ?? [];
+  const properties: any[] = propsRes.data ?? [];
+  const calls: any[] = callsRes.data ?? [];
 
   const byStage = leads.reduce<Record<string, number>>((a, l) => {
     a[l.stage] = (a[l.stage] ?? 0) + 1;
@@ -65,11 +64,12 @@ async function buildContext(): Promise<string> {
 export const askCopilot = createServerFn({ method: "POST" })
   .middleware([requireRoles(["admin", "manager", "agent"])])
   .inputValidator((input: unknown) => messageSchema.parse(input))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    const { supabase } = context as { supabase: any };
     const apiKey = process.env.LOVABLE_API_KEY;
     if (!apiKey) throw new Error("LOVABLE_API_KEY missing");
 
-    const context = await buildContext();
+    const snapshot = await buildContext(supabase);
     const system = `You are Sentinel Executive Copilot™ — the decision-intelligence brain of Sentinel Fort Group.
 You have read access to CRM, ERP, Marketplace, Knowledge Engine, Deal Rooms, Risk Center,
 Market Intelligence, Collections, Voice AI and BI. Speak like a McKinsey partner briefing a CEO.
@@ -83,7 +83,7 @@ Every answer MUST follow this structure:
 
 Be decisive, never hedge. Ground numbers in the SNAPSHOT below.
 
-${context}`;
+${snapshot}`;
 
     const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",

@@ -9,6 +9,14 @@ const ingestSchema = z.object({
   content: z.string().min(20).max(800_000),
   storagePath: z.string().max(500).optional(),
   sizeBytes: z.number().int().nonnegative().default(0),
+  documentId: z.string().uuid().optional(),
+});
+
+const reserveSchema = z.object({
+  name: z.string().min(1).max(300),
+  docType: z.string().min(1).max(80).default("general"),
+  project: z.string().max(200).optional(),
+  sizeBytes: z.number().int().nonnegative().default(0),
 });
 
 const chatSchema = z.object({
@@ -83,21 +91,34 @@ export const ingestKieDocument = createServerFn({ method: "POST" })
     if (!apiKey) throw new Error("LOVABLE_API_KEY missing");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    // 1) create doc row in processing state
-    const { data: docRow, error: docErr } = await supabaseAdmin
-      .from("kie_documents")
-      .insert({
-        name: data.name,
-        doc_type: data.docType,
-        project: data.project ?? null,
-        status: "processing",
-        storage_path: data.storagePath ?? null,
-        size_bytes: data.sizeBytes,
-      })
-      .select("id")
-      .single();
-    if (docErr || !docRow) throw new Error(docErr?.message ?? "insert failed");
-    const docId = docRow.id;
+    let docId: string;
+    if (data.documentId) {
+      docId = data.documentId;
+      await supabaseAdmin
+        .from("kie_documents")
+        .update({
+          status: "processing",
+          storage_path: data.storagePath ?? null,
+          size_bytes: data.sizeBytes,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", docId);
+    } else {
+      const { data: docRow, error: docErr } = await supabaseAdmin
+        .from("kie_documents")
+        .insert({
+          name: data.name,
+          doc_type: data.docType,
+          project: data.project ?? null,
+          status: "processing",
+          storage_path: data.storagePath ?? null,
+          size_bytes: data.sizeBytes,
+        })
+        .select("id")
+        .single();
+      if (docErr || !docRow) throw new Error(docErr?.message ?? "insert failed");
+      docId = docRow.id;
+    }
 
     try {
       // 2) chunk + embed
@@ -200,10 +221,10 @@ export const ingestKieDocument = createServerFn({ method: "POST" })
 export const chatWithKieDocs = createServerFn({ method: "POST" })
   .middleware([requireRoles(["admin", "manager", "agent"])])
   .inputValidator((input: unknown) => chatSchema.parse(input))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    const { supabase } = context as { supabase: any };
     const apiKey = process.env.LOVABLE_API_KEY;
     if (!apiKey) throw new Error("LOVABLE_API_KEY missing");
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     const lastUser = [...data.messages].reverse().find((m) => m.role === "user");
     if (!lastUser) return { reply: "(no question)", sources: [] };
@@ -211,16 +232,17 @@ export const chatWithKieDocs = createServerFn({ method: "POST" })
     const [queryEmbedding] = await embedBatch(apiKey, [lastUser.content]);
     const vectorLiteral = `[${queryEmbedding.join(",")}]`;
 
-    const { data: matches, error } = await supabaseAdmin.rpc("match_kie_chunks", {
+    const { data: matches, error } = await supabase.rpc("match_kie_chunks", {
       query_embedding: vectorLiteral as unknown as string,
       match_count: 6,
     });
     if (error) throw new Error(error.message);
 
-    const ctxBlocks = (matches ?? [])
-      .filter((m) => data.documentId ? m.document_id === data.documentId : true)
+    const matchList: any[] = matches ?? [];
+    const ctxBlocks = matchList
+      .filter((m: any) => data.documentId ? m.document_id === data.documentId : true)
       .map(
-        (m, i) =>
+        (m: any, i: number) =>
           `[Source ${i + 1} · ${m.document_name} · similarity ${(m.similarity * 100).toFixed(0)}%]\n${m.content}`,
       )
       .join("\n\n---\n\n");
@@ -255,7 +277,7 @@ ${ctxBlocks || "(no matching context found)"}`;
     const reply = j.choices?.[0]?.message?.content ?? "(no response)";
     return {
       reply,
-      sources: (matches ?? []).map((m, i) => ({
+      sources: matchList.map((m: any, i: number) => ({
         n: i + 1,
         documentId: m.document_id,
         documentName: m.document_name,
@@ -269,9 +291,9 @@ ${ctxBlocks || "(no matching context found)"}`;
 
 export const listKieDocuments = createServerFn({ method: "GET" })
   .middleware([requireRoles(["admin", "manager", "agent"])])
-  .handler(async () => {
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data, error } = await supabaseAdmin
+  .handler(async ({ context }) => {
+  const { supabase } = context as { supabase: any };
+  const { data, error } = await supabase
     .from("kie_documents")
     .select(
       "id,name,doc_type,project,status,size_bytes,chunk_count,summary,entities,insights,confidence,created_at",
@@ -281,3 +303,34 @@ export const listKieDocuments = createServerFn({ method: "GET" })
   if (error) throw new Error(error.message);
   return data ?? [];
 });
+
+// ---------- reserve upload slot ----------
+// Creates a kie_documents row (scoped to the caller's workspace via RLS)
+// BEFORE the file is uploaded, so the tightened storage insert policy —
+// which requires a matching kie_documents.storage_path in the caller's
+// workspace — will accept the upload.
+export const reserveKieUpload = createServerFn({ method: "POST" })
+  .middleware([requireRoles(["admin", "manager"])])
+  .inputValidator((input: unknown) => reserveSchema.parse(input))
+  .handler(async ({ data, context }) => {
+    const { supabase } = context as { supabase: any };
+    const storagePath = `${crypto.randomUUID()}-${data.name}`;
+    const { data: wsRes } = await supabase.rpc("current_workspace_id");
+    const workspaceId = wsRes as string | null;
+    const insertPayload: Record<string, unknown> = {
+      name: data.name,
+      doc_type: data.docType,
+      project: data.project ?? null,
+      status: "pending",
+      storage_path: storagePath,
+      size_bytes: data.sizeBytes,
+    };
+    if (workspaceId) insertPayload.workspace_id = workspaceId;
+    const { data: row, error } = await supabase
+      .from("kie_documents")
+      .insert(insertPayload)
+      .select("id")
+      .single();
+    if (error || !row) throw new Error(error?.message ?? "reserve failed");
+    return { documentId: row.id as string, storagePath };
+  });
