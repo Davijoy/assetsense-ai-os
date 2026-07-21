@@ -41,9 +41,9 @@ export const getBISnapshot = createServerFn({ method: "GET" })
   if (propsRes.error) throw new Error(propsRes.error.message);
   if (callsRes.error) throw new Error(callsRes.error.message);
 
-  const leads = leadsRes.data ?? [];
-  const properties = propsRes.data ?? [];
-  const calls = callsRes.data ?? [];
+  const leads: any[] = leadsRes.data ?? [];
+  const properties: any[] = propsRes.data ?? [];
+  const calls: any[] = callsRes.data ?? [];
 
   // ---------- Funnel ----------
   const stageCounts: Record<string, number> = {
