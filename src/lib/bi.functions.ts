@@ -1,5 +1,4 @@
 import { createServerFn } from "@tanstack/react-start";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { requireRoles } from "@/integrations/supabase/role-middleware";
 
 export type BISnapshot = {
@@ -30,11 +29,12 @@ function monthKey(d: Date) {
 
 export const getBISnapshot = createServerFn({ method: "GET" })
   .middleware([requireRoles(["admin", "manager", "viewer"])])
-  .handler(async (): Promise<BISnapshot> => {
+  .handler(async ({ context }): Promise<BISnapshot> => {
+  const { supabase } = context as { supabase: any };
   const [leadsRes, propsRes, callsRes] = await Promise.all([
-    supabaseAdmin.from("leads").select("id,stage,source,city,budget_inr,created_at,score"),
-    supabaseAdmin.from("properties").select("id,city,status,price_inr,created_at"),
-    supabaseAdmin.from("calls").select("id,intent_label,sentiment,qualified,created_at,duration_sec"),
+    supabase.from("leads").select("id,stage,source,city,budget_inr,created_at,score"),
+    supabase.from("properties").select("id,city,status,price_inr,created_at"),
+    supabase.from("calls").select("id,intent_label,sentiment,qualified,created_at,duration_sec"),
   ]);
 
   if (leadsRes.error) throw new Error(leadsRes.error.message);
