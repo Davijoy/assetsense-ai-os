@@ -2,7 +2,6 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -73,21 +72,6 @@ function AuthPage() {
     }
   };
 
-  const google = async () => {
-    setBusy(true);
-    try {
-      const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
-      });
-      if (result.error) throw result.error;
-      if (!result.redirected) navigate({ to: "/app/crm" });
-    } catch (err: any) {
-      toast.error(err?.message ?? "Google sign-in failed");
-    } finally {
-      setBusy(false);
-    }
-  };
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <div className="w-full max-w-md">
@@ -106,15 +90,7 @@ function AuthPage() {
             {mode === "signin" ? "Sign in to the intelligence console." : "Get access to Sentinel Fort."}
           </p>
 
-          <Button onClick={google} disabled={busy} variant="outline" className="mt-6 w-full">
-            Continue with Google
-          </Button>
-
-          <div className="my-5 flex items-center gap-3 text-xs text-muted-foreground">
-            <div className="h-px flex-1 bg-border" /> OR <div className="h-px flex-1 bg-border" />
-          </div>
-
-          <form onSubmit={submit} className="space-y-4">
+          <form onSubmit={submit} className="mt-6 space-y-4">
             {mode === "signup" && (
               <div>
                 <Label htmlFor="name">Full name</Label>
