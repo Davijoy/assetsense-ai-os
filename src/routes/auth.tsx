@@ -58,7 +58,12 @@ function AuthPage() {
           },
         });
         if (error) throw error;
-        toast.success("Account created. Check your email if confirmation is required.");
+        if (data.session) {
+          toast.success("Account created");
+          navigate({ to: "/app/crm" });
+        } else {
+          toast.success("Account created. Check your email to confirm your address.");
+        }
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
