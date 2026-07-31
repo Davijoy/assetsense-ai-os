@@ -1,5 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { CheckCircle2, FileCheck2, ScrollText, ShieldCheck, Users2 } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import { useQuery } from "@tanstack/react-query";
+import { getGovernanceSnapshot } from "@/lib/governance.functions";
+import { CheckCircle2, FileCheck2, Loader2, ScrollText, ShieldCheck, Users2 } from "lucide-react";
 
 export const Route = createFileRoute("/app/governance")({
   head: () => ({ meta: [{ title: "Enterprise Governance — Sentinel Fort Group" }] }),
@@ -13,7 +16,7 @@ const APPROVALS = [
   { id: "APR-2197", what: "New CP onboarding · Sundeep Realty", by: "Partner ops",             needs: "VP Sales", status: "Approved" },
 ];
 
-const AUDIT = [
+const AUDIT_FALLBACK = [
   { ts: "Today 14:22", actor: "Aarav Mehta", action: "Updated deal DR-2041 stage to Loan Processing" },
   { ts: "Today 13:58", actor: "AI Engine",    action: "Auto-dispatched workflow Collections Pre-empt" },
   { ts: "Today 11:30", actor: "Priya Raman",  action: "Approved approval APR-2199" },
@@ -21,7 +24,7 @@ const AUDIT = [
   { ts: "Yesterday",   actor: "Kabir Talwar", action: "Modified workflow Hot Lead Fast-Track step 2" },
 ];
 
-const ROLES = [
+const ROLES_FALLBACK = [
   { role: "Executive",         users: 5,  scope: "Global"            },
   { role: "Regional Director", users: 7,  scope: "Region scoped"     },
   { role: "Sales Manager",     users: 18, scope: "Team scoped"       },
@@ -30,7 +33,33 @@ const ROLES = [
   { role: "Channel Partner",   users: 142,scope: "CP portal only"    },
 ];
 
+function formatTs(iso: string) {
+  const d = new Date(iso);
+  const today = new Date();
+  const sameDay = d.toDateString() === today.toDateString();
+  const time = d.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: false });
+  return sameDay ? `Today ${time}` : `${d.toLocaleDateString("en-IN", { day: "numeric", month: "short" })} ${time}`;
+}
+
 function Governance() {
+  const fetchSnapshot = useServerFn(getGovernanceSnapshot);
+  const { data, isLoading } = useQuery({
+    queryKey: ["governance-snapshot"],
+    queryFn: () => fetchSnapshot(),
+  });
+
+  const liveAudit = (data?.audit ?? []).length > 0;
+  const audit = liveAudit
+    ? data!.audit.map((a) => ({
+        ts: formatTs(a.ts),
+        actor: a.actor,
+        action: `${a.action} · ${a.entity}${a.entityId ? ` (${a.entityId.slice(0, 8)})` : ""}`,
+      }))
+    : AUDIT_FALLBACK;
+
+  const liveRoles = (data?.roles ?? []).length > 0;
+  const roles = liveRoles ? data!.roles : ROLES_FALLBACK;
+
   return (
     <div className="space-y-8">
       <header>
@@ -40,7 +69,15 @@ function Governance() {
         <h1 className="mt-3 font-display text-4xl">
           Control with <span className="text-gradient-emerald italic">clarity.</span>
         </h1>
-        <p className="text-sm text-muted-foreground">Approvals, audit trails, RBAC and regional hierarchies — built in.</p>
+        <p className="flex items-center gap-2 text-sm text-muted-foreground">
+          {isLoading ? (
+            <>
+              <Loader2 className="h-3 w-3 animate-spin" /> Loading audit trail and roles…
+            </>
+          ) : (
+            "Approvals, audit trails, RBAC and regional hierarchies — built in."
+          )}
+        </p>
       </header>
 
       <div className="grid gap-6 lg:grid-cols-2">
@@ -65,11 +102,14 @@ function Governance() {
         </div>
 
         <div className="rounded-3xl border border-border/60 bg-card p-6">
-          <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-muted-foreground">
-            <ScrollText className="h-3.5 w-3.5" /> Audit Log
+          <div className="flex items-center justify-between text-xs uppercase tracking-wider text-muted-foreground">
+            <span className="flex items-center gap-2">
+              <ScrollText className="h-3.5 w-3.5" /> Audit Log
+            </span>
+            <span className="normal-case tracking-normal">{liveAudit ? "Live" : "Sample"}</span>
           </div>
           <ul className="mt-4 space-y-3">
-            {AUDIT.map((e, i) => (
+            {audit.map((e, i) => (
               <li key={i} className="border-l border-primary/30 pl-3">
                 <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{e.ts}</div>
                 <div className="text-sm">
@@ -82,11 +122,14 @@ function Governance() {
       </div>
 
       <div className="rounded-3xl border border-border/60 bg-card p-6">
-        <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-muted-foreground">
-          <Users2 className="h-3.5 w-3.5" /> Role-Based Permissions
+        <div className="flex items-center justify-between text-xs uppercase tracking-wider text-muted-foreground">
+          <span className="flex items-center gap-2">
+            <Users2 className="h-3.5 w-3.5" /> Role-Based Permissions
+          </span>
+          <span className="normal-case tracking-normal">{liveRoles ? "Live" : "Sample"}</span>
         </div>
         <div className="mt-4 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-          {ROLES.map((r) => (
+          {roles.map((r) => (
             <div key={r.role} className="rounded-2xl border border-border/60 bg-surface/40 p-4">
               <div className="flex items-center justify-between">
                 <div className="font-display text-lg">{r.role}</div>
