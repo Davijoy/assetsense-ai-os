@@ -1,9 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
+import { useQuery } from "@tanstack/react-query";
+import { getExecutiveFeed, type FeedItem } from "@/lib/feed.functions";
 import {
   AlertTriangle,
   Brain,
   Building2,
   Flame,
+  Loader2,
   Megaphone,
   Newspaper,
   Sparkles,
@@ -15,14 +19,9 @@ export const Route = createFileRoute("/app/feed")({
   component: Feed,
 });
 
-type Item = {
-  time: string;
-  type: "Opportunity" | "Risk" | "Prediction" | "Recommendation" | "Market" | "Revenue";
-  title: string;
-  body: string;
-};
+type Item = FeedItem;
 
-const ITEMS: Item[] = [
+const FALLBACK: Item[] = [
   { time: "10:15 AM", type: "Revenue",        title: "Revenue forecast updated",      body: "Projected monthly revenue raised by 12% to ₹46 Cr. Whitefield and Bandra leading; Powai dragging." },
   { time: "11:02 AM", type: "Market",         title: "Metro Phase 2 approval",        body: "Whitefield demand index +9 over next 90 days. Recommend +15% campaign push." },
   { time: "11:30 AM", type: "Opportunity",    title: "145 leads with >90% purchase probability", body: "Auto-assigned to top-quintile closers. Predicted +₹202 Cr pipeline." },
@@ -43,6 +42,16 @@ const ICON: Record<Item["type"], { Icon: typeof Brain; chip: string }> = {
 };
 
 function Feed() {
+  const fetchFeed = useServerFn(getExecutiveFeed);
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ["executive-feed"],
+    queryFn: () => fetchFeed(),
+    refetchInterval: 60_000,
+  });
+
+  const live = (data ?? []).length > 0;
+  const items: Item[] = live ? (data as Item[]) : FALLBACK;
+
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <header>
@@ -52,11 +61,23 @@ function Feed() {
         <h1 className="mt-3 font-display text-4xl">
           What the AI is <span className="text-gradient-emerald italic">seeing.</span>
         </h1>
-        <p className="text-sm text-muted-foreground">A continuous stream of opportunities, risks, predictions and recommendations.</p>
+        <p className="flex items-center gap-2 text-sm text-muted-foreground">
+          {isLoading ? (
+            <>
+              <Loader2 className="h-3 w-3 animate-spin" /> Reading live workspace data…
+            </>
+          ) : live ? (
+            "Generated from your live leads, listings and AI voice calls. Refreshes every minute."
+          ) : isError ? (
+            "Live data unavailable — showing the sample briefing."
+          ) : (
+            "No workspace activity yet — showing a sample briefing."
+          )}
+        </p>
       </header>
 
       <div className="space-y-3">
-        {ITEMS.map((it, i) => {
+        {items.map((it, i) => {
           const t = ICON[it.type];
           const Icon = t.Icon;
           return (
