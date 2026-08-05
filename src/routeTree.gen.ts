@@ -48,6 +48,7 @@ import { Route as ProductBiRouteImport } from './routes/product.bi'
 import { Route as ProductAiVoiceRouteImport } from './routes/product.ai-voice'
 import { Route as AuthResetPasswordRouteImport } from './routes/auth.reset-password'
 import { Route as AuthForgotPasswordRouteImport } from './routes/auth.forgot-password'
+import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as AppWorkflowsRouteImport } from './routes/app.workflows'
 import { Route as AppVoiceRouteImport } from './routes/app.voice'
 import { Route as AppUsersRouteImport } from './routes/app.users'
@@ -270,6 +271,11 @@ const AuthForgotPasswordRoute = AuthForgotPasswordRouteImport.update({
   path: '/forgot-password',
   getParentRoute: () => AuthRoute,
 } as any)
+const AuthCallbackRoute = AuthCallbackRouteImport.update({
+  id: '/callback',
+  path: '/callback',
+  getParentRoute: () => AuthRoute,
+} as any)
 const AppWorkflowsRoute = AppWorkflowsRouteImport.update({
   id: '/workflows',
   path: '/workflows',
@@ -435,6 +441,7 @@ export interface FileRoutesByFullPath {
   '/app/users': typeof AppUsersRoute
   '/app/voice': typeof AppVoiceRoute
   '/app/workflows': typeof AppWorkflowsRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/product/ai-voice': typeof ProductAiVoiceRoute
@@ -500,6 +507,7 @@ export interface FileRoutesByTo {
   '/app/users': typeof AppUsersRoute
   '/app/voice': typeof AppVoiceRoute
   '/app/workflows': typeof AppWorkflowsRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/product/ai-voice': typeof ProductAiVoiceRoute
@@ -567,6 +575,7 @@ export interface FileRoutesById {
   '/app/users': typeof AppUsersRoute
   '/app/voice': typeof AppVoiceRoute
   '/app/workflows': typeof AppWorkflowsRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/product/ai-voice': typeof ProductAiVoiceRoute
@@ -635,6 +644,7 @@ export interface FileRouteTypes {
     | '/app/users'
     | '/app/voice'
     | '/app/workflows'
+    | '/auth/callback'
     | '/auth/forgot-password'
     | '/auth/reset-password'
     | '/product/ai-voice'
@@ -700,6 +710,7 @@ export interface FileRouteTypes {
     | '/app/users'
     | '/app/voice'
     | '/app/workflows'
+    | '/auth/callback'
     | '/auth/forgot-password'
     | '/auth/reset-password'
     | '/product/ai-voice'
@@ -766,6 +777,7 @@ export interface FileRouteTypes {
     | '/app/users'
     | '/app/voice'
     | '/app/workflows'
+    | '/auth/callback'
     | '/auth/forgot-password'
     | '/auth/reset-password'
     | '/product/ai-voice'
@@ -1109,6 +1121,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthForgotPasswordRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/auth/callback': {
+      id: '/auth/callback'
+      path: '/callback'
+      fullPath: '/auth/callback'
+      preLoaderRoute: typeof AuthCallbackRouteImport
+      parentRoute: typeof AuthRoute
+    }
     '/app/workflows': {
       id: '/app/workflows'
       path: '/workflows'
@@ -1346,11 +1365,13 @@ const AppRouteChildren: AppRouteChildren = {
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
 interface AuthRouteChildren {
+  AuthCallbackRoute: typeof AuthCallbackRoute
   AuthForgotPasswordRoute: typeof AuthForgotPasswordRoute
   AuthResetPasswordRoute: typeof AuthResetPasswordRoute
 }
 
 const AuthRouteChildren: AuthRouteChildren = {
+  AuthCallbackRoute: AuthCallbackRoute,
   AuthForgotPasswordRoute: AuthForgotPasswordRoute,
   AuthResetPasswordRoute: AuthResetPasswordRoute,
 }
