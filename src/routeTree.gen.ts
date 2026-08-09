@@ -9,129 +9,75 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as TermsRouteImport } from './routes/terms'
-import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
-import { Route as SecurityRouteImport } from './routes/security'
-import { Route as SearchRouteImport } from './routes/search'
-import { Route as RealtifyuRouteImport } from './routes/realtifyu'
-import { Route as PrivacyRouteImport } from './routes/privacy'
-import { Route as PressRouteImport } from './routes/press'
-import { Route as DpaRouteImport } from './routes/dpa'
-import { Route as ContactRouteImport } from './routes/contact'
-import { Route as CareersRouteImport } from './routes/careers'
-import { Route as AuthRouteImport } from './routes/auth'
-import { Route as AppRouteImport } from './routes/app'
-import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ResourcesIndexRouteImport } from './routes/resources.index'
+import { Route as AboutRouteImport } from './routes/about'
+import { Route as AppRouteImport } from './routes/app'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as CareersRouteImport } from './routes/careers'
+import { Route as ContactRouteImport } from './routes/contact'
+import { Route as DpaRouteImport } from './routes/dpa'
+import { Route as PressRouteImport } from './routes/press'
+import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as RealtifyuRouteImport } from './routes/realtifyu'
+import { Route as SearchRouteImport } from './routes/search'
+import { Route as SecurityRouteImport } from './routes/security'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as AppIndexRouteImport } from './routes/app.index'
-import { Route as SolutionsEnterprisesRouteImport } from './routes/solutions.enterprises'
-import { Route as SolutionsDevelopersRouteImport } from './routes/solutions.developers'
-import { Route as SolutionsChannelPartnersRouteImport } from './routes/solutions.channel-partners'
-import { Route as SolutionsBrokersRouteImport } from './routes/solutions.brokers'
-import { Route as ResourcesStatusRouteImport } from './routes/resources.status'
-import { Route as ResourcesReleaseNotesRouteImport } from './routes/resources.release-notes'
-import { Route as ResourcesKnowledgeBaseRouteImport } from './routes/resources.knowledge-base'
-import { Route as ResourcesHelpRouteImport } from './routes/resources.help'
-import { Route as ResourcesDocumentationRouteImport } from './routes/resources.documentation'
-import { Route as ResourcesCustomersRouteImport } from './routes/resources.customers'
-import { Route as ResourcesCommunityRouteImport } from './routes/resources.community'
-import { Route as ResourcesCaseStudiesRouteImport } from './routes/resources.case-studies'
-import { Route as ResourcesBlogRouteImport } from './routes/resources.blog'
-import { Route as ResourcesApiRouteImport } from './routes/resources.api'
-import { Route as RealtifyuConnectionsRouteImport } from './routes/realtifyu.connections'
-import { Route as ProductMarketplaceRouteImport } from './routes/product.marketplace'
-import { Route as ProductMarketingCloudRouteImport } from './routes/product.marketing-cloud'
-import { Route as ProductErpRouteImport } from './routes/product.erp'
-import { Route as ProductCrmRouteImport } from './routes/product.crm'
-import { Route as ProductBiRouteImport } from './routes/product.bi'
-import { Route as ProductAiVoiceRouteImport } from './routes/product.ai-voice'
-import { Route as AuthResetPasswordRouteImport } from './routes/auth.reset-password'
-import { Route as AuthForgotPasswordRouteImport } from './routes/auth.forgot-password'
-import { Route as AppWorkflowsRouteImport } from './routes/app.workflows'
-import { Route as AppVoiceRouteImport } from './routes/app.voice'
-import { Route as AppUsersRouteImport } from './routes/app.users'
-import { Route as AppSalesintelRouteImport } from './routes/app.salesintel'
-import { Route as AppRiskRouteImport } from './routes/app.risk'
-import { Route as AppRecommendationsRouteImport } from './routes/app.recommendations'
-import { Route as AppMarketplaceRouteImport } from './routes/app.marketplace'
-import { Route as AppMarketingRouteImport } from './routes/app.marketing'
-import { Route as AppMarketRouteImport } from './routes/app.market'
-import { Route as AppLeadsRouteImport } from './routes/app.leads'
-import { Route as AppKieRouteImport } from './routes/app.kie'
-import { Route as AppInventoryRouteImport } from './routes/app.inventory'
-import { Route as AppGraphRouteImport } from './routes/app.graph'
-import { Route as AppGovernanceRouteImport } from './routes/app.governance'
-import { Route as AppFeedRouteImport } from './routes/app.feed'
-import { Route as AppDocumentsRouteImport } from './routes/app.documents'
-import { Route as AppDocchatRouteImport } from './routes/app.docchat'
-import { Route as AppDealroomsRouteImport } from './routes/app.dealrooms'
-import { Route as AppCrmRouteImport } from './routes/app.crm'
-import { Route as AppCopilotRouteImport } from './routes/app.copilot'
-import { Route as AppCommandRouteImport } from './routes/app.command'
-import { Route as AppCollectionsRouteImport } from './routes/app.collections'
 import { Route as AppBiRouteImport } from './routes/app.bi'
+import { Route as AppCollectionsRouteImport } from './routes/app.collections'
+import { Route as AppCommandRouteImport } from './routes/app.command'
+import { Route as AppCopilotRouteImport } from './routes/app.copilot'
+import { Route as AppCrmRouteImport } from './routes/app.crm'
+import { Route as AppDealroomsRouteImport } from './routes/app.dealrooms'
+import { Route as AppDocchatRouteImport } from './routes/app.docchat'
+import { Route as AppDocumentsRouteImport } from './routes/app.documents'
+import { Route as AppFeedRouteImport } from './routes/app.feed'
+import { Route as AppGovernanceRouteImport } from './routes/app.governance'
+import { Route as AppGraphRouteImport } from './routes/app.graph'
+import { Route as AppInventoryRouteImport } from './routes/app.inventory'
+import { Route as AppKieRouteImport } from './routes/app.kie'
+import { Route as AppLeadsRouteImport } from './routes/app.leads'
+import { Route as AppMarketRouteImport } from './routes/app.market'
+import { Route as AppMarketingRouteImport } from './routes/app.marketing'
+import { Route as AppMarketplaceRouteImport } from './routes/app.marketplace'
+import { Route as AppRecommendationsRouteImport } from './routes/app.recommendations'
+import { Route as AppRiskRouteImport } from './routes/app.risk'
+import { Route as AppSalesintelRouteImport } from './routes/app.salesintel'
+import { Route as AppSupremeIntelligenceRouteImport } from './routes/app.supreme-intelligence'
+import { Route as AppUsersRouteImport } from './routes/app.users'
+import { Route as AppVoiceRouteImport } from './routes/app.voice'
+import { Route as AppWorkflowsRouteImport } from './routes/app.workflows'
+import { Route as AuthForgotPasswordRouteImport } from './routes/auth.forgot-password'
+import { Route as AuthResetPasswordRouteImport } from './routes/auth.reset-password'
+import { Route as ProductAiVoiceRouteImport } from './routes/product.ai-voice'
+import { Route as ProductBiRouteImport } from './routes/product.bi'
+import { Route as ProductCrmRouteImport } from './routes/product.crm'
+import { Route as ProductErpRouteImport } from './routes/product.erp'
+import { Route as ProductMarketingCloudRouteImport } from './routes/product.marketing-cloud'
+import { Route as ProductMarketplaceRouteImport } from './routes/product.marketplace'
+import { Route as RealtifyuConnectionsRouteImport } from './routes/realtifyu.connections'
+import { Route as ResourcesIndexRouteImport } from './routes/resources.index'
+import { Route as ResourcesApiRouteImport } from './routes/resources.api'
+import { Route as ResourcesBlogRouteImport } from './routes/resources.blog'
+import { Route as ResourcesCaseStudiesRouteImport } from './routes/resources.case-studies'
+import { Route as ResourcesCommunityRouteImport } from './routes/resources.community'
+import { Route as ResourcesCustomersRouteImport } from './routes/resources.customers'
+import { Route as ResourcesDocumentationRouteImport } from './routes/resources.documentation'
+import { Route as ResourcesHelpRouteImport } from './routes/resources.help'
+import { Route as ResourcesKnowledgeBaseRouteImport } from './routes/resources.knowledge-base'
+import { Route as ResourcesReleaseNotesRouteImport } from './routes/resources.release-notes'
+import { Route as ResourcesStatusRouteImport } from './routes/resources.status'
+import { Route as SolutionsBrokersRouteImport } from './routes/solutions.brokers'
+import { Route as SolutionsChannelPartnersRouteImport } from './routes/solutions.channel-partners'
+import { Route as SolutionsDevelopersRouteImport } from './routes/solutions.developers'
+import { Route as SolutionsEnterprisesRouteImport } from './routes/solutions.enterprises'
 import { Route as AppSettingsBrandingRouteImport } from './routes/app.settings.branding'
 import { Route as ApiPublicRealtifyuCallbackRouteImport } from './routes/api/public/realtifyu.callback'
 
-const TermsRoute = TermsRouteImport.update({
-  id: '/terms',
-  path: '/terms',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
-  id: '/sitemap.xml',
-  path: '/sitemap.xml',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SecurityRoute = SecurityRouteImport.update({
-  id: '/security',
-  path: '/security',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SearchRoute = SearchRouteImport.update({
-  id: '/search',
-  path: '/search',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RealtifyuRoute = RealtifyuRouteImport.update({
-  id: '/realtifyu',
-  path: '/realtifyu',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PrivacyRoute = PrivacyRouteImport.update({
-  id: '/privacy',
-  path: '/privacy',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PressRoute = PressRouteImport.update({
-  id: '/press',
-  path: '/press',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DpaRoute = DpaRouteImport.update({
-  id: '/dpa',
-  path: '/dpa',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ContactRoute = ContactRouteImport.update({
-  id: '/contact',
-  path: '/contact',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CareersRoute = CareersRouteImport.update({
-  id: '/careers',
-  path: '/careers',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthRoute = AuthRouteImport.update({
-  id: '/auth',
-  path: '/auth',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AppRoute = AppRouteImport.update({
-  id: '/app',
-  path: '/app',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AboutRoute = AboutRouteImport.update({
@@ -139,14 +85,64 @@ const AboutRoute = AboutRouteImport.update({
   path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const AppRoute = AppRouteImport.update({
+  id: '/app',
+  path: '/app',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ResourcesIndexRoute = ResourcesIndexRouteImport.update({
-  id: '/resources/',
-  path: '/resources/',
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CareersRoute = CareersRouteImport.update({
+  id: '/careers',
+  path: '/careers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DpaRoute = DpaRouteImport.update({
+  id: '/dpa',
+  path: '/dpa',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PressRoute = PressRouteImport.update({
+  id: '/press',
+  path: '/press',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RealtifyuRoute = RealtifyuRouteImport.update({
+  id: '/realtifyu',
+  path: '/realtifyu',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SearchRoute = SearchRouteImport.update({
+  id: '/search',
+  path: '/search',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SecurityRoute = SecurityRouteImport.update({
+  id: '/security',
+  path: '/security',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppIndexRoute = AppIndexRouteImport.update({
@@ -154,14 +150,229 @@ const AppIndexRoute = AppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppRoute,
 } as any)
-const SolutionsEnterprisesRoute = SolutionsEnterprisesRouteImport.update({
-  id: '/solutions/enterprises',
-  path: '/solutions/enterprises',
+const AppBiRoute = AppBiRouteImport.update({
+  id: '/bi',
+  path: '/bi',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppCollectionsRoute = AppCollectionsRouteImport.update({
+  id: '/collections',
+  path: '/collections',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppCommandRoute = AppCommandRouteImport.update({
+  id: '/command',
+  path: '/command',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppCopilotRoute = AppCopilotRouteImport.update({
+  id: '/copilot',
+  path: '/copilot',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppCrmRoute = AppCrmRouteImport.update({
+  id: '/crm',
+  path: '/crm',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppDealroomsRoute = AppDealroomsRouteImport.update({
+  id: '/dealrooms',
+  path: '/dealrooms',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppDocchatRoute = AppDocchatRouteImport.update({
+  id: '/docchat',
+  path: '/docchat',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppDocumentsRoute = AppDocumentsRouteImport.update({
+  id: '/documents',
+  path: '/documents',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppFeedRoute = AppFeedRouteImport.update({
+  id: '/feed',
+  path: '/feed',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppGovernanceRoute = AppGovernanceRouteImport.update({
+  id: '/governance',
+  path: '/governance',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppGraphRoute = AppGraphRouteImport.update({
+  id: '/graph',
+  path: '/graph',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppInventoryRoute = AppInventoryRouteImport.update({
+  id: '/inventory',
+  path: '/inventory',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppKieRoute = AppKieRouteImport.update({
+  id: '/kie',
+  path: '/kie',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppLeadsRoute = AppLeadsRouteImport.update({
+  id: '/leads',
+  path: '/leads',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppMarketRoute = AppMarketRouteImport.update({
+  id: '/market',
+  path: '/market',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppMarketingRoute = AppMarketingRouteImport.update({
+  id: '/marketing',
+  path: '/marketing',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppMarketplaceRoute = AppMarketplaceRouteImport.update({
+  id: '/marketplace',
+  path: '/marketplace',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppRecommendationsRoute = AppRecommendationsRouteImport.update({
+  id: '/recommendations',
+  path: '/recommendations',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppRiskRoute = AppRiskRouteImport.update({
+  id: '/risk',
+  path: '/risk',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSalesintelRoute = AppSalesintelRouteImport.update({
+  id: '/salesintel',
+  path: '/salesintel',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSupremeIntelligenceRoute = AppSupremeIntelligenceRouteImport.update({
+  id: '/supreme-intelligence',
+  path: '/supreme-intelligence',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppUsersRoute = AppUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppVoiceRoute = AppVoiceRouteImport.update({
+  id: '/voice',
+  path: '/voice',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppWorkflowsRoute = AppWorkflowsRouteImport.update({
+  id: '/workflows',
+  path: '/workflows',
+  getParentRoute: () => AppRoute,
+} as any)
+const AuthForgotPasswordRoute = AuthForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthResetPasswordRoute = AuthResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => AuthRoute,
+} as any)
+const ProductAiVoiceRoute = ProductAiVoiceRouteImport.update({
+  id: '/product/ai-voice',
+  path: '/product/ai-voice',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SolutionsDevelopersRoute = SolutionsDevelopersRouteImport.update({
-  id: '/solutions/developers',
-  path: '/solutions/developers',
+const ProductBiRoute = ProductBiRouteImport.update({
+  id: '/product/bi',
+  path: '/product/bi',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProductCrmRoute = ProductCrmRouteImport.update({
+  id: '/product/crm',
+  path: '/product/crm',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProductErpRoute = ProductErpRouteImport.update({
+  id: '/product/erp',
+  path: '/product/erp',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProductMarketingCloudRoute = ProductMarketingCloudRouteImport.update({
+  id: '/product/marketing-cloud',
+  path: '/product/marketing-cloud',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProductMarketplaceRoute = ProductMarketplaceRouteImport.update({
+  id: '/product/marketplace',
+  path: '/product/marketplace',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RealtifyuConnectionsRoute = RealtifyuConnectionsRouteImport.update({
+  id: '/connections',
+  path: '/connections',
+  getParentRoute: () => RealtifyuRoute,
+} as any)
+const ResourcesIndexRoute = ResourcesIndexRouteImport.update({
+  id: '/resources/',
+  path: '/resources/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResourcesApiRoute = ResourcesApiRouteImport.update({
+  id: '/resources/api',
+  path: '/resources/api',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResourcesBlogRoute = ResourcesBlogRouteImport.update({
+  id: '/resources/blog',
+  path: '/resources/blog',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResourcesCaseStudiesRoute = ResourcesCaseStudiesRouteImport.update({
+  id: '/resources/case-studies',
+  path: '/resources/case-studies',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResourcesCommunityRoute = ResourcesCommunityRouteImport.update({
+  id: '/resources/community',
+  path: '/resources/community',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResourcesCustomersRoute = ResourcesCustomersRouteImport.update({
+  id: '/resources/customers',
+  path: '/resources/customers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResourcesDocumentationRoute = ResourcesDocumentationRouteImport.update({
+  id: '/resources/documentation',
+  path: '/resources/documentation',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResourcesHelpRoute = ResourcesHelpRouteImport.update({
+  id: '/resources/help',
+  path: '/resources/help',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResourcesKnowledgeBaseRoute = ResourcesKnowledgeBaseRouteImport.update({
+  id: '/resources/knowledge-base',
+  path: '/resources/knowledge-base',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResourcesReleaseNotesRoute = ResourcesReleaseNotesRouteImport.update({
+  id: '/resources/release-notes',
+  path: '/resources/release-notes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResourcesStatusRoute = ResourcesStatusRouteImport.update({
+  id: '/resources/status',
+  path: '/resources/status',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SolutionsBrokersRoute = SolutionsBrokersRouteImport.update({
+  id: '/solutions/brokers',
+  path: '/solutions/brokers',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SolutionsChannelPartnersRoute =
@@ -170,220 +381,15 @@ const SolutionsChannelPartnersRoute =
     path: '/solutions/channel-partners',
     getParentRoute: () => rootRouteImport,
   } as any)
-const SolutionsBrokersRoute = SolutionsBrokersRouteImport.update({
-  id: '/solutions/brokers',
-  path: '/solutions/brokers',
+const SolutionsDevelopersRoute = SolutionsDevelopersRouteImport.update({
+  id: '/solutions/developers',
+  path: '/solutions/developers',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ResourcesStatusRoute = ResourcesStatusRouteImport.update({
-  id: '/resources/status',
-  path: '/resources/status',
+const SolutionsEnterprisesRoute = SolutionsEnterprisesRouteImport.update({
+  id: '/solutions/enterprises',
+  path: '/solutions/enterprises',
   getParentRoute: () => rootRouteImport,
-} as any)
-const ResourcesReleaseNotesRoute = ResourcesReleaseNotesRouteImport.update({
-  id: '/resources/release-notes',
-  path: '/resources/release-notes',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ResourcesKnowledgeBaseRoute = ResourcesKnowledgeBaseRouteImport.update({
-  id: '/resources/knowledge-base',
-  path: '/resources/knowledge-base',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ResourcesHelpRoute = ResourcesHelpRouteImport.update({
-  id: '/resources/help',
-  path: '/resources/help',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ResourcesDocumentationRoute = ResourcesDocumentationRouteImport.update({
-  id: '/resources/documentation',
-  path: '/resources/documentation',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ResourcesCustomersRoute = ResourcesCustomersRouteImport.update({
-  id: '/resources/customers',
-  path: '/resources/customers',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ResourcesCommunityRoute = ResourcesCommunityRouteImport.update({
-  id: '/resources/community',
-  path: '/resources/community',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ResourcesCaseStudiesRoute = ResourcesCaseStudiesRouteImport.update({
-  id: '/resources/case-studies',
-  path: '/resources/case-studies',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ResourcesBlogRoute = ResourcesBlogRouteImport.update({
-  id: '/resources/blog',
-  path: '/resources/blog',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ResourcesApiRoute = ResourcesApiRouteImport.update({
-  id: '/resources/api',
-  path: '/resources/api',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RealtifyuConnectionsRoute = RealtifyuConnectionsRouteImport.update({
-  id: '/connections',
-  path: '/connections',
-  getParentRoute: () => RealtifyuRoute,
-} as any)
-const ProductMarketplaceRoute = ProductMarketplaceRouteImport.update({
-  id: '/product/marketplace',
-  path: '/product/marketplace',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProductMarketingCloudRoute = ProductMarketingCloudRouteImport.update({
-  id: '/product/marketing-cloud',
-  path: '/product/marketing-cloud',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProductErpRoute = ProductErpRouteImport.update({
-  id: '/product/erp',
-  path: '/product/erp',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProductCrmRoute = ProductCrmRouteImport.update({
-  id: '/product/crm',
-  path: '/product/crm',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProductBiRoute = ProductBiRouteImport.update({
-  id: '/product/bi',
-  path: '/product/bi',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProductAiVoiceRoute = ProductAiVoiceRouteImport.update({
-  id: '/product/ai-voice',
-  path: '/product/ai-voice',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthResetPasswordRoute = AuthResetPasswordRouteImport.update({
-  id: '/reset-password',
-  path: '/reset-password',
-  getParentRoute: () => AuthRoute,
-} as any)
-const AuthForgotPasswordRoute = AuthForgotPasswordRouteImport.update({
-  id: '/forgot-password',
-  path: '/forgot-password',
-  getParentRoute: () => AuthRoute,
-} as any)
-const AppWorkflowsRoute = AppWorkflowsRouteImport.update({
-  id: '/workflows',
-  path: '/workflows',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppVoiceRoute = AppVoiceRouteImport.update({
-  id: '/voice',
-  path: '/voice',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppUsersRoute = AppUsersRouteImport.update({
-  id: '/users',
-  path: '/users',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppSalesintelRoute = AppSalesintelRouteImport.update({
-  id: '/salesintel',
-  path: '/salesintel',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppRiskRoute = AppRiskRouteImport.update({
-  id: '/risk',
-  path: '/risk',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppRecommendationsRoute = AppRecommendationsRouteImport.update({
-  id: '/recommendations',
-  path: '/recommendations',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppMarketplaceRoute = AppMarketplaceRouteImport.update({
-  id: '/marketplace',
-  path: '/marketplace',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppMarketingRoute = AppMarketingRouteImport.update({
-  id: '/marketing',
-  path: '/marketing',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppMarketRoute = AppMarketRouteImport.update({
-  id: '/market',
-  path: '/market',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppLeadsRoute = AppLeadsRouteImport.update({
-  id: '/leads',
-  path: '/leads',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppKieRoute = AppKieRouteImport.update({
-  id: '/kie',
-  path: '/kie',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppInventoryRoute = AppInventoryRouteImport.update({
-  id: '/inventory',
-  path: '/inventory',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppGraphRoute = AppGraphRouteImport.update({
-  id: '/graph',
-  path: '/graph',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppGovernanceRoute = AppGovernanceRouteImport.update({
-  id: '/governance',
-  path: '/governance',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppFeedRoute = AppFeedRouteImport.update({
-  id: '/feed',
-  path: '/feed',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppDocumentsRoute = AppDocumentsRouteImport.update({
-  id: '/documents',
-  path: '/documents',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppDocchatRoute = AppDocchatRouteImport.update({
-  id: '/docchat',
-  path: '/docchat',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppDealroomsRoute = AppDealroomsRouteImport.update({
-  id: '/dealrooms',
-  path: '/dealrooms',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppCrmRoute = AppCrmRouteImport.update({
-  id: '/crm',
-  path: '/crm',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppCopilotRoute = AppCopilotRouteImport.update({
-  id: '/copilot',
-  path: '/copilot',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppCommandRoute = AppCommandRouteImport.update({
-  id: '/command',
-  path: '/command',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppCollectionsRoute = AppCollectionsRouteImport.update({
-  id: '/collections',
-  path: '/collections',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppBiRoute = AppBiRouteImport.update({
-  id: '/bi',
-  path: '/bi',
-  getParentRoute: () => AppRoute,
 } as any)
 const AppSettingsBrandingRoute = AppSettingsBrandingRouteImport.update({
   id: '/settings/branding',
@@ -432,6 +438,7 @@ export interface FileRoutesByFullPath {
   '/app/recommendations': typeof AppRecommendationsRoute
   '/app/risk': typeof AppRiskRoute
   '/app/salesintel': typeof AppSalesintelRoute
+  '/app/supreme-intelligence': typeof AppSupremeIntelligenceRoute
   '/app/users': typeof AppUsersRoute
   '/app/voice': typeof AppVoiceRoute
   '/app/workflows': typeof AppWorkflowsRoute
@@ -497,6 +504,7 @@ export interface FileRoutesByTo {
   '/app/recommendations': typeof AppRecommendationsRoute
   '/app/risk': typeof AppRiskRoute
   '/app/salesintel': typeof AppSalesintelRoute
+  '/app/supreme-intelligence': typeof AppSupremeIntelligenceRoute
   '/app/users': typeof AppUsersRoute
   '/app/voice': typeof AppVoiceRoute
   '/app/workflows': typeof AppWorkflowsRoute
@@ -564,6 +572,7 @@ export interface FileRoutesById {
   '/app/recommendations': typeof AppRecommendationsRoute
   '/app/risk': typeof AppRiskRoute
   '/app/salesintel': typeof AppSalesintelRoute
+  '/app/supreme-intelligence': typeof AppSupremeIntelligenceRoute
   '/app/users': typeof AppUsersRoute
   '/app/voice': typeof AppVoiceRoute
   '/app/workflows': typeof AppWorkflowsRoute
@@ -632,6 +641,7 @@ export interface FileRouteTypes {
     | '/app/recommendations'
     | '/app/risk'
     | '/app/salesintel'
+    | '/app/supreme-intelligence'
     | '/app/users'
     | '/app/voice'
     | '/app/workflows'
@@ -697,6 +707,7 @@ export interface FileRouteTypes {
     | '/app/recommendations'
     | '/app/risk'
     | '/app/salesintel'
+    | '/app/supreme-intelligence'
     | '/app/users'
     | '/app/voice'
     | '/app/workflows'
@@ -763,6 +774,7 @@ export interface FileRouteTypes {
     | '/app/recommendations'
     | '/app/risk'
     | '/app/salesintel'
+    | '/app/supreme-intelligence'
     | '/app/users'
     | '/app/voice'
     | '/app/workflows'
@@ -836,88 +848,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/terms': {
-      id: '/terms'
-      path: '/terms'
-      fullPath: '/terms'
-      preLoaderRoute: typeof TermsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/sitemap.xml': {
-      id: '/sitemap.xml'
-      path: '/sitemap.xml'
-      fullPath: '/sitemap.xml'
-      preLoaderRoute: typeof SitemapDotxmlRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/security': {
-      id: '/security'
-      path: '/security'
-      fullPath: '/security'
-      preLoaderRoute: typeof SecurityRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/search': {
-      id: '/search'
-      path: '/search'
-      fullPath: '/search'
-      preLoaderRoute: typeof SearchRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/realtifyu': {
-      id: '/realtifyu'
-      path: '/realtifyu'
-      fullPath: '/realtifyu'
-      preLoaderRoute: typeof RealtifyuRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/privacy': {
-      id: '/privacy'
-      path: '/privacy'
-      fullPath: '/privacy'
-      preLoaderRoute: typeof PrivacyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/press': {
-      id: '/press'
-      path: '/press'
-      fullPath: '/press'
-      preLoaderRoute: typeof PressRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dpa': {
-      id: '/dpa'
-      path: '/dpa'
-      fullPath: '/dpa'
-      preLoaderRoute: typeof DpaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/contact': {
-      id: '/contact'
-      path: '/contact'
-      fullPath: '/contact'
-      preLoaderRoute: typeof ContactRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/careers': {
-      id: '/careers'
-      path: '/careers'
-      fullPath: '/careers'
-      preLoaderRoute: typeof CareersRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/auth': {
-      id: '/auth'
-      path: '/auth'
-      fullPath: '/auth'
-      preLoaderRoute: typeof AuthRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/app': {
-      id: '/app'
-      path: '/app'
-      fullPath: '/app'
-      preLoaderRoute: typeof AppRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/about': {
@@ -927,18 +862,88 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/app': {
+      id: '/app'
+      path: '/app'
+      fullPath: '/app'
+      preLoaderRoute: typeof AppRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/resources/': {
-      id: '/resources/'
-      path: '/resources'
-      fullPath: '/resources/'
-      preLoaderRoute: typeof ResourcesIndexRouteImport
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/careers': {
+      id: '/careers'
+      path: '/careers'
+      fullPath: '/careers'
+      preLoaderRoute: typeof CareersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dpa': {
+      id: '/dpa'
+      path: '/dpa'
+      fullPath: '/dpa'
+      preLoaderRoute: typeof DpaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/press': {
+      id: '/press'
+      path: '/press'
+      fullPath: '/press'
+      preLoaderRoute: typeof PressRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/realtifyu': {
+      id: '/realtifyu'
+      path: '/realtifyu'
+      fullPath: '/realtifyu'
+      preLoaderRoute: typeof RealtifyuRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/search': {
+      id: '/search'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof SearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/security': {
+      id: '/security'
+      path: '/security'
+      fullPath: '/security'
+      preLoaderRoute: typeof SecurityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/app/': {
@@ -948,312 +953,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
     }
-    '/solutions/enterprises': {
-      id: '/solutions/enterprises'
-      path: '/solutions/enterprises'
-      fullPath: '/solutions/enterprises'
-      preLoaderRoute: typeof SolutionsEnterprisesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/solutions/developers': {
-      id: '/solutions/developers'
-      path: '/solutions/developers'
-      fullPath: '/solutions/developers'
-      preLoaderRoute: typeof SolutionsDevelopersRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/solutions/channel-partners': {
-      id: '/solutions/channel-partners'
-      path: '/solutions/channel-partners'
-      fullPath: '/solutions/channel-partners'
-      preLoaderRoute: typeof SolutionsChannelPartnersRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/solutions/brokers': {
-      id: '/solutions/brokers'
-      path: '/solutions/brokers'
-      fullPath: '/solutions/brokers'
-      preLoaderRoute: typeof SolutionsBrokersRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/resources/status': {
-      id: '/resources/status'
-      path: '/resources/status'
-      fullPath: '/resources/status'
-      preLoaderRoute: typeof ResourcesStatusRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/resources/release-notes': {
-      id: '/resources/release-notes'
-      path: '/resources/release-notes'
-      fullPath: '/resources/release-notes'
-      preLoaderRoute: typeof ResourcesReleaseNotesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/resources/knowledge-base': {
-      id: '/resources/knowledge-base'
-      path: '/resources/knowledge-base'
-      fullPath: '/resources/knowledge-base'
-      preLoaderRoute: typeof ResourcesKnowledgeBaseRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/resources/help': {
-      id: '/resources/help'
-      path: '/resources/help'
-      fullPath: '/resources/help'
-      preLoaderRoute: typeof ResourcesHelpRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/resources/documentation': {
-      id: '/resources/documentation'
-      path: '/resources/documentation'
-      fullPath: '/resources/documentation'
-      preLoaderRoute: typeof ResourcesDocumentationRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/resources/customers': {
-      id: '/resources/customers'
-      path: '/resources/customers'
-      fullPath: '/resources/customers'
-      preLoaderRoute: typeof ResourcesCustomersRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/resources/community': {
-      id: '/resources/community'
-      path: '/resources/community'
-      fullPath: '/resources/community'
-      preLoaderRoute: typeof ResourcesCommunityRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/resources/case-studies': {
-      id: '/resources/case-studies'
-      path: '/resources/case-studies'
-      fullPath: '/resources/case-studies'
-      preLoaderRoute: typeof ResourcesCaseStudiesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/resources/blog': {
-      id: '/resources/blog'
-      path: '/resources/blog'
-      fullPath: '/resources/blog'
-      preLoaderRoute: typeof ResourcesBlogRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/resources/api': {
-      id: '/resources/api'
-      path: '/resources/api'
-      fullPath: '/resources/api'
-      preLoaderRoute: typeof ResourcesApiRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/realtifyu/connections': {
-      id: '/realtifyu/connections'
-      path: '/connections'
-      fullPath: '/realtifyu/connections'
-      preLoaderRoute: typeof RealtifyuConnectionsRouteImport
-      parentRoute: typeof RealtifyuRoute
-    }
-    '/product/marketplace': {
-      id: '/product/marketplace'
-      path: '/product/marketplace'
-      fullPath: '/product/marketplace'
-      preLoaderRoute: typeof ProductMarketplaceRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/product/marketing-cloud': {
-      id: '/product/marketing-cloud'
-      path: '/product/marketing-cloud'
-      fullPath: '/product/marketing-cloud'
-      preLoaderRoute: typeof ProductMarketingCloudRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/product/erp': {
-      id: '/product/erp'
-      path: '/product/erp'
-      fullPath: '/product/erp'
-      preLoaderRoute: typeof ProductErpRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/product/crm': {
-      id: '/product/crm'
-      path: '/product/crm'
-      fullPath: '/product/crm'
-      preLoaderRoute: typeof ProductCrmRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/product/bi': {
-      id: '/product/bi'
-      path: '/product/bi'
-      fullPath: '/product/bi'
-      preLoaderRoute: typeof ProductBiRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/product/ai-voice': {
-      id: '/product/ai-voice'
-      path: '/product/ai-voice'
-      fullPath: '/product/ai-voice'
-      preLoaderRoute: typeof ProductAiVoiceRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/auth/reset-password': {
-      id: '/auth/reset-password'
-      path: '/reset-password'
-      fullPath: '/auth/reset-password'
-      preLoaderRoute: typeof AuthResetPasswordRouteImport
-      parentRoute: typeof AuthRoute
-    }
-    '/auth/forgot-password': {
-      id: '/auth/forgot-password'
-      path: '/forgot-password'
-      fullPath: '/auth/forgot-password'
-      preLoaderRoute: typeof AuthForgotPasswordRouteImport
-      parentRoute: typeof AuthRoute
-    }
-    '/app/workflows': {
-      id: '/app/workflows'
-      path: '/workflows'
-      fullPath: '/app/workflows'
-      preLoaderRoute: typeof AppWorkflowsRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/voice': {
-      id: '/app/voice'
-      path: '/voice'
-      fullPath: '/app/voice'
-      preLoaderRoute: typeof AppVoiceRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/users': {
-      id: '/app/users'
-      path: '/users'
-      fullPath: '/app/users'
-      preLoaderRoute: typeof AppUsersRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/salesintel': {
-      id: '/app/salesintel'
-      path: '/salesintel'
-      fullPath: '/app/salesintel'
-      preLoaderRoute: typeof AppSalesintelRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/risk': {
-      id: '/app/risk'
-      path: '/risk'
-      fullPath: '/app/risk'
-      preLoaderRoute: typeof AppRiskRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/recommendations': {
-      id: '/app/recommendations'
-      path: '/recommendations'
-      fullPath: '/app/recommendations'
-      preLoaderRoute: typeof AppRecommendationsRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/marketplace': {
-      id: '/app/marketplace'
-      path: '/marketplace'
-      fullPath: '/app/marketplace'
-      preLoaderRoute: typeof AppMarketplaceRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/marketing': {
-      id: '/app/marketing'
-      path: '/marketing'
-      fullPath: '/app/marketing'
-      preLoaderRoute: typeof AppMarketingRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/market': {
-      id: '/app/market'
-      path: '/market'
-      fullPath: '/app/market'
-      preLoaderRoute: typeof AppMarketRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/leads': {
-      id: '/app/leads'
-      path: '/leads'
-      fullPath: '/app/leads'
-      preLoaderRoute: typeof AppLeadsRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/kie': {
-      id: '/app/kie'
-      path: '/kie'
-      fullPath: '/app/kie'
-      preLoaderRoute: typeof AppKieRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/inventory': {
-      id: '/app/inventory'
-      path: '/inventory'
-      fullPath: '/app/inventory'
-      preLoaderRoute: typeof AppInventoryRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/graph': {
-      id: '/app/graph'
-      path: '/graph'
-      fullPath: '/app/graph'
-      preLoaderRoute: typeof AppGraphRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/governance': {
-      id: '/app/governance'
-      path: '/governance'
-      fullPath: '/app/governance'
-      preLoaderRoute: typeof AppGovernanceRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/feed': {
-      id: '/app/feed'
-      path: '/feed'
-      fullPath: '/app/feed'
-      preLoaderRoute: typeof AppFeedRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/documents': {
-      id: '/app/documents'
-      path: '/documents'
-      fullPath: '/app/documents'
-      preLoaderRoute: typeof AppDocumentsRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/docchat': {
-      id: '/app/docchat'
-      path: '/docchat'
-      fullPath: '/app/docchat'
-      preLoaderRoute: typeof AppDocchatRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/dealrooms': {
-      id: '/app/dealrooms'
-      path: '/dealrooms'
-      fullPath: '/app/dealrooms'
-      preLoaderRoute: typeof AppDealroomsRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/crm': {
-      id: '/app/crm'
-      path: '/crm'
-      fullPath: '/app/crm'
-      preLoaderRoute: typeof AppCrmRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/copilot': {
-      id: '/app/copilot'
-      path: '/copilot'
-      fullPath: '/app/copilot'
-      preLoaderRoute: typeof AppCopilotRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/command': {
-      id: '/app/command'
-      path: '/command'
-      fullPath: '/app/command'
-      preLoaderRoute: typeof AppCommandRouteImport
+    '/app/bi': {
+      id: '/app/bi'
+      path: '/bi'
+      fullPath: '/app/bi'
+      preLoaderRoute: typeof AppBiRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/collections': {
@@ -1263,12 +967,327 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppCollectionsRouteImport
       parentRoute: typeof AppRoute
     }
-    '/app/bi': {
-      id: '/app/bi'
-      path: '/bi'
-      fullPath: '/app/bi'
-      preLoaderRoute: typeof AppBiRouteImport
+    '/app/command': {
+      id: '/app/command'
+      path: '/command'
+      fullPath: '/app/command'
+      preLoaderRoute: typeof AppCommandRouteImport
       parentRoute: typeof AppRoute
+    }
+    '/app/copilot': {
+      id: '/app/copilot'
+      path: '/copilot'
+      fullPath: '/app/copilot'
+      preLoaderRoute: typeof AppCopilotRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/crm': {
+      id: '/app/crm'
+      path: '/crm'
+      fullPath: '/app/crm'
+      preLoaderRoute: typeof AppCrmRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/dealrooms': {
+      id: '/app/dealrooms'
+      path: '/dealrooms'
+      fullPath: '/app/dealrooms'
+      preLoaderRoute: typeof AppDealroomsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/docchat': {
+      id: '/app/docchat'
+      path: '/docchat'
+      fullPath: '/app/docchat'
+      preLoaderRoute: typeof AppDocchatRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/documents': {
+      id: '/app/documents'
+      path: '/documents'
+      fullPath: '/app/documents'
+      preLoaderRoute: typeof AppDocumentsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/feed': {
+      id: '/app/feed'
+      path: '/feed'
+      fullPath: '/app/feed'
+      preLoaderRoute: typeof AppFeedRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/governance': {
+      id: '/app/governance'
+      path: '/governance'
+      fullPath: '/app/governance'
+      preLoaderRoute: typeof AppGovernanceRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/graph': {
+      id: '/app/graph'
+      path: '/graph'
+      fullPath: '/app/graph'
+      preLoaderRoute: typeof AppGraphRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/inventory': {
+      id: '/app/inventory'
+      path: '/inventory'
+      fullPath: '/app/inventory'
+      preLoaderRoute: typeof AppInventoryRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/kie': {
+      id: '/app/kie'
+      path: '/kie'
+      fullPath: '/app/kie'
+      preLoaderRoute: typeof AppKieRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/leads': {
+      id: '/app/leads'
+      path: '/leads'
+      fullPath: '/app/leads'
+      preLoaderRoute: typeof AppLeadsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/market': {
+      id: '/app/market'
+      path: '/market'
+      fullPath: '/app/market'
+      preLoaderRoute: typeof AppMarketRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/marketing': {
+      id: '/app/marketing'
+      path: '/marketing'
+      fullPath: '/app/marketing'
+      preLoaderRoute: typeof AppMarketingRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/marketplace': {
+      id: '/app/marketplace'
+      path: '/marketplace'
+      fullPath: '/app/marketplace'
+      preLoaderRoute: typeof AppMarketplaceRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/recommendations': {
+      id: '/app/recommendations'
+      path: '/recommendations'
+      fullPath: '/app/recommendations'
+      preLoaderRoute: typeof AppRecommendationsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/risk': {
+      id: '/app/risk'
+      path: '/risk'
+      fullPath: '/app/risk'
+      preLoaderRoute: typeof AppRiskRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/salesintel': {
+      id: '/app/salesintel'
+      path: '/salesintel'
+      fullPath: '/app/salesintel'
+      preLoaderRoute: typeof AppSalesintelRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/supreme-intelligence': {
+      id: '/app/supreme-intelligence'
+      path: '/supreme-intelligence'
+      fullPath: '/app/supreme-intelligence'
+      preLoaderRoute: typeof AppSupremeIntelligenceRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/users': {
+      id: '/app/users'
+      path: '/users'
+      fullPath: '/app/users'
+      preLoaderRoute: typeof AppUsersRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/voice': {
+      id: '/app/voice'
+      path: '/voice'
+      fullPath: '/app/voice'
+      preLoaderRoute: typeof AppVoiceRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/workflows': {
+      id: '/app/workflows'
+      path: '/workflows'
+      fullPath: '/app/workflows'
+      preLoaderRoute: typeof AppWorkflowsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/auth/forgot-password': {
+      id: '/auth/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/auth/forgot-password'
+      preLoaderRoute: typeof AuthForgotPasswordRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/auth/reset-password': {
+      id: '/auth/reset-password'
+      path: '/reset-password'
+      fullPath: '/auth/reset-password'
+      preLoaderRoute: typeof AuthResetPasswordRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/product/ai-voice': {
+      id: '/product/ai-voice'
+      path: '/product/ai-voice'
+      fullPath: '/product/ai-voice'
+      preLoaderRoute: typeof ProductAiVoiceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/product/bi': {
+      id: '/product/bi'
+      path: '/product/bi'
+      fullPath: '/product/bi'
+      preLoaderRoute: typeof ProductBiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/product/crm': {
+      id: '/product/crm'
+      path: '/product/crm'
+      fullPath: '/product/crm'
+      preLoaderRoute: typeof ProductCrmRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/product/erp': {
+      id: '/product/erp'
+      path: '/product/erp'
+      fullPath: '/product/erp'
+      preLoaderRoute: typeof ProductErpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/product/marketing-cloud': {
+      id: '/product/marketing-cloud'
+      path: '/product/marketing-cloud'
+      fullPath: '/product/marketing-cloud'
+      preLoaderRoute: typeof ProductMarketingCloudRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/product/marketplace': {
+      id: '/product/marketplace'
+      path: '/product/marketplace'
+      fullPath: '/product/marketplace'
+      preLoaderRoute: typeof ProductMarketplaceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/realtifyu/connections': {
+      id: '/realtifyu/connections'
+      path: '/connections'
+      fullPath: '/realtifyu/connections'
+      preLoaderRoute: typeof RealtifyuConnectionsRouteImport
+      parentRoute: typeof RealtifyuRoute
+    }
+    '/resources/': {
+      id: '/resources/'
+      path: '/resources'
+      fullPath: '/resources/'
+      preLoaderRoute: typeof ResourcesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/resources/api': {
+      id: '/resources/api'
+      path: '/resources/api'
+      fullPath: '/resources/api'
+      preLoaderRoute: typeof ResourcesApiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/resources/blog': {
+      id: '/resources/blog'
+      path: '/resources/blog'
+      fullPath: '/resources/blog'
+      preLoaderRoute: typeof ResourcesBlogRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/resources/case-studies': {
+      id: '/resources/case-studies'
+      path: '/resources/case-studies'
+      fullPath: '/resources/case-studies'
+      preLoaderRoute: typeof ResourcesCaseStudiesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/resources/community': {
+      id: '/resources/community'
+      path: '/resources/community'
+      fullPath: '/resources/community'
+      preLoaderRoute: typeof ResourcesCommunityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/resources/customers': {
+      id: '/resources/customers'
+      path: '/resources/customers'
+      fullPath: '/resources/customers'
+      preLoaderRoute: typeof ResourcesCustomersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/resources/documentation': {
+      id: '/resources/documentation'
+      path: '/resources/documentation'
+      fullPath: '/resources/documentation'
+      preLoaderRoute: typeof ResourcesDocumentationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/resources/help': {
+      id: '/resources/help'
+      path: '/resources/help'
+      fullPath: '/resources/help'
+      preLoaderRoute: typeof ResourcesHelpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/resources/knowledge-base': {
+      id: '/resources/knowledge-base'
+      path: '/resources/knowledge-base'
+      fullPath: '/resources/knowledge-base'
+      preLoaderRoute: typeof ResourcesKnowledgeBaseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/resources/release-notes': {
+      id: '/resources/release-notes'
+      path: '/resources/release-notes'
+      fullPath: '/resources/release-notes'
+      preLoaderRoute: typeof ResourcesReleaseNotesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/resources/status': {
+      id: '/resources/status'
+      path: '/resources/status'
+      fullPath: '/resources/status'
+      preLoaderRoute: typeof ResourcesStatusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/solutions/brokers': {
+      id: '/solutions/brokers'
+      path: '/solutions/brokers'
+      fullPath: '/solutions/brokers'
+      preLoaderRoute: typeof SolutionsBrokersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/solutions/channel-partners': {
+      id: '/solutions/channel-partners'
+      path: '/solutions/channel-partners'
+      fullPath: '/solutions/channel-partners'
+      preLoaderRoute: typeof SolutionsChannelPartnersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/solutions/developers': {
+      id: '/solutions/developers'
+      path: '/solutions/developers'
+      fullPath: '/solutions/developers'
+      preLoaderRoute: typeof SolutionsDevelopersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/solutions/enterprises': {
+      id: '/solutions/enterprises'
+      path: '/solutions/enterprises'
+      fullPath: '/solutions/enterprises'
+      preLoaderRoute: typeof SolutionsEnterprisesRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/app/settings/branding': {
       id: '/app/settings/branding'
@@ -1308,6 +1327,7 @@ interface AppRouteChildren {
   AppRecommendationsRoute: typeof AppRecommendationsRoute
   AppRiskRoute: typeof AppRiskRoute
   AppSalesintelRoute: typeof AppSalesintelRoute
+  AppSupremeIntelligenceRoute: typeof AppSupremeIntelligenceRoute
   AppUsersRoute: typeof AppUsersRoute
   AppVoiceRoute: typeof AppVoiceRoute
   AppWorkflowsRoute: typeof AppWorkflowsRoute
@@ -1336,6 +1356,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppRecommendationsRoute: AppRecommendationsRoute,
   AppRiskRoute: AppRiskRoute,
   AppSalesintelRoute: AppSalesintelRoute,
+  AppSupremeIntelligenceRoute: AppSupremeIntelligenceRoute,
   AppUsersRoute: AppUsersRoute,
   AppVoiceRoute: AppVoiceRoute,
   AppWorkflowsRoute: AppWorkflowsRoute,
@@ -1410,3 +1431,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

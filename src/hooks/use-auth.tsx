@@ -8,6 +8,7 @@ interface AuthCtx {
   user: User | null;
   session: Session | null;
   roles: AppRole[];
+  rolesReady: boolean;
   loading: boolean;
   isAdmin: boolean;
   isManager: boolean;
@@ -22,28 +23,56 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [roles, setRoles] = useState<AppRole[]>([]);
+  const [rolesReady, setRolesReady] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Real Supabase auth flow (Google OAuth / email)
+    let mounted = true;
+
     const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
+      if (!mounted) return;
       setSession(s);
       setUser(s?.user ?? null);
       if (!s?.user) setRoles([]);
-    });
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-      setUser(data.session?.user ?? null);
       setLoading(false);
     });
-    return () => sub.subscription.unsubscribe();
+
+    supabase.auth.getSession().then(({ data }) => {
+      if (!mounted) return;
+      // getSession is the authoritative initial auth check.
+      // Restore the session if present; otherwise user stays null (route → /auth).
+      if (data.session) {
+        setSession(data.session);
+        setUser(data.session?.user ?? null);
+      }
+      // Always stop loading once the initial auth check resolves, regardless
+      // of whether a session exists. onAuthStateChange keeps session/user in
+      // sync for subsequent events (login, logout, token refresh).
+      setLoading(false);
+    });
+
+    return () => {
+      mounted = false;
+      sub.subscription.unsubscribe();
+    };
   }, []);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      // No authenticated user → the role set is trivially settled (empty).
+      setRolesReady(true);
+      return;
+    }
     let cancelled = false;
+
+    // Fetch roles from database
     (async () => {
       const { data } = await supabase.from("user_roles").select("role").eq("user_id", user.id);
-      if (!cancelled) setRoles(((data ?? []) as { role: AppRole }[]).map((r) => r.role));
+      if (cancelled) return;
+      setRoles(((data ?? []) as { role: AppRole }[]).map((r) => r.role));
+      // Roles have been resolved from the DB — safe for guards to evaluate.
+      setRolesReady(true);
     })();
     return () => { cancelled = true; };
   }, [user?.id]);
@@ -52,7 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const hasAnyRole = (rs: AppRole[]) => rs.some((r) => roles.includes(r));
 
   const value: AuthCtx = {
-    user, session, roles, loading,
+    user, session, roles, rolesReady, loading,
     isAdmin: hasRole("admin"),
     isManager: hasAnyRole(["admin", "manager"]),
     hasRole, hasAnyRole,
