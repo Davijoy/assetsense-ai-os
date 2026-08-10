@@ -12,6 +12,10 @@ import { communicationHubEventPublisher, communicationHub } from "@/business-int
 import { generateCorrelationId } from "@/lib/event-fabric/correlation-id";
 import { generateCausationId } from "@/lib/event-fabric/causation-id";
 import type { CRMKpiSnapshot } from "@/lib/crm.functions";
+import { supabase } from "@/integrations/supabase/client";
+import { MarketIntelligenceService } from "@/business-intelligence/market/service";
+import { SupabaseMarketRepository } from "@/business-intelligence/market/repository";
+import { MarketRiskEvaluator } from "@/decision-engine/market/market-risk-evaluator";
 
 /** Server function context */
 interface ServerFunctionContext {
@@ -315,17 +319,9 @@ async function createOrchestratorInstance(workspaceId: string): Promise<SupremeI
     }),
   };
 
-  const mockMarketService = {
-    getContext: async () => ({
-      trends: [],
-      alerts: [],
-      generatedAt: new Date().toISOString(),
-    }),
-  };
-
-  const mockMarketRiskEvaluator = {
-    evaluateIntelligence: async () => [],
-  };
+  const marketRepository = new SupabaseMarketRepository(supabase);
+  const realMarketService = new MarketIntelligenceService(marketRepository);
+  const realMarketRiskEvaluator = new MarketRiskEvaluator();
 
   const mockGetCRMKPIs = async (): Promise<CRMKpiSnapshot> => ({
     pipelineValueInr: 0,
@@ -337,8 +333,8 @@ async function createOrchestratorInstance(workspaceId: string): Promise<SupremeI
   return new SupremeIntelligenceOrchestrator(
     mockCustomerService as any,
     mockInventoryService as any,
-    mockMarketService as any,
-    mockMarketRiskEvaluator as any,
+    realMarketService,
+    realMarketRiskEvaluator,
     mockGetCRMKPIs,
   );
 }

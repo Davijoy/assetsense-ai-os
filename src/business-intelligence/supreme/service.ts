@@ -205,20 +205,22 @@ export class SupremeIntelligenceOrchestrator {
       );
       completeStep(step8Id, { recommendationCount: coordinatedRecommendations.length });
 
-      // Step 9: Create approval requests
+      // Step 9: Create approval requests (skip in dry-run mode)
       const step9Id = addStep("create_approval_requests", "supreme");
-      const approvalRequests = this.createApprovalRequests(
-        coordinatedRecommendations,
-        finalCorrelationId,
-        finalCausationId,
-      );
+      const approvalRequests = dryRun
+        ? []
+        : this.createApprovalRequests(
+            coordinatedRecommendations,
+            finalCorrelationId,
+            finalCausationId,
+          );
       completeStep(step9Id, { requestCount: approvalRequests.length });
 
-      // Step 10: Emit events
+      // Step 10: Emit events (simulated only in dry-run mode)
       const step10Id = addStep("emit_events", "supreme");
       // Events would be emitted here in production
       eventsEmitted.push("SUPREME.ContextBuilt", "SUPREME.DecisionCreated", "SUPREME.RecommendationCreated");
-      if (approvalRequests.length > 0) {
+      if (!dryRun && approvalRequests.length > 0) {
         eventsEmitted.push("SUPREME.ApprovalRequested");
       }
       completeStep(step10Id, { eventsEmitted });
