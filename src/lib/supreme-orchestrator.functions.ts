@@ -13,6 +13,12 @@ import { generateCorrelationId } from "@/lib/event-fabric/correlation-id";
 import { generateCausationId } from "@/lib/event-fabric/causation-id";
 import type { CRMKpiSnapshot } from "@/lib/crm.functions";
 import { supabase } from "@/integrations/supabase/client";
+import { CustomerIntelligenceService } from "@/business-intelligence/customer/service";
+import { InventoryIntelligenceService } from "@/business-intelligence/inventory/service";
+import type { ICustomerRepository } from "@/business-intelligence/customer/repository";
+import type { IInventoryRepository } from "@/business-intelligence/inventory/repository";
+import { SupabaseCustomerRepository } from "@/lib/customer.functions";
+import { SupabaseInventoryRepository } from "@/lib/bi.functions";
 import { MarketIntelligenceService } from "@/business-intelligence/market/service";
 import { SupabaseMarketRepository } from "@/business-intelligence/market/repository";
 import { MarketRiskEvaluator } from "@/decision-engine/market/market-risk-evaluator";
@@ -299,25 +305,12 @@ export async function getApprovalRequestStatus(
 
 async function createOrchestratorInstance(workspaceId: string): Promise<SupremeIntelligenceOrchestrator> {
   // In a real implementation, these would be properly injected services
-  // For now, we create mock implementations
-  
-  const mockCustomerService = {
-    getContext: async () => ({
-      atRiskCustomers: [],
-      engagementScores: [],
-      churnRisk: [],
-      generatedAt: new Date().toISOString(),
-    }),
-  };
 
-  const mockInventoryService = {
-    getContext: async () => ({
-      levels: [],
-      slowMoving: [],
-      highValueUnsold: [],
-      generatedAt: new Date().toISOString(),
-    }),
-  };
+  const customerRepository = new SupabaseCustomerRepository(supabase);
+  const realCustomerService = new CustomerIntelligenceService(customerRepository);
+
+  const inventoryRepository = new SupabaseInventoryRepository(supabase);
+  const realInventoryService = new InventoryIntelligenceService(inventoryRepository);
 
   const marketRepository = new SupabaseMarketRepository(supabase);
   const realMarketService = new MarketIntelligenceService(marketRepository);
@@ -331,8 +324,8 @@ async function createOrchestratorInstance(workspaceId: string): Promise<SupremeI
   });
 
   return new SupremeIntelligenceOrchestrator(
-    mockCustomerService as any,
-    mockInventoryService as any,
+    realCustomerService,
+    realInventoryService,
     realMarketService,
     realMarketRiskEvaluator,
     mockGetCRMKPIs,

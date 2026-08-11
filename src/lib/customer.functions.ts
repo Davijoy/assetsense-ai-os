@@ -1,9 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireRoles } from "@/integrations/supabase/role-middleware";
-import { getCurrentWorkspaceId, DEFAULT_WORKSPACE_ID } from "@/lib/services/workspace.service";
-import { InventoryIntelligenceService } from "@/business-intelligence/inventory/service";
-import type { InventoryIntelligence, InventoryLevel, InventoryMovement, InventoryRecommendation } from "@/business-intelligence/inventory/types";
-import type { IInventoryRepository } from "@/business-intelligence/inventory/repository";
+import { CustomerIntelligenceService } from "@/business-intelligence/customer/service";
+import type { CustomerIntelligence, CustomerLevel, CustomerMovement, CustomerRecommendation } from "@/business-intelligence/customer/types";
+import type { ICustomerRepository } from "@/business-intelligence/customer/repository";
 import { InMemoryEventBus } from "@/lib/event-fabric/in-memory-event-bus";
 import { EventMetadata } from "@/lib/event-fabric/event-metadata";
 import { EventClassification } from "@/lib/event-fabric/event-classification";
@@ -11,13 +10,13 @@ import { EventPriority } from "@/lib/event-fabric/event-priority";
 import { generateCorrelationId } from "@/lib/event-fabric/correlation-id";
 import { generateCausationId } from "@/lib/event-fabric/causation-id";
 import {
-  InventorySnapshotRequestedEvent,
-  InventorySnapshotProcessedEvent,
-  InventoryRiskDetectedEvent,
-  InventoryRecommendationCreatedEvent,
-  type InventoryRiskDetectedPayload,
-} from "@/lib/event-fabric/inventory-events";
-import { InventoryRiskEvaluator } from "@/decision-engine/inventory/inventory-risk-evaluator";
+  CustomerSnapshotRequestedEvent,
+  CustomerSnapshotProcessedEvent,
+  CustomerRiskDetectedEvent,
+  CustomerRecommendationCreatedEvent,
+  type CustomerRiskDetectedPayload,
+} from "@/lib/event-fabric/customer-events";
+import { CustomerRiskEvaluator } from "@/decision-engine/customer/customer-risk-evaluator";
 import type { DecisionContext } from "@/decision-engine/shared/decision-context";
 import { InAppDispatcher } from "@/communication-hub/in-app/in-app-dispatcher";
 import type { CommunicationRequest } from "@/communication-hub/shared/communication-request";
@@ -26,14 +25,18 @@ import type { ConsentPolicy } from "@/communication-hub/shared/consent-policy";
 import type { QuietHoursPolicy } from "@/communication-hub/shared/quiet-hours-policy";
 import type { RetryPolicy } from "@/communication-hub/shared/retry-policy";
 
-export type BISnapshot = {
+export type CustomerBISnapshot = {
   kpis: {
-    revenue_inr: number;
-    units_sold: number;
-    sales_velocity_days: number;
-    cost_per_lead_inr: number;
-    revenue_delta_pct: number;
-    units_delta_pct: number;
+    total_contacts: number;
+    active_contacts: number;
+    new_contacts: number;
+    inactive_contacts: number;
+    customer_contacts: number;
+    avg_engagement_score: number;
+    active_pct: number;
+    customer_pct: number;
+    inactive_pct: number;
+    do_not_contact_pct: number;
   };
   revenueSeries: { m: string; actual: number; forecast: number }[];
   funnel: { stage: string; value: number }[];
@@ -44,70 +47,86 @@ export type BISnapshot = {
   total_calls: number;
   qualified_pct: number;
   generated_at: string;
-  recommendations?: InventoryRecommendation[];
-  intelligence?: InventoryIntelligence;
+  recommendations?: CustomerRecommendation[];
+  intelligence?: CustomerIntelligence;
   deliveryStatus?: string;
 };
 
-export class SupabaseInventoryRepository implements IInventoryRepository {
+export class SupabaseCustomerRepository implements ICustomerRepository {
   constructor(private readonly supabase: any) {}
 
-  async getLevels(workspaceId: string): Promise<InventoryLevel[]> {
+  async getLevels(workspaceId: string): Promise<CustomerLevel[]> {
     const { data, error } = await this.supabase
-      .from("properties")
-      .select("id,name,city,property_type,status,price_inr,developer,created_at,workspace_id")
+      .from("contacts")
+      .select("id,first_name,last_name,full_name,email,phone,company,job_title,city,state,country,lead_source,status,preferred_contact_method,do_not_contact,tags,created_at,updated_at")
       .eq("workspace_id", workspaceId)
-      .limit(50);
+      .limit(100);
 
     if (error) throw new Error(error.message);
 
     return (data ?? []).map((row: any, index: number) => ({
-      assetId: row.id ?? `property-${index}`,
-      quantity: 1,
-      unit: "unit",
-      lastUpdated: row.created_at ? new Date(row.created_at) : new Date(),
-      threshold: 1,
-      name: row.name ?? undefined,
+      contactId: row.id ?? `contact-${index}`,
+      fullName: row.full_name ?? `${row.first_name ?? ""} ${row.last_name ?? ""}`.trim(),
+      email: row.email ?? "",
+      phone: row.phone ?? undefined,
+      company: row.company ?? undefined,
+      jobTitle: row.job_title ?? undefined,
       city: row.city ?? undefined,
-      propertyType: row.property_type ?? undefined,
-      status: row.status ?? "available",
-      priceInr: row.price_inr ?? 0,
-      developer: row.developer ?? undefined,
+      state: row.state ?? undefined,
+      country: row.country ?? "IN",
+      leadSource: row.lead_source ?? undefined,
+      status: row.status ?? "NEW",
+      preferredContactMethod: row.preferred_contact_method ?? "email",
+      doNotContact: row.do_not_contact ?? false,
+      tags: row.tags ?? [],
+      createdAt: row.created_at ? new Date(row.created_at) : new Date(),
+      updatedAt: row.updated_at ? new Date(row.updated_at) : new Date(),
+      // Enriched fields (would come from deals/activities in real implementation)
+      engagementScore: undefined,
+      lastActivityAt: undefined,
+      totalDeals: undefined,
+      totalValueInr: undefined,
     }));
   }
 
-  async getMovements(assetId: string): Promise<InventoryMovement[]> {
-    void assetId;
+  async getMovements(contactId: string): Promise<CustomerMovement[]> {
+    void contactId;
     return [];
   }
 
-  async updateLevel(_level: InventoryLevel): Promise<void> {
+  async updateLevel(_level: CustomerLevel): Promise<void> {
     return;
   }
 
-  async recordMovement(_movement: InventoryMovement): Promise<void> {
+  async recordMovement(_movement: CustomerMovement): Promise<void> {
     return;
   }
 }
 
-function adaptInventoryIntelligenceToBISnapshot(
-  inventory: InventoryIntelligence,
-  recommendations?: InventoryRecommendation[],
+function adaptCustomerIntelligenceToBISnapshot(
+  intelligence: CustomerIntelligence,
+  recommendations?: CustomerRecommendation[],
   deliveryStatus?: string,
-): BISnapshot {
-  const summary = inventory.inventorySummary;
-  const groupings = inventory.groupings;
+): CustomerBISnapshot {
+  const summary = intelligence.customerSummary;
+  const groupings = intelligence.groupings;
 
-  const revenueInr = summary?.soldValue ?? 0;
-  const unitsSold = summary?.sold ?? 0;
-  const absorptionPct = summary?.absorptionPct ?? 0;
-  const availabilityPct = summary?.availabilityPct ?? 0;
+  const totalContacts = summary?.total ?? 0;
+  const activeContacts = summary?.active ?? 0;
+  const newContacts = summary?.new ?? 0;
+  const inactiveContacts = summary?.inactive ?? 0;
+  const customerContacts = summary?.customer ?? 0;
+  const avgEngagementScore = summary?.avgEngagementScore ?? 0;
+  const activePct = summary?.activePct ?? 0;
+  const customerPct = summary?.customerPct ?? 0;
+  const inactivePct = summary?.inactivePct ?? 0;
+  const doNotContactPct = summary?.doNotContactPct ?? 0;
 
   const regions = (groupings?.byCity ?? []).map((g) => ({
     name: g.name,
-    deals: g.sold,
+    deals: g.customer,
     rev: g.value,
-    growth: g.total > 0 ? Math.round((g.sold / g.total) * 100) : 0,
+    growth: g.total > 0 ? Math.round((g.customer / g.total) * 100) : 0,
   }));
 
   const funnel = (groupings?.byStatus ?? []).map((g) => ({
@@ -115,12 +134,12 @@ function adaptInventoryIntelligenceToBISnapshot(
     value: g.total,
   }));
 
-  const channel = (groupings?.byProject ?? []).slice(0, 5).map((g) => ({
+  const channel = (groupings?.byLeadSource ?? []).slice(0, 5).map((g) => ({
     name: g.name,
     value: g.total,
   }));
 
-  const cohort = (inventory.ageingBuckets ?? []).map((b) => ({
+  const cohort = (intelligence.engagementBuckets ?? []).map((b) => ({
     week: b.bucket,
     new: b.count,
     return: 0,
@@ -128,12 +147,16 @@ function adaptInventoryIntelligenceToBISnapshot(
 
   return {
     kpis: {
-      revenue_inr: revenueInr,
-      units_sold: unitsSold,
-      sales_velocity_days: 0,
-      cost_per_lead_inr: 0,
-      revenue_delta_pct: absorptionPct,
-      units_delta_pct: availabilityPct,
+      total_contacts: totalContacts,
+      active_contacts: activeContacts,
+      new_contacts: newContacts,
+      inactive_contacts: inactiveContacts,
+      customer_contacts: customerContacts,
+      avg_engagement_score: avgEngagementScore,
+      active_pct: activePct,
+      customer_pct: customerPct,
+      inactive_pct: inactivePct,
+      do_not_contact_pct: doNotContactPct,
     },
     revenueSeries: [],
     funnel,
@@ -143,9 +166,9 @@ function adaptInventoryIntelligenceToBISnapshot(
     call_intents: [],
     total_calls: 0,
     qualified_pct: 0,
-    generated_at: inventory.generatedAt ?? new Date().toISOString(),
+    generated_at: intelligence.generatedAt ?? new Date().toISOString(),
     recommendations,
-    intelligence: inventory,
+    intelligence: intelligence,
     deliveryStatus,
   };
 }
@@ -169,24 +192,24 @@ function buildEventMetadata(
     classification: classification as any,
     priority: priority as any,
     source: {
-      serviceName: "inventory-intelligence-service",
+      serviceName: "customer-intelligence-service",
       version: "1.0.0",
     },
   };
 }
 
 function buildCommunicationRequest(
-  decision: InventoryRiskDetectedPayload,
-  recommendation: InventoryRecommendation,
+  decision: CustomerRiskDetectedPayload,
+  recommendation: CustomerRecommendation,
   workspaceId: string,
   correlationId: string,
 ): CommunicationRequest {
   const now = new Date().toISOString();
   const recipient: CommunicationRecipient = {
     recipientId: `role-admin-${workspaceId}`,
-    contact: "admin@inventory.intelligence",
+    contact: "admin@customer.intelligence",
     contactType: "role",
-    name: "Inventory Admin",
+    name: "Customer Admin",
     locale: "en-US",
     timezone: "Asia/Kolkata",
     optedOut: false,
@@ -235,7 +258,7 @@ function buildCommunicationRequest(
     causationId: decision.decisionId,
     channel: "IN_APP_NOTIFICATION",
     recipients: [recipient],
-    templateId: "inventory-intelligence-v1",
+    templateId: "customer-intelligence-v1",
     locale: "en-US",
     priority: recommendation.priority as any,
     scheduledAt: now,
@@ -259,32 +282,30 @@ function buildCommunicationRequest(
   };
 }
 
-export const getBISnapshot = createServerFn({ method: "GET" })
+export const getCustomerBISnapshot = createServerFn({ method: "GET" })
   .middleware([requireRoles(["admin", "manager", "viewer"])])
-  .handler(async ({ context }): Promise<BISnapshot> => {
-        const { supabase } = context as { supabase: any };
-    // Resolve the caller's real workspace from the authenticated session via the
-    // `current_workspace_id` RPC (RLS-safe: runs as the authed user), NOT "default".
-    // Falls back to the Phase-1 default workspace UUID pinned in the migration.
-    const workspaceId = (await getCurrentWorkspaceId(supabase)) ?? DEFAULT_WORKSPACE_ID;
+  .handler(async ({ context }): Promise<CustomerBISnapshot> => {
+    const { supabase } = context as { supabase: any; workspaceId?: string };
+    const workspaceId = (context as { workspaceId?: string }).workspaceId ?? "default";
 
     const eventBus = new InMemoryEventBus();
     const correlationId = generateCorrelationId();
 
-    const requestedEvent = new InventorySnapshotRequestedEvent(
-      buildEventMetadata("INVENTORY.SnapshotRequested", workspaceId, correlationId),
+    const requestedEvent = new CustomerSnapshotRequestedEvent(
+      buildEventMetadata("CUSTOMER.SnapshotRequested", workspaceId, correlationId),
       { workspaceId, requestedBy: "system", requestedAt: new Date().toISOString() },
     );
     await eventBus.publish(requestedEvent);
 
-    const repository = new SupabaseInventoryRepository(supabase);
-    const service = new InventoryIntelligenceService(repository);
-    const inventory = await service.getContext(workspaceId);
+    const repository = new SupabaseCustomerRepository(supabase);
+    const service = new CustomerIntelligenceService(repository);
+    const intelligence = await service.getContext(workspaceId);
 
-    const summary = inventory.inventorySummary;
-    const processedEvent = new InventorySnapshotProcessedEvent(
+    const summary = intelligence.customerSummary;
+    const groupings = intelligence.groupings;
+    const processedEvent = new CustomerSnapshotProcessedEvent(
       buildEventMetadata(
-        "INVENTORY.SnapshotProcessed",
+        "CUSTOMER.SnapshotProcessed",
         workspaceId,
         correlationId,
         requestedEvent.metadata.eventId,
@@ -293,34 +314,31 @@ export const getBISnapshot = createServerFn({ method: "GET" })
       ),
       {
         workspaceId,
-        totalUnits: summary?.total ?? 0,
-        availableUnits: summary?.available ?? 0,
-        soldUnits: summary?.sold ?? 0,
-        reservedUnits: summary?.reserved ?? 0,
-        blockedUnits: summary?.blocked ?? 0,
-        totalValueInr: summary?.totalValue ?? 0,
-        availableValueInr: summary?.availableValue ?? 0,
-        soldValueInr: summary?.soldValue ?? 0,
-        availabilityPct: summary?.availabilityPct ?? 0,
-        soldPct: summary?.soldPct ?? 0,
-        absorptionPct: summary?.absorptionPct ?? 0,
-        ageingOver90Days: (inventory.ageingBuckets ?? [])
-          .filter((b) => b.bucket.includes("91") || b.bucket.includes("120"))
-          .reduce((sum, b) => sum + b.count, 0),
-        slowMovingCount: inventory.slowMoving?.length ?? 0,
-        highValueUnsoldCount: inventory.highValueUnsold?.length ?? 0,
-        generatedAt: inventory.generatedAt ?? new Date().toISOString(),
+        totalContacts: summary?.total ?? 0,
+        activeContacts: summary?.active ?? 0,
+        newContacts: summary?.new ?? 0,
+        inactiveContacts: summary?.inactive ?? 0,
+        customerContacts: summary?.customer ?? 0,
+        partnerContacts: summary?.partner ?? 0,
+        vendorContacts: summary?.vendor ?? 0,
+        referralContacts: summary?.referral ?? 0,
+        totalValueInr: summary?.totalValueInr ?? 0,
+        avgEngagementScore: summary?.avgEngagementScore ?? 0,
+        leadSourceDistribution: (groupings?.byLeadSource ?? []).reduce((acc: Record<string, number>, g) => ({ ...acc, [g.name]: g.total }), {}),
+        cityDistribution: (groupings?.byCity ?? []).reduce((acc: Record<string, number>, g) => ({ ...acc, [g.name]: g.total }), {}),
+        statusDistribution: (groupings?.byStatus ?? []).reduce((acc: Record<string, number>, g) => ({ ...acc, [g.name]: g.total }), {}),
+        generatedAt: intelligence.generatedAt ?? new Date().toISOString(),
       },
     );
     await eventBus.publish(processedEvent);
 
-    const evaluator = new InventoryRiskEvaluator();
+    const evaluator = new CustomerRiskEvaluator();
     const decisionContext: DecisionContext = {
       workspaceId,
       correlationId,
       causationId: processedEvent.metadata.eventId,
       intelligenceEvents: [processedEvent],
-      subjectType: "Inventory",
+      subjectType: "Customer",
       subjectId: workspaceId,
       evaluatedAt: new Date().toISOString(),
       evidenceReferences: [],
@@ -328,16 +346,16 @@ export const getBISnapshot = createServerFn({ method: "GET" })
       jurisdiction: "IN",
     };
 
-    const decisions = await evaluator.evaluateIntelligence(inventory, decisionContext);
+    const decisions = await evaluator.evaluateIntelligence(intelligence, decisionContext);
 
-    const recommendations: InventoryRecommendation[] = [];
+    const recommendations: CustomerRecommendation[] = [];
     const dispatcher = new InAppDispatcher();
     let deliveryStatus = "no-decisions";
 
     for (const decision of decisions) {
-      const riskEvent = new InventoryRiskDetectedEvent(
+      const riskEvent = new CustomerRiskDetectedEvent(
         buildEventMetadata(
-          "INVENTORY.RiskDetected",
+          "CUSTOMER.RiskDetected",
           workspaceId,
           correlationId,
           processedEvent.metadata.eventId,
@@ -348,7 +366,7 @@ export const getBISnapshot = createServerFn({ method: "GET" })
       );
       await eventBus.publish(riskEvent);
 
-      const recommendation: InventoryRecommendation = {
+      const recommendation: CustomerRecommendation = {
         id: `rec-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
         title: decision.title,
         businessReason: decision.explanation,
@@ -357,16 +375,21 @@ export const getBISnapshot = createServerFn({ method: "GET" })
         expectedImpact: decision.expectedBusinessImpact,
         priority: decision.severity as "CRITICAL" | "HIGH" | "MEDIUM" | "LOW",
         confidence: decision.confidence,
-        supportingMetrics: { decisionType: decision.decisionType, evidence: decision.evidence },
+        supportingMetrics: {
+          decisionType: decision.decisionType,
+          evidenceCount: String(decision.evidence.length),
+          topFactor: decision.evidence[0]?.factor ?? "none",
+          topImpact: String(decision.evidence[0]?.impact ?? 0),
+        },
         generatedAt: new Date().toISOString(),
         decisionReference: decision.decisionId,
         correlationId,
       };
       recommendations.push(recommendation);
 
-      const recommendationEvent = new InventoryRecommendationCreatedEvent(
+      const recommendationEvent = new CustomerRecommendationCreatedEvent(
         buildEventMetadata(
-          "INVENTORY.RecommendationCreated",
+          "CUSTOMER.RecommendationCreated",
           workspaceId,
           correlationId,
           riskEvent.metadata.eventId,
@@ -397,8 +420,8 @@ export const getBISnapshot = createServerFn({ method: "GET" })
       deliveryStatus = commResult.status;
     }
 
-    return adaptInventoryIntelligenceToBISnapshot(
-      inventory,
+    return adaptCustomerIntelligenceToBISnapshot(
+      intelligence,
       recommendations.length > 0 ? recommendations : undefined,
       deliveryStatus,
     );
