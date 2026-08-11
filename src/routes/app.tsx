@@ -76,7 +76,7 @@ const kieNav: NavItem[] = [
   { to: "/app/dealrooms", label: "Deal Rooms", icon: GitBranch, roles: ["admin", "manager", "agent", "builder", "developer"] },
   { to: "/app/risk", label: "Risk Center", icon: ShieldAlert, roles: ["admin", "manager"] },
   { to: "/app/market", label: "Market Intelligence", icon: Globe2, roles: ["admin", "manager", "viewer", "builder", "developer"] },
-  { to: "/app/supreme-intelligence", label: "Supreme Intelligence", icon: Sparkles, roles: ["admin"] },
+  { to: "/app/supreme-intelligence", label: "Supreme Intelligence", icon: Sparkles, roles: ["admin", "manager", "viewer", "builder", "developer"] },
   { to: "/app/inventory", label: "Inventory Intelligence", icon: Package, roles: ["admin", "manager", "builder", "developer"] },
   { to: "/app/collections", label: "Collections AI", icon: Banknote, roles: ["admin", "manager"] },
   { to: "/app/salesintel", label: "Sales Intelligence", icon: Gauge, roles: ["admin", "manager"] },
