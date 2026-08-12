@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
-import { getCurrentWorkspaceId, DEFAULT_WORKSPACE_ID } from "@/lib/services/workspace.service";
+import { getCurrentWorkspaceId } from "@/lib/services/workspace.service";
 import { InMemoryEventBus } from "@/lib/event-fabric/in-memory-event-bus";
 import { EventMetadata } from "@/lib/event-fabric/event-metadata";
 import { EventClassification } from "@/lib/event-fabric/event-classification";
@@ -632,7 +632,10 @@ export const getMarketBISnapshot = createServerFn({ method: "POST" })
   .middleware([requireRoles(["admin", "manager", "agent", "viewer", "builder", "developer"])])
   .handler(async ({ context }): Promise<MarketBISnapshot> => {
     const { supabase, userId } = context as { supabase: any; userId: string };
-    const workspaceId = (await getCurrentWorkspaceId(supabase)) ?? DEFAULT_WORKSPACE_ID;
+    const workspaceId = await getCurrentWorkspaceId(supabase);
+    if (!workspaceId) {
+      throw new Error("No active workspace membership for the authenticated user");
+    }
     const correlationId = generateCorrelationId();
     const causationId = generateCausationId();
 

@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireRoles } from "@/integrations/supabase/role-middleware";
-import { getCurrentWorkspaceId, DEFAULT_WORKSPACE_ID } from "@/lib/services/workspace.service";
+import { getCurrentWorkspaceId } from "@/lib/services/workspace.service";
 import { InventoryIntelligenceService } from "@/business-intelligence/inventory/service";
 import type { InventoryIntelligence, InventoryLevel, InventoryMovement, InventoryRecommendation } from "@/business-intelligence/inventory/types";
 import type { IInventoryRepository } from "@/business-intelligence/inventory/repository";
@@ -264,9 +264,12 @@ export const getBISnapshot = createServerFn({ method: "GET" })
   .handler(async ({ context }): Promise<BISnapshot> => {
         const { supabase } = context as { supabase: any };
     // Resolve the caller's real workspace from the authenticated session via the
-    // `current_workspace_id` RPC (RLS-safe: runs as the authed user), NOT "default".
-    // Falls back to the Phase-1 default workspace UUID pinned in the migration.
-    const workspaceId = (await getCurrentWorkspaceId(supabase)) ?? DEFAULT_WORKSPACE_ID;
+    // `current_workspace_id` RPC (RLS-safe: runs as the authed user). Fail safely
+    // if the user has no membership — never fall back to a default/foreign workspace.
+    const workspaceId = await getCurrentWorkspaceId(supabase);
+    if (!workspaceId) {
+      throw new Error("No active workspace membership for the authenticated user");
+    }
 
     const eventBus = new InMemoryEventBus();
     const correlationId = generateCorrelationId();

@@ -4,7 +4,7 @@
  * Main page for the Supreme Intelligence Orchestrator dashboard.
  */
 
-import { createFileRoute, useLoaderData, redirect, useNavigate } from '@tanstack/react-router';
+import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router';
 import { useState, useCallback, useEffect } from "react";
 import { SupremeIntelligenceDashboard } from "@/components/SupremeIntelligenceDashboard";
 import { 
@@ -17,6 +17,8 @@ import {
 } from "@/lib/supreme-orchestrator.functions";
 import type { OrchestrationResult, ProofScenarioOutput, ApprovalRequest } from "@/business-intelligence/supreme/types";
 import { useAuth } from "@/hooks/use-auth";
+import { supabase } from "@/integrations/supabase/client";
+import { getCurrentWorkspaceId } from "@/lib/services/workspace.service";
 
 /** Loader data type */
 interface LoaderData {
@@ -30,14 +32,14 @@ interface LoaderData {
 /** Supreme Intelligence page component */
 function SupremeIntelligencePage() {
   const navigate = useNavigate();
-  const { isAdmin, loading: authLoading, rolesReady } = useAuth();
-  const { user } = useLoaderData({ strict: false }) as { user: LoaderData['user'] };
+  const { isAdmin, isManager, loading: authLoading, rolesReady } = useAuth();
+  const { user } = Route.useRouteContext() as { user: LoaderData['user'] };
 
   useEffect(() => {
     // Only evaluate the admin guard once the auth session AND the user's roles
     // have been resolved. Redirecting before roles load would wrongly bounce
     // a genuine admin (roles still empty → isAdmin=false) to /app/crm.
-    if (!authLoading && rolesReady && !isAdmin) navigate({ to: "/app/crm" });
+    if (!authLoading && rolesReady && !isAdmin && !isManager) navigate({ to: "/app/crm" });
   }, [authLoading, rolesReady, isAdmin, navigate]);
 
   const [lastOrchestration, setLastOrchestration] = useState<OrchestrationResult | null>(null);
@@ -249,21 +251,56 @@ function SupremeIntelligencePage() {
   );
 }
 
-/** Loader function */
-export async function loader({ context }: { context: any }) {
-  // In a real app, this would get the user from auth context
-  // For now, return mock user data
-  return {
-    user: {
-      id: "user-123",
-      workspaceId: "default-workspace",
-      roles: ["admin"],
-    },
-  };
-}
-
 /** Route definition */
 export const Route = createFileRoute('/app/supreme-intelligence')({
+  ssr: false,
+  // Authentication + workspace gate. Mirrors src/routes/app.inventory.tsx and
+  // src/routes/app.market.tsx: with `ssr: false` this runs client-side, where
+  // the authenticated Supabase session (persisted in localStorage by the
+  // client singleton) is available — which a server-side loader cannot rely on.
+  beforeLoad: async () => {
+    const { data } = await supabase.auth.getSession();
+    const session = data.session;
+    if (!session?.access_token) {
+      // Unauthenticated → sign in. Never proceed without a real session.
+      throw redirect({ to: "/auth" });
+    }
+
+    // Canonical, RLS-safe workspace boundary: the `current_workspace_id` RPC
+    // (auth.uid-based) resolves the caller's primary/active membership — the
+    // SAME resolver used by getBISnapshot / getMyWorkspaceContext
+    // (src/lib/bi.functions.ts, src/lib/workspace.functions.ts). It replaces
+    // the prior metadata-based derivation (hardcoded-tenant fallback): we NEVER trust
+    // client/user metadata for the workspace boundary and NEVER fall back to
+    // another tenant.
+    let workspaceId: string | null = null;
+    try {
+      workspaceId = await getCurrentWorkspaceId(supabase);
+    } catch (error) {
+      console.error("[Supreme Intelligence] workspace resolution failed:", error);
+    }
+    if (!workspaceId) {
+      // Authenticated but not a member of any workspace → fail safely; do NOT
+      // fall back to a default/foreign workspace.
+      throw redirect({ to: "/app/crm" });
+    }
+
+    const user = session.user;
+    if (!user) {
+      // A session carrying an access_token but no user record cannot establish
+      // identity. Redirect to sign-in; we never fabricate an identity or fall
+      // back to a mock/foreign workspace.
+      throw redirect({ to: "/auth" });
+    }
+    const roles = (user.app_metadata?.roles ?? user.user_metadata?.roles ?? []) as string[];
+
+    return {
+      user: {
+        id: user.id,
+        workspaceId,
+        roles,
+      },
+    };
+  },
   component: SupremeIntelligencePage,
-  loader,
 });

@@ -25,7 +25,6 @@ import { Loader2, TrendingUp, TrendingDown, AlertTriangle, CheckCircle, RefreshC
 import { format } from "date-fns";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { DEFAULT_WORKSPACE_ID } from "@/lib/services/workspace.service";
 
 // ─── Types ─────────────────────────────────────────────────────────
 
@@ -412,16 +411,16 @@ function MarketIntelligence() {
         </TabsList>
 
         <TabsContent value="listings">
-          <MarketListingsTab workspaceId={data?.workspaceId ?? DEFAULT_WORKSPACE_ID} />
+          <MarketListingsTab workspaceId={data?.workspaceId ?? ""} />
         </TabsContent>
         <TabsContent value="trends">
-          <MarketTrendsTab workspaceId={data?.workspaceId ?? DEFAULT_WORKSPACE_ID} />
+          <MarketTrendsTab workspaceId={data?.workspaceId ?? ""} />
         </TabsContent>
         <TabsContent value="compliance">
-          <MarketComplianceTab workspaceId={data?.workspaceId ?? DEFAULT_WORKSPACE_ID} />
+          <MarketComplianceTab workspaceId={data?.workspaceId ?? ""} />
         </TabsContent>
         <TabsContent value="ingestion">
-          <MarketIngestionTab workspaceId={data?.workspaceId ?? DEFAULT_WORKSPACE_ID} />
+          <MarketIngestionTab workspaceId={data?.workspaceId ?? ""} />
         </TabsContent>
       </Tabs>
 

@@ -4,7 +4,6 @@
  */
 
 import type { MarketTrend, MarketOpportunity, MarketListing, MarketCompliance } from "./types";
-import { DEFAULT_WORKSPACE_ID } from "@/lib/services/workspace.service";
 
 export interface IMarketRepository {
   getTrends(workspaceId: string): Promise<MarketTrend[]>;
@@ -129,6 +128,10 @@ export class SupabaseMarketRepository implements IMarketRepository {
   }
 
   async saveTrend(trend: MarketTrend, workspaceId?: string): Promise<void> {
+    const targetWorkspaceId = trend.metadata.workspaceId ?? workspaceId;
+    if (!targetWorkspaceId) {
+      throw new Error("saveTrend requires an explicit workspaceId; refusing to write to a default workspace");
+    }
     const { error } = await this.supabase
       .from("market_trends")
       .upsert({
@@ -138,7 +141,7 @@ export class SupabaseMarketRepository implements IMarketRepository {
         strength: trend.strength,
         time_window: trend.timeWindow,
         metadata: trend.metadata,
-        workspace_id: trend.metadata.workspaceId ?? workspaceId ?? DEFAULT_WORKSPACE_ID,
+        workspace_id: targetWorkspaceId,
         recorded_at: new Date().toISOString(),
       });
 
@@ -146,6 +149,10 @@ export class SupabaseMarketRepository implements IMarketRepository {
   }
 
   async recordOpportunity(opportunity: MarketOpportunity, workspaceId?: string): Promise<void> {
+    const targetWorkspaceId = opportunity.details.workspaceId ?? workspaceId;
+    if (!targetWorkspaceId) {
+      throw new Error("recordOpportunity requires an explicit workspaceId; refusing to write to a default workspace");
+    }
     const { error } = await this.supabase
       .from("market_opportunities")
       .upsert({
@@ -155,7 +162,7 @@ export class SupabaseMarketRepository implements IMarketRepository {
         estimated_value: opportunity.estimatedValue,
         details: opportunity.details,
         discovered_at: opportunity.discoveredAt.toISOString(),
-        workspace_id: opportunity.details.workspaceId ?? workspaceId ?? DEFAULT_WORKSPACE_ID,
+        workspace_id: targetWorkspaceId,
       });
 
     if (error) throw new Error(error.message);
