@@ -360,7 +360,7 @@ export const getBISnapshot = createServerFn({ method: "GET" })
         expectedImpact: decision.expectedBusinessImpact,
         priority: decision.severity as "CRITICAL" | "HIGH" | "MEDIUM" | "LOW",
         confidence: decision.confidence,
-        supportingMetrics: { decisionType: decision.decisionType, evidence: decision.evidence },
+        supportingMetrics: { decisionType: decision.decisionType, evidence: JSON.stringify(decision.evidence) },
         generatedAt: new Date().toISOString(),
         decisionReference: decision.decisionId,
         correlationId,

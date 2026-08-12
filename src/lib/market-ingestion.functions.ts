@@ -545,7 +545,7 @@ function adaptMarketIntelligenceToBISnapshot(
   intelligence: MarketIntelligence,
   recommendations?: MarketRecommendation[],
   deliveryStatus?: string,
-): MarketBISnapshot {
+): Omit<MarketBISnapshot, "workspaceId" | "correlationId"> {
   return {
     intelligence,
     recommendations,

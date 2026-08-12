@@ -161,7 +161,7 @@ export class SupabaseMarketRepository implements IMarketRepository {
         confidence: opportunity.confidence,
         estimated_value: opportunity.estimatedValue,
         details: opportunity.details,
-        discovered_at: opportunity.discoveredAt.toISOString(),
+        discovered_at: opportunity.discovered_at,
         workspace_id: targetWorkspaceId,
       });
 
@@ -193,9 +193,9 @@ export class SupabaseMarketRepository implements IMarketRepository {
         project: listing.project,
         rera_id: listing.reraId,
         url: listing.url,
-        scraped_at: listing.scrapedAt.toISOString(),
+        scraped_at: listing.scraped_at,
         workspace_id: listing.workspaceId,
-        created_at: listing.createdAt.toISOString(),
+        created_at: listing.created_at,
       });
 
     if (error) throw new Error(error.message);
@@ -214,13 +214,13 @@ export class SupabaseMarketRepository implements IMarketRepository {
         city: compliance.city,
         state: compliance.state,
         status: compliance.status,
-        registration_date: compliance.registrationDate?.toISOString(),
-        expiry_date: compliance.expiryDate?.toISOString(),
+        registration_date: compliance.registration_date,
+        expiry_date: compliance.expiry_date,
         url: compliance.url,
         notes: compliance.notes,
-        scraped_at: compliance.scrapedAt.toISOString(),
+        scraped_at: compliance.scraped_at,
         workspace_id: compliance.workspaceId,
-        created_at: compliance.createdAt.toISOString(),
+        created_at: compliance.created_at,
       });
 
     if (error) throw new Error(error.message);

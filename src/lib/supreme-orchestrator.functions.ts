@@ -11,7 +11,7 @@ import { approvalPolicyEngine } from "@/business-intelligence/supreme/approval-p
 import { communicationHubEventPublisher, communicationHub } from "@/business-intelligence/supreme/communication-hub";
 import { generateCorrelationId } from "@/lib/event-fabric/correlation-id";
 import { generateCausationId } from "@/lib/event-fabric/causation-id";
-import type { CRMKpiSnapshot } from "@/lib/crm.functions";
+import { getCRMKPIs } from "@/lib/crm.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { CustomerIntelligenceService } from "@/business-intelligence/customer/service";
 import { InventoryIntelligenceService } from "@/business-intelligence/inventory/service";
@@ -316,19 +316,12 @@ async function createOrchestratorInstance(workspaceId: string): Promise<SupremeI
   const realMarketService = new MarketIntelligenceService(marketRepository);
   const realMarketRiskEvaluator = new MarketRiskEvaluator();
 
-  const mockGetCRMKPIs = async (): Promise<CRMKpiSnapshot> => ({
-    pipelineValueInr: 0,
-    activeLeads: 0,
-    conversionRatePct: 0,
-    averageResponseSeconds: 0,
-  });
-
   return new SupremeIntelligenceOrchestrator(
     realCustomerService,
     realInventoryService,
     realMarketService,
     realMarketRiskEvaluator,
-    mockGetCRMKPIs,
+    getCRMKPIs,
   );
 }
 
