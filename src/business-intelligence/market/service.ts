@@ -59,7 +59,7 @@ export class MarketIntelligenceService {
    * Returns the full intelligence context: trends, opportunities, listings, compliance,
    * summary, groupings, price analysis, demand analysis, and opportunities.
    */
-  async getContext(workspaceId: string): Promise<MarketIntelligence> {
+  async getContext(workspaceId: string, dryRun = false): Promise<MarketIntelligence> {
     const [trends, opportunities, listings, compliance] = await Promise.all([
       this.getTrends(workspaceId),
       this.getOpportunities(workspaceId),
@@ -73,9 +73,14 @@ export class MarketIntelligenceService {
     const demandAnalysis = this.calculateDemandAnalysis(listings, trends);
     const opportunities_detected = this.identifyOpportunities(listings, trends, compliance);
 
-    // Persist newly identified opportunities
-    for (const opportunity of opportunities_detected) {
-      await this.repository.recordOpportunity(opportunity, workspaceId);
+    // Persist newly identified opportunities — SAFETY: skipped in dry-run so no
+    // DB write to market_opportunities occurs (DB MUTATIONS=0). Real market
+    // READS above remain live, and detected opportunities are still returned
+    // in-memory for the caller.
+    if (!dryRun) {
+      for (const opportunity of opportunities_detected) {
+        await this.repository.recordOpportunity(opportunity, workspaceId);
+      }
     }
 
     return {

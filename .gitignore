@@ -16,6 +16,11 @@ dist-ssr
 .nitro
 *.local
 
+# Environment files — never commit secrets or local configuration
+.env
+.env.*
+!.env.example
+
 # Wrangler / Cloudflare
 .wrangler/
 .dev.vars
@@ -30,3 +35,19 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+.claude/
+*-output.txt
+tsc-*.txt
+tsc_*.txt
+ts-check-final.txt
+tsconfig-check.txt
+dashboard_dump.txt
+crm_page.html
+dev-screenshot.png
+_auth_test.txt
+_app_copy.tsx
+run-dev.bat
+*.docx
+realtifyu_visuals/
+supabase/.temp/

@@ -1017,6 +1017,344 @@ export type Database = {
         }
         Relationships: []
       }
+      market_listings: {
+        Row: {
+          id: string
+          workspace_id: string
+          source: "magicbricks" | "99acres" | "housing"
+          city: string
+          locality: string | null
+          title: string | null
+          property_type: "apartment" | "villa" | "plot" | "commercial"
+          listing_type: "sale" | "rent"
+          price: number | null
+          price_unit: string
+          price_per_sqft: number | null
+          area_sqft: number | null
+          bedrooms: number | null
+          bathrooms: number | null
+          floor: string | null
+          total_floors: number | null
+          age_years: number | null
+          furnishing: "furnished" | "semi-furnished" | "unfurnished" | null
+          builder: string | null
+          project: string | null
+          rera_id: string | null
+          url: string | null
+          scraped_at: string
+          provider_record_id: string | null
+          idempotency_key: string
+          correlation_id: string | null
+          causation_id: string | null
+          occurred_at: string
+          recorded_at: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          workspace_id: string
+          source: "magicbricks" | "99acres" | "housing"
+          city: string
+          locality?: string | null
+          title?: string | null
+          property_type: "apartment" | "villa" | "plot" | "commercial"
+          listing_type: "sale" | "rent"
+          price?: number | null
+          price_unit?: string
+          price_per_sqft?: number | null
+          area_sqft?: number | null
+          bedrooms?: number | null
+          bathrooms?: number | null
+          floor?: string | null
+          total_floors?: number | null
+          age_years?: number | null
+          furnishing?: "furnished" | "semi-furnished" | "unfurnished" | null
+          builder?: string | null
+          project?: string | null
+          rera_id?: string | null
+          url?: string | null
+          scraped_at: string
+          provider_record_id?: string | null
+          idempotency_key: string
+          correlation_id?: string | null
+          causation_id?: string | null
+          occurred_at: string
+          recorded_at?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          workspace_id?: string
+          source?: "magicbricks" | "99acres" | "housing"
+          city?: string
+          locality?: string | null
+          title?: string | null
+          property_type?: "apartment" | "villa" | "plot" | "commercial"
+          listing_type?: "sale" | "rent"
+          price?: number | null
+          price_unit?: string
+          price_per_sqft?: number | null
+          area_sqft?: number | null
+          bedrooms?: number | null
+          bathrooms?: number | null
+          floor?: string | null
+          total_floors?: number | null
+          age_years?: number | null
+          furnishing?: "furnished" | "semi-furnished" | "unfurnished" | null
+          builder?: string | null
+          project?: string | null
+          rera_id?: string | null
+          url?: string | null
+          scraped_at?: string
+          provider_record_id?: string | null
+          idempotency_key?: string
+          correlation_id?: string | null
+          causation_id?: string | null
+          occurred_at?: string
+          recorded_at?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "market_listings_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      market_trends: {
+        Row: {
+          id: string
+          workspace_id: string
+          city: string
+          locality: string
+          property_type: "apartment" | "villa" | "plot" | "commercial"
+          avg_price_per_sqft: number
+          median_price: number | null
+          total_listings: number
+          price_change_pct: number | null
+          demand_index: number | null
+          source: "magicbricks" | "99acres" | "computed"
+          period: string
+          recorded_at: string
+          provider_record_id: string | null
+          idempotency_key: string
+          correlation_id: string | null
+          causation_id: string | null
+          occurred_at: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          workspace_id: string
+          city: string
+          locality: string
+          property_type: "apartment" | "villa" | "plot" | "commercial"
+          avg_price_per_sqft: number
+          median_price?: number | null
+          total_listings: number
+          price_change_pct?: number | null
+          demand_index?: number | null
+          source: "magicbricks" | "99acres" | "computed"
+          period: string
+          recorded_at: string
+          provider_record_id?: string | null
+          idempotency_key: string
+          correlation_id?: string | null
+          causation_id?: string | null
+          occurred_at: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          workspace_id?: string
+          city?: string
+          locality?: string
+          property_type?: "apartment" | "villa" | "plot" | "commercial"
+          avg_price_per_sqft?: number
+          median_price?: number | null
+          total_listings?: number
+          price_change_pct?: number | null
+          demand_index?: number | null
+          source?: "magicbricks" | "99acres" | "computed"
+          period?: string
+          recorded_at?: string
+          provider_record_id?: string | null
+          idempotency_key?: string
+          correlation_id?: string | null
+          causation_id?: string | null
+          occurred_at?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "market_trends_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      market_compliance: {
+        Row: {
+          id: string
+          workspace_id: string
+          source: string
+          record_type: "project_registration" | "notice" | "amendment" | "violation"
+          project_name: string
+          promoter: string | null
+          rera_number: string
+          city: string
+          state: string
+          status: "registered" | "revoked" | "lapsed" | "under_review"
+          registration_date: string | null
+          expiry_date: string | null
+          url: string | null
+          notes: string | null
+          scraped_at: string
+          provider_record_id: string | null
+          idempotency_key: string
+          correlation_id: string | null
+          causation_id: string | null
+          occurred_at: string
+          recorded_at: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          workspace_id: string
+          source: string
+          record_type: "project_registration" | "notice" | "amendment" | "violation"
+          project_name: string
+          promoter?: string | null
+          rera_number: string
+          city: string
+          state: string
+          status: "registered" | "revoked" | "lapsed" | "under_review"
+          registration_date?: string | null
+          expiry_date?: string | null
+          url?: string | null
+          notes?: string | null
+          scraped_at: string
+          provider_record_id?: string | null
+          idempotency_key: string
+          correlation_id?: string | null
+          causation_id?: string | null
+          occurred_at: string
+          recorded_at?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          workspace_id?: string
+          source?: string
+          record_type?: "project_registration" | "notice" | "amendment" | "violation"
+          project_name?: string
+          promoter?: string | null
+          rera_number?: string
+          city?: string
+          state?: string
+          status?: "registered" | "revoked" | "lapsed" | "under_review"
+          registration_date?: string | null
+          expiry_date?: string | null
+          url?: string | null
+          notes?: string | null
+          scraped_at?: string
+          provider_record_id?: string | null
+          idempotency_key?: string
+          correlation_id?: string | null
+          causation_id?: string | null
+          occurred_at?: string
+          recorded_at?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "market_compliance_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      market_ingestion_runs: {
+        Row: {
+          id: string
+          workspace_id: string
+          correlation_id: string
+          causation_id: string | null
+          source: string
+          status: "pending" | "processing" | "completed" | "failed" | "partial"
+          listings_ingested: number
+          listings_duplicates: number
+          trends_ingested: number
+          trends_duplicates: number
+          compliance_ingested: number
+          compliance_duplicates: number
+          errors: Json | null
+          started_at: string
+          completed_at: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          workspace_id: string
+          correlation_id: string
+          causation_id?: string | null
+          source: string
+          status: "pending" | "processing" | "completed" | "failed" | "partial"
+          listings_ingested?: number
+          listings_duplicates?: number
+          trends_ingested?: number
+          trends_duplicates?: number
+          compliance_ingested?: number
+          compliance_duplicates?: number
+          errors?: Json | null
+          started_at?: string
+          completed_at?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          workspace_id?: string
+          correlation_id?: string
+          causation_id?: string | null
+          source?: string
+          status?: "pending" | "processing" | "completed" | "failed" | "partial"
+          listings_ingested?: number
+          listings_duplicates?: number
+          trends_ingested?: number
+          trends_duplicates?: number
+          compliance_ingested?: number
+          compliance_duplicates?: number
+          errors?: Json | null
+          started_at?: string
+          completed_at?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "market_ingestion_runs_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       workspace_members: {
         Row: {
           created_at: string

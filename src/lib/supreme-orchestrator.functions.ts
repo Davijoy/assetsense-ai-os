@@ -5,6 +5,10 @@
  * running proof scenarios, and managing approval workflows.
  */
 
+import { createServerFn } from "@tanstack/react-start";
+import { requireRoles } from "@/integrations/supabase/role-middleware";
+import { getCurrentWorkspaceId } from "@/lib/services/workspace.service";
+import { z } from "zod";
 import type { OrchestrationResult, ProofScenarioInput, ProofScenarioOutput } from "@/business-intelligence/supreme/types";
 import { SupremeIntelligenceOrchestrator } from "@/business-intelligence/supreme/service";
 import { approvalPolicyEngine } from "@/business-intelligence/supreme/approval-policy";
@@ -12,7 +16,6 @@ import { communicationHubEventPublisher, communicationHub } from "@/business-int
 import { generateCorrelationId } from "@/lib/event-fabric/correlation-id";
 import { generateCausationId } from "@/lib/event-fabric/causation-id";
 import { getCRMKPIs } from "@/lib/crm.functions";
-import { supabase } from "@/integrations/supabase/client";
 import { CustomerIntelligenceService } from "@/business-intelligence/customer/service";
 import { InventoryIntelligenceService } from "@/business-intelligence/inventory/service";
 import type { ICustomerRepository } from "@/business-intelligence/customer/repository";
@@ -32,12 +35,28 @@ interface ServerFunctionContext {
   causationId?: string;
 }
 
+// Re-export the single-sourced execution authorization policy so consumers and
+// the test suite share the exact allow-set enforced by the server functions.
+export { ORCHESTRATION_EXEC_ROLES, canExecuteSupreme } from "@/business-intelligence/supreme/authorization";
+
 /** Orchestration request */
 export interface OrchestrationRequest {
   workspaceId: string;
   correlationId?: string;
   causationId?: string;
   dryRun?: boolean;
+  /**
+   * SENTINEL FORT handoff (advisory identity/experience context only).
+   * NEVER used for authorization — server-side DB-backed roles remain
+   * the sole authority. The orchestrator may read it to tailor reasoning;
+   * it does not alter RBAC, workspace isolation or dry-run safety.
+   */
+  sentinelContext?: {
+    persona?: string | null;
+    intent?: string | null;
+    objectiveLabel?: string | null;
+    experiencePriorities?: readonly string[];
+  } | null;
 }
 
 /** Orchestration response */
@@ -81,6 +100,27 @@ export interface ApprovalDecisionRequest {
   actionsRejected?: string[];
 }
 
+// Server-fn input schemas — type the createServerFn input so the framework
+// propagates the correct caller-facing input type (and any runtime fields).
+const OrchestrationRequestSchema = z.object({
+  workspaceId: z.string().min(1),
+  correlationId: z.string().optional(),
+  causationId: z.string().optional(),
+  dryRun: z.boolean().optional(),
+});
+
+const ProofScenarioRequestSchema = z.object({
+  workspaceId: z.string().min(1),
+  correlationId: z.string().optional(),
+  causationId: z.string().optional(),
+  customerId: z.string().min(1),
+  customerCity: z.string().min(1),
+  customerPropertyType: z.string().min(1),
+  leadId: z.string().optional(),
+  assetIds: z.array(z.string()).optional(),
+  dryRun: z.boolean().optional(),
+});
+
 /** Approval decision response */
 export interface ApprovalDecisionResponse {
   success: boolean;
@@ -91,120 +131,161 @@ export interface ApprovalDecisionResponse {
 
 /**
  * Run the Supreme Intelligence Orchestration
+ *
+ * AUTHORIZATION: enforced SERVER-SIDE via the canonical `requireAdminOrManager`
+ * middleware (src/integrations/supabase/role-middleware.ts), which resolves the
+ * caller from the bearer token and reads roles from the DB-backed
+ * `public.user_roles` table. Authorization no longer trusts any caller-supplied
+ * role value — only server-resolved DB roles. Only `admin` / `manager` may
+ * execute — NOT viewer/builder/developer/agent.
+ *
+ * B1: the active workspace is resolved SERVER-SIDE via the RLS-safe
+ * `current_workspace_id` RPC; a client-supplied workspaceId is only used to
+ * detect a mismatch and is never trusted as the boundary.
  */
-export async function runSupremeOrchestration(
-  request: OrchestrationRequest,
-  context: ServerFunctionContext,
-): Promise<OrchestrationResponse> {
-  try {
-    // Validate workspace access
-    if (request.workspaceId !== context.workspaceId) {
+export const runSupremeOrchestration = createServerFn({ method: "POST" })
+  .middleware([requireRoles(["admin", "manager"])])
+  .validator(OrchestrationRequestSchema)
+  // Handler returns the payload untyped — TanStack's compile-time
+  // ValidateSerializableMapped guard rejects OrchestrationResult's
+  // `Record<string, ...>` fields (the SAME pre-existing limitation carried by
+  // getBISnapshot / getCustomerBISnapshot / ingestMarketData). Callers re-type
+  // the response as OrchestrationResponse; the payload is JSON-serializable.
+  .handler(async ({ data, context }) => {
+    const { supabase } = context as { supabase: any };
+    const request = data as OrchestrationRequest;
+
+    const resolvedWorkspaceId = await getCurrentWorkspaceId(supabase);
+    if (!resolvedWorkspaceId) {
+      return { success: false, error: "No active workspace membership" };
+    }
+    if (request.workspaceId && request.workspaceId !== resolvedWorkspaceId) {
+      return { success: false, error: "Workspace ID mismatch" };
+    }
+    const workspaceId = resolvedWorkspaceId;
+
+    try {
+      // Real services wired with the bearer-authenticated server Supabase client.
+      const orchestrator = await createOrchestratorInstance(supabase);
+
+      // Run orchestration
+      const correlationId = request.correlationId ?? generateCorrelationId();
+      const causationId = request.causationId ?? generateCausationId();
+
+      const result = await orchestrator.orchestrate(
+        workspaceId,
+        correlationId,
+        causationId,
+        request.dryRun ?? false,
+      );
+
+      // Publish events and send notifications — SAFETY: skipped in dry-run so no
+      // approvals, recommendations, or communication-hub events are dispatched
+      // and no external actions execute (DB MUTATIONS=0, NOTIFICATIONS=0,
+      // EXTERNAL ACTIONS=0, COMMUNICATION DISPATCHES=0). Orchestration,
+      // correlations, decisions, recommendations and evidence remain produced
+      // in-memory for the caller.
+      if (!(request.dryRun ?? false)) {
+        await publishOrchestrationEvents(result);
+      }
+
+      return {
+        success: true,
+        orchestrationId: result.orchestrationId,
+        result,
+        traceId: result.trace.traceId,
+      } as any;
+    } catch (error) {
+      console.error("Supreme orchestration failed:", error);
       return {
         success: false,
-        error: "Workspace ID mismatch",
+        error: error instanceof Error ? error.message : "Unknown error",
       };
     }
-
-    // Check user permissions
-    if (!context.userRoles.includes("admin") && !context.userRoles.includes("manager")) {
-      return {
-        success: false,
-        error: "Insufficient permissions to run orchestration",
-      };
-    }
-
-    // Create orchestrator instance (in production, this would be injected)
-    const orchestrator = await createOrchestratorInstance(context.workspaceId);
-
-    // Run orchestration
-    const correlationId = request.correlationId ?? generateCorrelationId();
-    const causationId = request.causationId ?? generateCausationId();
-
-    const result = await orchestrator.orchestrate(
-      request.workspaceId,
-      correlationId,
-      causationId,
-      request.dryRun ?? false,
-    );
-
-    // Publish events and send notifications
-    await publishOrchestrationEvents(result);
-
-    return {
-      success: true,
-      orchestrationId: result.orchestrationId,
-      result,
-      traceId: result.trace.traceId,
-    };
-  } catch (error) {
-    console.error("Supreme orchestration failed:", error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "Unknown error",
-    };
-  }
-}
+  });
 
 /**
  * Run the proof scenario
+ *
+ * AUTHORIZATION: enforced SERVER-SIDE via the same canonical
+ * `requireAdminOrManager` middleware (DB-backed `public.user_roles`). No caller-
+ * supplied role value is trusted. Only `admin` / `manager` may execute — NOT
+ * viewer/builder/developer/agent.
  */
-export async function runProofScenario(
-  request: ProofScenarioRequest,
-  context: ServerFunctionContext,
-): Promise<ProofScenarioResponse> {
-  try {
-    // Validate workspace access
-    if (request.workspaceId !== context.workspaceId) {
+export const runProofScenario = createServerFn({ method: "POST" })
+  .middleware([requireRoles(["admin", "manager"])])
+  .validator(ProofScenarioRequestSchema)
+  // Handler returns the payload untyped — see note on runSupremeOrchestration
+  // (TanStack ValidateSerializableMapped guard vs Record<...> fields).
+  .handler(async ({ data, context }) => {
+    const { supabase } = context as { supabase: any };
+    const request = data as ProofScenarioRequest;
+
+    const resolvedWorkspaceId = await getCurrentWorkspaceId(supabase);
+    if (!resolvedWorkspaceId) {
+      return { success: false, error: "No active workspace membership" };
+    }
+    if (request.workspaceId && request.workspaceId !== resolvedWorkspaceId) {
+      return { success: false, error: "Workspace ID mismatch" };
+    }
+    const workspaceId = resolvedWorkspaceId;
+
+    try {
+      // Real services wired with the bearer-authenticated server Supabase client.
+      const orchestrator = await createOrchestratorInstance(supabase);
+
+      // Run proof scenario
+      const correlationId = request.correlationId ?? generateCorrelationId();
+      const causationId = request.causationId ?? generateCausationId();
+
+      const input: ProofScenarioInput = {
+        workspaceId,
+        correlationId,
+        causationId,
+        customerId: request.customerId,
+        customerCity: request.customerCity,
+        customerPropertyType: request.customerPropertyType,
+        leadId: request.leadId,
+        assetIds: request.assetIds,
+        dryRun: request.dryRun ?? true,
+      };
+
+      const result = await orchestrator.runProofScenario(input);
+
+      // Publish proof scenario event
+      await publishProofScenarioEvent(result);
+
+      return {
+        success: true,
+        result,
+      } as any;
+    } catch (error) {
+      console.error("Proof scenario failed:", error);
       return {
         success: false,
-        error: "Workspace ID mismatch",
+        error: error instanceof Error ? error.message : "Unknown error",
       };
     }
+  });
 
-    // Check user permissions
-    if (!context.userRoles.includes("admin") && !context.userRoles.includes("manager") && !context.userRoles.includes("senior_agent")) {
-      return {
-        success: false,
-        error: "Insufficient permissions to run proof scenario",
-      };
-    }
+/**
+ * Typed caller aliases.
+ *
+ * TanStack Start's caller-visible type for a middleware'd + validated server fn
+ * resolves to the internal FetcherDataOptions wrapper in this version. These
+ * aliases type the invocation as the canonical TanStack shape
+ * `{ data: <payload> }` (see src/lib/api/example.functions.ts) so call sites
+ * MUST pass the `{ data: ... }` envelope — a bare payload will not compile.
+ * Runtime call is unchanged and still runs server-side under the
+ * requireRoles([admin, manager]) DB-backed middleware.
+ */
+export const invokeSupremeOrchestration = runSupremeOrchestration as unknown as (
+  input: { data: OrchestrationRequest },
+) => Promise<OrchestrationResponse>;
 
-    // Create orchestrator instance
-    const orchestrator = await createOrchestratorInstance(context.workspaceId);
-
-    // Run proof scenario
-    const correlationId = request.correlationId ?? generateCorrelationId();
-    const causationId = request.causationId ?? generateCausationId();
-
-    const input: ProofScenarioInput = {
-      workspaceId: request.workspaceId,
-      correlationId,
-      causationId,
-      customerId: request.customerId,
-      customerCity: request.customerCity,
-      customerPropertyType: request.customerPropertyType,
-      leadId: request.leadId,
-      assetIds: request.assetIds,
-      dryRun: request.dryRun ?? true,
-    };
-
-    const result = await orchestrator.runProofScenario(input);
-
-    // Publish proof scenario event
-    await publishProofScenarioEvent(result);
-
-    return {
-      success: true,
-      result,
-    };
-  } catch (error) {
-    console.error("Proof scenario failed:", error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "Unknown error",
-    };
-  }
-}
+export const invokeSupremeProofScenario = runProofScenario as unknown as (
+  input: { data: ProofScenarioRequest },
+) => Promise<ProofScenarioResponse>;
 
 /**
  * Process approval decision
@@ -303,9 +384,8 @@ export async function getApprovalRequestStatus(
 
 // ─── Private helper functions ────────────────────────────────────────
 
-async function createOrchestratorInstance(workspaceId: string): Promise<SupremeIntelligenceOrchestrator> {
-  // In a real implementation, these would be properly injected services
-
+async function createOrchestratorInstance(supabase: any): Promise<SupremeIntelligenceOrchestrator> {
+  // Real services wired with the bearer-authenticated server-side Supabase client.
   const customerRepository = new SupabaseCustomerRepository(supabase);
   const realCustomerService = new CustomerIntelligenceService(customerRepository);
 

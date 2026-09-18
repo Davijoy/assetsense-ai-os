@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Play, Sparkles } from "lucide-react";
 import heroImg from "@/assets/hero-dashboard.jpg";
@@ -22,11 +23,15 @@ export function Hero() {
             automation and AI-powered decision making.
           </p>
           <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
-            <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow h-12 px-7">
-              Start Free Trial <ArrowRight className="ml-2 h-4 w-4" />
+            <Button asChild size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow h-12 px-7">
+              <Link to="/auth" search={{ next: "/fort" }}>
+                Start Free Trial <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
             </Button>
-            <Button size="lg" variant="outline" className="h-12 px-7 border-border bg-surface/50 backdrop-blur hover:bg-surface">
-              <Play className="mr-2 h-4 w-4" /> Book a Demo
+            <Button asChild size="lg" variant="outline" className="h-12 px-7 border-gold/40 text-gold bg-surface/50 backdrop-blur hover:bg-gold/10 hover:text-gold">
+              <Link to="/fort">
+                <Play className="mr-2 h-4 w-4" /> Enter Sentinel Fort
+              </Link>
             </Button>
           </div>
           <p className="mt-6 text-xs text-muted-foreground">

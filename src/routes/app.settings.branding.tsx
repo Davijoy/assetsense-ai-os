@@ -1,11 +1,18 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
+import { isRouteAuthorized } from "@/lib/route-roles";
 import { useRef, useState } from "react";
 import { Upload, RotateCcw, Check } from "lucide-react";
 import { useBranding } from "@/components/brand/BrandingContext";
-import shieldAsset from "@/assets/sentinel-shield.png.asset.json";
+import { DEFAULT_SENTINEL_LOGO } from "@/components/brand/Logo";
 
 export const Route = createFileRoute("/app/settings/branding")({
   head: () => ({ meta: [{ title: "Branding — Sentinel Fort Group" }] }),
+  beforeLoad: async ({ context, location }) => {
+    const roles = (context as any)?.user?.roles ?? (context as any)?.fort?.role?.appRoles ?? [];
+    if (roles.length > 0 && !isRouteAuthorized(roles, location.pathname)) {
+      throw redirect({ to: "/fort" });
+    }
+  },
   component: BrandingSettings,
 });
 
@@ -25,8 +32,8 @@ function BrandingSettings() {
   const lightInput = useRef<HTMLInputElement>(null);
   const darkInput = useRef<HTMLInputElement>(null);
 
-  const currentLight = previews.light ?? logoUrl ?? shieldAsset.url;
-  const currentDark = previews.dark ?? logoUrlDark ?? logoUrl ?? shieldAsset.url;
+  const currentLight = previews.light ?? logoUrl ?? DEFAULT_SENTINEL_LOGO;
+  const currentDark = previews.dark ?? logoUrlDark ?? logoUrl ?? DEFAULT_SENTINEL_LOGO;
 
   const handleFile = (variant: Variant, file: File) => {
     setError(null);

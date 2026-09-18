@@ -61,15 +61,23 @@ function chunkText(text: string, target = 1100, overlap = 150): string[] {
   return chunks.filter((c) => c.length > 30);
 }
 
-async function embedBatch(apiKey: string, inputs: string[]): Promise<number[][]> {
-  const res = await fetch("https://ai.gateway.lovable.dev/v1/embeddings", {
+function getAiConfig() {
+  const apiKey = process.env.OPENAI_API_KEY || process.env.AI_API_KEY;
+  const baseUrl = (process.env.OPENAI_BASE_URL || process.env.AI_GATEWAY_URL || "https://api.openai.com/v1").replace(/\/+$/, "");
+  const chatModel = process.env.AI_CHAT_MODEL || "gpt-4o-mini";
+  const embeddingModel = process.env.AI_EMBEDDING_MODEL || "text-embedding-3-small";
+  return { apiKey, baseUrl, chatModel, embeddingModel };
+}
+
+async function embedBatch(apiKey: string, baseUrl: string, model: string, inputs: string[]): Promise<number[][]> {
+  const res = await fetch(`${baseUrl}/embeddings`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: "openai/text-embedding-3-small",
+      model: model,
       input: inputs,
     }),
   });
@@ -87,8 +95,10 @@ export const ingestKieDocument = createServerFn({ method: "POST" })
   .middleware([requireRoles(["admin", "manager"])])
   .inputValidator((input: unknown) => ingestSchema.parse(input))
   .handler(async ({ data }) => {
-    const apiKey = process.env.LOVABLE_API_KEY;
-    if (!apiKey) throw new Error("LOVABLE_API_KEY missing");
+    const { apiKey, baseUrl, chatModel, embeddingModel } = getAiConfig();
+    if (!apiKey) {
+      throw new Error("AI provider not configured: OPENAI_API_KEY missing. Please configure OPENAI_API_KEY in environment variables.");
+    }
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     let docId: string;
@@ -129,7 +139,7 @@ export const ingestKieDocument = createServerFn({ method: "POST" })
       const BATCH = 32;
       for (let i = 0; i < chunks.length; i += BATCH) {
         const slice = chunks.slice(i, i + BATCH);
-        const embeds = await embedBatch(apiKey, slice);
+        const embeds = await embedBatch(apiKey, baseUrl, embeddingModel, slice);
         allEmbeddings.push(...embeds);
       }
 
@@ -146,14 +156,14 @@ export const ingestKieDocument = createServerFn({ method: "POST" })
 
       // 4) summarize + extract via chat model
       const sample = chunks.slice(0, 4).join("\n\n").slice(0, 8000);
-      const sumRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      const sumRes = await fetch(`${baseUrl}/chat/completions`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${apiKey}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "google/gemini-3-flash-preview",
+          model: chatModel,
           messages: [
             {
               role: "system",
@@ -223,13 +233,15 @@ export const chatWithKieDocs = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => chatSchema.parse(input))
   .handler(async ({ data, context }) => {
     const { supabase } = context as { supabase: any };
-    const apiKey = process.env.LOVABLE_API_KEY;
-    if (!apiKey) throw new Error("LOVABLE_API_KEY missing");
+    const { apiKey, baseUrl, chatModel, embeddingModel } = getAiConfig();
+    if (!apiKey) {
+      throw new Error("AI provider not configured: OPENAI_API_KEY missing. Please configure OPENAI_API_KEY in environment variables.");
+    }
 
     const lastUser = [...data.messages].reverse().find((m) => m.role === "user");
     if (!lastUser) return { reply: "(no question)", sources: [] };
 
-    const [queryEmbedding] = await embedBatch(apiKey, [lastUser.content]);
+    const [queryEmbedding] = await embedBatch(apiKey, baseUrl, embeddingModel, [lastUser.content]);
     const vectorLiteral = `[${queryEmbedding.join(",")}]`;
 
     const { data: matches, error } = await supabase.rpc("match_kie_chunks", {
@@ -254,14 +266,14 @@ Format: Headline → 2-4 bullet insights with hard numbers → Recommendation (b
 SOURCES:
 ${ctxBlocks || "(no matching context found)"}`;
 
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const res = await fetch(`${baseUrl}/chat/completions`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: chatModel,
         messages: [{ role: "system", content: system }, ...data.messages],
       }),
     });

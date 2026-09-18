@@ -15,50 +15,108 @@ import {
   Gauge,
   ShieldCheck,
   RefreshCw,
+  CheckCircle2,
 } from "lucide-react";
+
+import { isRouteAuthorized } from "@/lib/route-roles";
 
 export const Route = createFileRoute("/app/inventory")({
   head: () => ({ meta: [{ title: "Inventory Intelligence — Sentinel KIE" }] }),
   ssr: false,
-  beforeLoad: async () => {
-    const { data } = await supabase.auth.getSession();
-    if (!data.session?.access_token) {
+  beforeLoad: async ({ context, location }) => {
+    let session: any = null;
+    try {
+      const { data } = await supabase.auth.getSession();
+      session = data?.session;
+    } catch {}
+    if (!session?.access_token && typeof window !== "undefined") {
+      try {
+        const { getStoredSupabaseSession } = await import("@/integrations/supabase/auth-storage");
+        session = getStoredSupabaseSession();
+      } catch {}
+    }
+    if (!session?.access_token) {
       throw redirect({ to: "/auth" });
     }
-    return { accessToken: data.session.access_token };
+    const roles = (context as any)?.user?.roles ?? (context as any)?.fort?.role?.appRoles ?? [];
+    if (roles.length > 0 && !isRouteAuthorized(roles, location.pathname)) {
+      throw redirect({ to: "/fort" });
+    }
+    return { accessToken: session.access_token };
   },
   component: Inventory,
 });
 
-const TOWERS = [
-  { project: "Lodha Park", tower: "Tower A", total: 84, sold: 71, velocity: 4.2, health: 92, risk: "low" },
-  { project: "Lodha Park", tower: "Tower B", total: 96, sold: 38, velocity: 1.4, health: 48, risk: "high" },
-  { project: "Prestige Falcon", tower: "Phase 1", total: 120, sold: 96, velocity: 5.1, health: 88, risk: "low" },
-  { project: "Hiranandani Powai", tower: "Block C", total: 64, sold: 41, velocity: 2.8, health: 71, risk: "medium" },
-  { project: "Brigade Cornerstone", tower: "Tower D", total: 78, sold: 22, velocity: 1.1, health: 38, risk: "high" },
-  { project: "Sobha Dream Acres", tower: "Cluster 7", total: 142, sold: 118, velocity: 6.4, health: 94, risk: "low" },
-];
+type LiveTower = {
+  project: string;
+  tower: string;
+  total: number;
+  sold: number;
+  velocity: number;
+  health: number;
+  risk: "low" | "medium" | "high";
+};
 
-const RECS = [
-  {
-    impact: 96,
-    tower: "Lodha Park · Tower B",
-    title: "Launch 60-day incentive on 3BHK inventory",
-    detail: "Absorption stalled at 1.4 units/wk vs 4.2 in Tower A. Pricing 7% above comps. Forecast: clear 18 units in 8 weeks.",
-  },
-  {
-    impact: 89,
-    tower: "Brigade Cornerstone · Tower D",
-    title: "Reprice or reposition — health score 38",
-    detail: "Only 22/78 sold over 11 months. Channel partner activation + ₹150/sqft reduction could unlock 24 bookings.",
-  },
-  {
-    impact: 74,
-    tower: "Sobha Dream Acres · Cluster 7",
-    title: "Hold pricing, increase NRI channel mix",
-    detail: "Velocity 6.4 units/wk. Last 24 units likely to clear at +3% premium. No discounting needed.",
-  },
-];
+function buildLiveTowers(snapshot?: {
+  kpis?: { units_sold?: number; sales_velocity_days?: number; revenue_delta_pct?: number };
+  regions?: Array<{ name: string; deals: number; rev: number; growth: number }>;
+  intelligence?: {
+    groupings?: {
+      byCity?: Array<{ name: string; total: number; available: number; sold: number; reserved: number; blocked: number; value: number }>;
+      byProject?: Array<{ name: string; total: number; available: number; sold: number; reserved: number; blocked: number; value: number }>;
+    };
+    inventorySummary?: {
+      total?: number;
+      available?: number;
+      sold?: number;
+      reserved?: number;
+      blocked?: number;
+      availabilityPct?: number;
+      absorptionPct?: number;
+      totalValue?: number;
+      availableValue?: number;
+      soldValue?: number;
+    };
+  };
+}): LiveTower[] {
+  const regions = snapshot?.regions ?? [];
+
+  if (regions.length > 0) {
+    return regions.slice(0, 6).map((region, index) => {
+      const total = Math.max(1, Math.round(region.deals || 10));
+      const sold = Math.max(1, Math.min(total, Math.round(total * 0.7)));
+      const health = Math.max(0, Math.min(100, Math.round((region.growth || 0) * 0.9)));
+      const risk = health < 60 ? "high" : health < 80 ? "medium" : "low";
+
+      return {
+        project: region.name,
+        tower: `Zone ${index + 1}`,
+        total,
+        sold,
+        velocity: Math.max(0.1, Number((region.growth || 0) / 20)),
+        health,
+        risk,
+      };
+    });
+  }
+
+  const unitsSold = snapshot?.kpis?.units_sold ?? 0;
+  const total = Math.max(1, unitsSold || 1);
+  const health = Math.max(0, Math.min(100, 60 + (snapshot?.kpis?.revenue_delta_pct ?? 0)));
+  const risk = health < 60 ? "high" : health < 80 ? "medium" : "low";
+
+  return [
+    {
+      project: "Live BI",
+      tower: "Inventory Pulse",
+      total,
+      sold: Math.max(1, Math.min(total, unitsSold || 1)),
+      velocity: snapshot?.kpis?.sales_velocity_days ?? 0,
+      health,
+      risk,
+    },
+  ];
+}
 
 function Inventory() {
   const fetchSnapshot = useServerFn(getBISnapshot);
@@ -69,10 +127,17 @@ function Inventory() {
     refetchInterval: 30_000,
     enabled: !!accessToken,
   });
-  const totalUnits = TOWERS.reduce((s, t) => s + t.total, 0);
-  const soldUnits = TOWERS.reduce((s, t) => s + t.sold, 0);
-  const absorption = Math.round((soldUnits / totalUnits) * 100);
-  const atRisk = TOWERS.filter((t) => t.risk === "high").length;
+
+  const summary = data?.intelligence?.inventorySummary;
+  const totalUnits = summary?.total ?? data?.kpis?.units_sold ?? 0;
+  const soldUnits = summary?.sold ?? data?.kpis?.units_sold ?? 0;
+  const availableUnits = summary?.available ?? 0;
+  const absorption = summary?.absorptionPct ?? data?.kpis?.revenue_delta_pct ?? 0;
+  const avgVelocity = data?.kpis?.sales_velocity_days ?? 0;
+  const liveTowers = buildLiveTowers(data);
+  const atRisk = liveTowers.filter((t) => t.risk === "high").length;
+  const recommendations = data?.recommendations ?? [];
+  const deliveryStatus = data?.deliveryStatus ?? "pending";
 
   return (
     <div className="space-y-8">
@@ -105,9 +170,9 @@ function Inventory() {
       )}
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <Kpi icon={Layers} label="Total Units" value={totalUnits.toString()} delta={`${TOWERS.length} towers`} muted />
+        <Kpi icon={Layers} label="Total Units" value={totalUnits.toString()} delta={`${availableUnits} available`} muted />
         <Kpi icon={Building2} label="Sold" value={soldUnits.toString()} delta={`${absorption}% absorption`} />
-        <Kpi icon={Gauge} label="Velocity (avg)" value={`${(TOWERS.reduce((s, t) => s + t.velocity, 0) / TOWERS.length).toFixed(1)}/wk`} delta="+0.6 MoM" />
+        <Kpi icon={Gauge} label="Velocity (avg)" value={`${avgVelocity}d`} delta="Live signal" />
         <Kpi
           icon={AlertTriangle}
           label="At-Risk Towers"
@@ -120,7 +185,7 @@ function Inventory() {
       <div>
         <h3 className="mb-4 font-display text-2xl">Tower Health Matrix</h3>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {TOWERS.map((t) => (
+          {liveTowers.map((t) => (
             <TowerCard key={t.tower + t.project} {...t} />
           ))}
         </div>
@@ -130,29 +195,53 @@ function Inventory() {
         <h3 className="mb-4 flex items-center gap-2 font-display text-2xl">
           <Sparkles className="h-5 w-5 text-primary" /> AI Inventory Recommendations
         </h3>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          {RECS.map((r) => (
-            <div key={r.title} className="rounded-2xl border border-border/60 bg-card p-5">
-              <div className="flex items-center justify-between text-[10px] uppercase tracking-wider">
-                <span className="text-primary">Impact {r.impact}</span>
-                <ShieldCheck className="h-3 w-3 text-primary" />
+        {recommendations.length > 0 ? (
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            {recommendations.map((r) => (
+              <div key={r.id} className="rounded-2xl border border-border/60 bg-card p-5">
+                <div className="flex items-center justify-between text-[10px] uppercase tracking-wider">
+                  <span className={r.priority === "CRITICAL" ? "text-destructive" : r.priority === "HIGH" ? "text-amber-400" : "text-primary"}>{r.priority} · Impact {Math.round(r.confidence * 100)}</span>
+                  <ShieldCheck className="h-3 w-3 text-primary" />
+                </div>
+                <div className="mt-2 text-xs text-muted-foreground">{r.affectedSegment}</div>
+                <h4 className="mt-2 font-display text-lg leading-snug">{r.title}</h4>
+                <p className="mt-2 text-xs text-muted-foreground">{r.businessReason}</p>
+                <div className="mt-3 rounded-lg bg-surface p-2 text-xs text-primary">
+                  <span className="font-semibold">Action: </span>{r.recommendedAction}
+                </div>
+                <div className="mt-2 text-[10px] text-muted-foreground">
+                  <span className="font-semibold">Expected: </span>{r.expectedImpact}
+                </div>
               </div>
-              <div className="mt-2 text-xs text-muted-foreground">{r.tower}</div>
-              <h4 className="mt-2 font-display text-lg leading-snug">{r.title}</h4>
-              <p className="mt-2 text-xs text-muted-foreground">{r.detail}</p>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-border/60 bg-card p-5 text-center">
+            <CheckCircle2 className="mx-auto h-8 w-8 text-primary" />
+            <p className="mt-2 text-sm text-muted-foreground">
+              {totalUnits === 0
+                ? "No inventory data available for this workspace yet."
+                : "Inventory is healthy — no qualifying risk recommendations at this time."}
+            </p>
+          </div>
+        )}
       </div>
 
-      <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
-        Live snapshot · sync {data ? new Date(data.generated_at).toLocaleTimeString() : "…"}
-      </p>
+      <div className="flex items-center justify-between text-[10px] uppercase tracking-wider text-muted-foreground">
+        <span>
+          Live snapshot · sync {data ? new Date(data.generated_at).toLocaleTimeString() : "…"}
+        </span>
+        {deliveryStatus !== "pending" && (
+          <span className={deliveryStatus === "DELIVERED" ? "text-primary" : "text-amber-400"}>
+            In-app delivery: {deliveryStatus}
+          </span>
+        )}
+      </div>
     </div>
   );
 }
 
-function TowerCard(t: (typeof TOWERS)[number]) {
+function TowerCard(t: LiveTower) {
   const ringColor =
     t.health >= 80 ? "stroke-primary" : t.health >= 60 ? "stroke-amber-400" : "stroke-destructive";
   const c = 2 * Math.PI * 28;

@@ -4,4 +4,4 @@ Disallow: /app
 Disallow: /auth
 Disallow: /api
 
-Sitemap: https://assetsense-ai-os.lovable.app/sitemap.xml
+Sitemap: https://sentinel-fort.com/sitemap.xml

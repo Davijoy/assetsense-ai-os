@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type {} from "@tanstack/react-start";
 
-const BASE_URL = "https://assetsense-ai-os.lovable.app";
+const BASE_URL = "https://sentinel-fort.com";
 
 interface SitemapEntry {
   path: string;

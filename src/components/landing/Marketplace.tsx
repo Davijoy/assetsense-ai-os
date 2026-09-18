@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import { MapPin, Bed, Square, TrendingUp } from "lucide-react";
 
 const properties = [
@@ -50,7 +51,7 @@ export function Marketplace() {
                     <div className="text-xs text-muted-foreground">Starting at</div>
                     <div className="font-display text-2xl text-foreground">{p.price}</div>
                   </div>
-                  <button className="text-sm text-primary hover:underline">View →</button>
+                  <Link to="/auth" search={{ next: "/app/marketplace" }} className="text-sm text-primary hover:underline">View →</Link>
                 </div>
               </div>
             </article>

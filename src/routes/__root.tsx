@@ -10,8 +10,10 @@ import {
 
 import appCss from "../styles.css?url";
 import { BrandingProvider } from "@/components/brand/BrandingContext";
-import { AuthProvider } from "@/hooks/use-auth";
+import { AuthProvider, useAuth } from "@/hooks/use-auth";
 import { Toaster } from "@/components/ui/sonner";
+import { SupremeEntity } from "@/components/sentinel/SupremeEntity";
+import { ActiveEntityProvider } from "@/lib/active-entity";
 
 function NotFoundComponent() {
   return (
@@ -36,18 +38,24 @@ function NotFoundComponent() {
 }
 
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
-  console.error(error);
+  console.error("[Root ErrorComponent caught error]:", error);
   const router = useRouter();
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="max-w-md text-center">
+    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
+      <div className="max-w-2xl text-center">
         <h1 className="text-xl font-semibold tracking-tight text-foreground">
           This page didn't load
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
           Something went wrong on our end. You can try refreshing or head back home.
         </p>
+        {error?.message && (
+          <div className="mt-4 text-left p-4 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-xs font-mono overflow-auto max-h-60">
+            <p className="font-bold">{error.message}</p>
+            {error.stack && <pre className="mt-2 whitespace-pre-wrap text-[11px] opacity-80">{error.stack}</pre>}
+          </div>
+        )}
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
             onClick={() => {
@@ -121,6 +129,19 @@ function RootShell({ children }: { children: React.ReactNode }) {
   );
 }
 
+function RootContent() {
+  const { user, roles } = useAuth();
+
+  return (
+    <>
+      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+      <Outlet />
+      <Toaster />
+      <SupremeEntity roles={roles ?? []} />
+    </>
+  );
+}
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
@@ -128,9 +149,9 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <BrandingProvider>
-          {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-          <Outlet />
-          <Toaster />
+          <ActiveEntityProvider>
+            <RootContent />
+          </ActiveEntityProvider>
         </BrandingProvider>
       </AuthProvider>
     </QueryClientProvider>

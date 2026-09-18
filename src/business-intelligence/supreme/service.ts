@@ -10,7 +10,7 @@
 import type { ICustomerRepository } from "../customer/repository";
 import type { IInventoryRepository } from "../inventory/repository";
 import type { IMarketRepository } from "../market/repository";
-import type { CustomerIntelligenceService } from "../customer/service";
+import { CustomerIntelligenceService } from "@/business-intelligence/customer/service";
 import type { InventoryIntelligenceService } from "../inventory/service";
 import type { MarketIntelligenceService } from "../market/service";
 import type { MarketRiskEvaluator } from "@/decision-engine/market/market-risk-evaluator";
@@ -125,7 +125,7 @@ export class SupremeIntelligenceOrchestrator {
       const [customerIntel, inventoryIntel, marketIntel, crmIntel] = await Promise.allSettled([
         this.customerService.getContext(workspaceId),
         this.inventoryService.getContext(workspaceId),
-        this.marketService.getContext(workspaceId),
+        this.marketService.getContext(workspaceId, dryRun),
         this.getCRMKPIs(),
       ]);
       completeStep(step1Id, {

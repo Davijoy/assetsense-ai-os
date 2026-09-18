@@ -104,12 +104,16 @@ export function NewLeadDialog({ open, onOpenChange }: { open: boolean; onOpenCha
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="new">New</SelectItem>
-                  <SelectItem value="contacted">Contacted</SelectItem>
                   <SelectItem value="qualified">Qualified</SelectItem>
-                  <SelectItem value="visit">Site visit</SelectItem>
-                  <SelectItem value="negotiation">Negotiation</SelectItem>
-                  <SelectItem value="won">Won</SelectItem>
-                  <SelectItem value="lost">Lost</SelectItem>
+                  <SelectItem value="call_back">Call Back</SelectItem>
+                  <SelectItem value="rnr">RNR (Ringing Not Responded)</SelectItem>
+                  <SelectItem value="busy">Busy</SelectItem>
+                  <SelectItem value="switch_off">Switch Off</SelectItem>
+                  <SelectItem value="site_visit_scheduled">Site Visit Scheduled</SelectItem>
+                  <SelectItem value="rfr">RFR (Ready for Registration)</SelectItem>
+                  <SelectItem value="booked">Booked</SelectItem>
+                  <SelectItem value="not_interested">Not Interested</SelectItem>
+                  <SelectItem value="dropped_plan">Dropped Plan</SelectItem>
                 </SelectContent>
               </Select>
             </div>

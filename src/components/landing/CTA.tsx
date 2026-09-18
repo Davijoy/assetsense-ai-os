@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 
@@ -16,11 +17,15 @@ export function CTA() {
               Join leading developers and brokerages already operating on Sentinel Fort Group.
             </p>
             <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
-              <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow h-12 px-7">
-                Book a Demo <ArrowRight className="ml-2 h-4 w-4" />
+              <Button asChild size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow h-12 px-7">
+                <Link to="/contact">
+                  Book a Demo <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
               </Button>
-              <Button size="lg" variant="outline" className="h-12 px-7 border-border bg-background/50 hover:bg-background">
-                Start Free Trial
+              <Button asChild size="lg" variant="outline" className="h-12 px-7 border-border bg-background/50 hover:bg-background">
+                <Link to="/auth" search={{ next: "/fort" }}>
+                  Start Free Trial
+                </Link>
               </Button>
             </div>
           </div>

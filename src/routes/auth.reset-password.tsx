@@ -57,7 +57,7 @@ function ResetPasswordPage() {
       if (error) throw error;
       setDone(true);
       toast.success("Password updated");
-      setTimeout(() => navigate({ to: "/app/crm" }), 1200);
+      setTimeout(() => navigate({ to: "/fort" }), 1200);
     } catch (err: any) {
       toast.error(err?.message ?? "Could not update password");
     } finally {

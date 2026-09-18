@@ -1,4 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
+import { isRouteAuthorized } from "@/lib/route-roles";
 import {
   Activity,
   AlertTriangle,
@@ -15,6 +16,12 @@ import {
 
 export const Route = createFileRoute("/app/command")({
   head: () => ({ meta: [{ title: "Executive Command Center — Sentinel Fort Group" }] }),
+  beforeLoad: async ({ context, location }) => {
+    const roles = (context as any)?.user?.roles ?? (context as any)?.fort?.role?.appRoles ?? [];
+    if (roles.length > 0 && !isRouteAuthorized(roles, location.pathname)) {
+      throw redirect({ to: "/fort" });
+    }
+  },
   component: CommandCenter,
 });
 

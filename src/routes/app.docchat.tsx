@@ -121,8 +121,8 @@ function DocChat() {
     <div className="space-y-6">
       <header className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs text-primary">
-            <Brain className="h-3 w-3" /> RAG · pgvector · Lovable AI
+          <div className="flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs text-primary">
+            <Brain className="h-3 w-3" /> RAG · pgvector · Sentinel AI
           </div>
           <h1 className="mt-3 font-display text-4xl">
             Chat with your <span className="text-gradient-emerald italic">documents.</span>

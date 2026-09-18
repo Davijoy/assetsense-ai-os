@@ -66,8 +66,12 @@ export const askCopilot = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => messageSchema.parse(input))
   .handler(async ({ data, context }) => {
     const { supabase } = context as { supabase: any };
-    const apiKey = process.env.LOVABLE_API_KEY;
-    if (!apiKey) throw new Error("LOVABLE_API_KEY missing");
+    const apiKey = process.env.OPENAI_API_KEY || process.env.AI_API_KEY;
+    if (!apiKey) {
+      throw new Error("AI provider not configured: OPENAI_API_KEY missing. Please configure OPENAI_API_KEY in environment variables.");
+    }
+    const baseUrl = (process.env.OPENAI_BASE_URL || process.env.AI_GATEWAY_URL || "https://api.openai.com/v1").replace(/\/+$/, "");
+    const chatModel = process.env.AI_CHAT_MODEL || "gpt-4o-mini";
 
     const snapshot = await buildContext(supabase);
     const system = `You are Sentinel Executive Copilot™ — the decision-intelligence brain of Sentinel Fort Group.
@@ -85,14 +89,14 @@ Be decisive, never hedge. Ground numbers in the SNAPSHOT below.
 
 ${snapshot}`;
 
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const res = await fetch(`${baseUrl}/chat/completions`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: chatModel,
         messages: [{ role: "system", content: system }, ...data.messages],
       }),
     });

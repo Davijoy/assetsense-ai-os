@@ -93,7 +93,7 @@ const tracks = [
     points: [
       "Embeddable modules — Intent Search, Decision Engine, CRM",
       "Configurable role model and workflow templates",
-      "Usage-based AI metering via the Lovable AI Gateway",
+      "Usage-based AI metering via the Sentinel AI Gateway",
       "Onboarding, training, and certified implementation partners",
     ],
   },

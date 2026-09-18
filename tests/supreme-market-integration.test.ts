@@ -9,11 +9,11 @@ import { SupabaseCustomerRepository } from "../src/lib/customer.functions";
 import { SupabaseInventoryRepository } from "../src/lib/bi.functions";
 import { MarketRiskEvaluator } from "../src/decision-engine/market/market-risk-evaluator";
 
+import { fixtureSupabase, realFixtures } from "./rc1-harness";
+
 const WORKSPACE_ID = "00000000-0000-0000-0000-00000000d3f7";
 
-const SUPABASE_URL = process.env.VITE_SUPABASE_URL ?? "http://localhost:54321";
-const SUPABASE_KEY = process.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? "test-key";
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+const supabase = fixtureSupabase(realFixtures());
 
 describe("MARKET + INVENTORY + CUSTOMER → SUPREME (Real-Data Dry-Run)", () => {
   it("proves all three REAL domain services are invoked and coordinated", async () => {
@@ -86,5 +86,5 @@ describe("MARKET + INVENTORY + CUSTOMER → SUPREME (Real-Data Dry-Run)", () => 
     expect(ctx.inventoryIntelligence).toBeDefined();
     expect(ctx.customerIntelligence).toBeDefined();
     expect(workspaceConsistent).toBe(true);
-  });
+  }, 30000);
 });

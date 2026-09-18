@@ -16,11 +16,14 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as CareersRouteImport } from './routes/careers'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as DpaRouteImport } from './routes/dpa'
+import { Route as FortRouteImport } from './routes/fort'
+import { Route as PortRouteImport } from './routes/port'
 import { Route as PressRouteImport } from './routes/press'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as RealtifyuRouteImport } from './routes/realtifyu'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as SecurityRouteImport } from './routes/security'
+import { Route as SentinelRouteImport } from './routes/sentinel'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as AppIndexRouteImport } from './routes/app.index'
@@ -29,6 +32,7 @@ import { Route as AppCollectionsRouteImport } from './routes/app.collections'
 import { Route as AppCommandRouteImport } from './routes/app.command'
 import { Route as AppCopilotRouteImport } from './routes/app.copilot'
 import { Route as AppCrmRouteImport } from './routes/app.crm'
+import { Route as AppCustomerRouteImport } from './routes/app.customer'
 import { Route as AppDealroomsRouteImport } from './routes/app.dealrooms'
 import { Route as AppDocchatRouteImport } from './routes/app.docchat'
 import { Route as AppDocumentsRouteImport } from './routes/app.documents'
@@ -41,15 +45,24 @@ import { Route as AppLeadsRouteImport } from './routes/app.leads'
 import { Route as AppMarketRouteImport } from './routes/app.market'
 import { Route as AppMarketingRouteImport } from './routes/app.marketing'
 import { Route as AppMarketplaceRouteImport } from './routes/app.marketplace'
+import { Route as AppMessagesRouteImport } from './routes/app.messages'
+import { Route as AppOnboardingRouteImport } from './routes/app.onboarding'
 import { Route as AppRecommendationsRouteImport } from './routes/app.recommendations'
 import { Route as AppRiskRouteImport } from './routes/app.risk'
 import { Route as AppSalesintelRouteImport } from './routes/app.salesintel'
+import { Route as AppSupremeAgentRouteImport } from './routes/app.supreme-agent'
 import { Route as AppSupremeIntelligenceRouteImport } from './routes/app.supreme-intelligence'
 import { Route as AppUsersRouteImport } from './routes/app.users'
 import { Route as AppVoiceRouteImport } from './routes/app.voice'
 import { Route as AppWorkflowsRouteImport } from './routes/app.workflows'
 import { Route as AuthForgotPasswordRouteImport } from './routes/auth.forgot-password'
 import { Route as AuthResetPasswordRouteImport } from './routes/auth.reset-password'
+import { Route as FortIndexRouteImport } from './routes/fort.index'
+import { Route as FortBrokerRouteImport } from './routes/fort.broker'
+import { Route as FortBuilderRouteImport } from './routes/fort.builder'
+import { Route as FortEnterpriseRouteImport } from './routes/fort.enterprise'
+import { Route as FortIndividualRouteImport } from './routes/fort.individual'
+import { Route as FortPlatformRouteImport } from './routes/fort.platform'
 import { Route as ProductAiVoiceRouteImport } from './routes/product.ai-voice'
 import { Route as ProductBiRouteImport } from './routes/product.bi'
 import { Route as ProductCrmRouteImport } from './routes/product.crm'
@@ -72,7 +85,11 @@ import { Route as SolutionsBrokersRouteImport } from './routes/solutions.brokers
 import { Route as SolutionsChannelPartnersRouteImport } from './routes/solutions.channel-partners'
 import { Route as SolutionsDevelopersRouteImport } from './routes/solutions.developers'
 import { Route as SolutionsEnterprisesRouteImport } from './routes/solutions.enterprises'
+import { Route as ApiPublicMediaStreamRouteImport } from './routes/api/public/media-stream'
+import { Route as ApiPublicUploadMediaRouteImport } from './routes/api/public/upload-media'
 import { Route as AppSettingsBrandingRouteImport } from './routes/app.settings.branding'
+import { Route as AppSettingsIntegrationsRouteImport } from './routes/app.settings.integrations'
+import { Route as ApiPublicAuthCallbackRouteImport } from './routes/api/public/auth.callback'
 import { Route as ApiPublicRealtifyuCallbackRouteImport } from './routes/api/public/realtifyu.callback'
 
 const IndexRoute = IndexRouteImport.update({
@@ -110,6 +127,16 @@ const DpaRoute = DpaRouteImport.update({
   path: '/dpa',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FortRoute = FortRouteImport.update({
+  id: '/fort',
+  path: '/fort',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PortRoute = PortRouteImport.update({
+  id: '/port',
+  path: '/port',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PressRoute = PressRouteImport.update({
   id: '/press',
   path: '/press',
@@ -133,6 +160,11 @@ const SearchRoute = SearchRouteImport.update({
 const SecurityRoute = SecurityRouteImport.update({
   id: '/security',
   path: '/security',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SentinelRoute = SentinelRouteImport.update({
+  id: '/sentinel',
+  path: '/sentinel',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -173,6 +205,11 @@ const AppCopilotRoute = AppCopilotRouteImport.update({
 const AppCrmRoute = AppCrmRouteImport.update({
   id: '/crm',
   path: '/crm',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppCustomerRoute = AppCustomerRouteImport.update({
+  id: '/customer',
+  path: '/customer',
   getParentRoute: () => AppRoute,
 } as any)
 const AppDealroomsRoute = AppDealroomsRouteImport.update({
@@ -235,6 +272,16 @@ const AppMarketplaceRoute = AppMarketplaceRouteImport.update({
   path: '/marketplace',
   getParentRoute: () => AppRoute,
 } as any)
+const AppMessagesRoute = AppMessagesRouteImport.update({
+  id: '/messages',
+  path: '/messages',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppOnboardingRoute = AppOnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppRecommendationsRoute = AppRecommendationsRouteImport.update({
   id: '/recommendations',
   path: '/recommendations',
@@ -248,6 +295,11 @@ const AppRiskRoute = AppRiskRouteImport.update({
 const AppSalesintelRoute = AppSalesintelRouteImport.update({
   id: '/salesintel',
   path: '/salesintel',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSupremeAgentRoute = AppSupremeAgentRouteImport.update({
+  id: '/supreme-agent',
+  path: '/supreme-agent',
   getParentRoute: () => AppRoute,
 } as any)
 const AppSupremeIntelligenceRoute = AppSupremeIntelligenceRouteImport.update({
@@ -279,6 +331,36 @@ const AuthResetPasswordRoute = AuthResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
   getParentRoute: () => AuthRoute,
+} as any)
+const FortIndexRoute = FortIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => FortRoute,
+} as any)
+const FortBrokerRoute = FortBrokerRouteImport.update({
+  id: '/broker',
+  path: '/broker',
+  getParentRoute: () => FortRoute,
+} as any)
+const FortBuilderRoute = FortBuilderRouteImport.update({
+  id: '/builder',
+  path: '/builder',
+  getParentRoute: () => FortRoute,
+} as any)
+const FortEnterpriseRoute = FortEnterpriseRouteImport.update({
+  id: '/enterprise',
+  path: '/enterprise',
+  getParentRoute: () => FortRoute,
+} as any)
+const FortIndividualRoute = FortIndividualRouteImport.update({
+  id: '/individual',
+  path: '/individual',
+  getParentRoute: () => FortRoute,
+} as any)
+const FortPlatformRoute = FortPlatformRouteImport.update({
+  id: '/platform',
+  path: '/platform',
+  getParentRoute: () => FortRoute,
 } as any)
 const ProductAiVoiceRoute = ProductAiVoiceRouteImport.update({
   id: '/product/ai-voice',
@@ -391,10 +473,30 @@ const SolutionsEnterprisesRoute = SolutionsEnterprisesRouteImport.update({
   path: '/solutions/enterprises',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicMediaStreamRoute = ApiPublicMediaStreamRouteImport.update({
+  id: '/api/public/media-stream',
+  path: '/api/public/media-stream',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicUploadMediaRoute = ApiPublicUploadMediaRouteImport.update({
+  id: '/api/public/upload-media',
+  path: '/api/public/upload-media',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppSettingsBrandingRoute = AppSettingsBrandingRouteImport.update({
   id: '/settings/branding',
   path: '/settings/branding',
   getParentRoute: () => AppRoute,
+} as any)
+const AppSettingsIntegrationsRoute = AppSettingsIntegrationsRouteImport.update({
+  id: '/settings/integrations',
+  path: '/settings/integrations',
+  getParentRoute: () => AppRoute,
+} as any)
+const ApiPublicAuthCallbackRoute = ApiPublicAuthCallbackRouteImport.update({
+  id: '/api/public/auth/callback',
+  path: '/api/public/auth/callback',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicRealtifyuCallbackRoute =
   ApiPublicRealtifyuCallbackRouteImport.update({
@@ -411,11 +513,14 @@ export interface FileRoutesByFullPath {
   '/careers': typeof CareersRoute
   '/contact': typeof ContactRoute
   '/dpa': typeof DpaRoute
+  '/fort': typeof FortRouteWithChildren
+  '/port': typeof PortRoute
   '/press': typeof PressRoute
   '/privacy': typeof PrivacyRoute
   '/realtifyu': typeof RealtifyuRouteWithChildren
   '/search': typeof SearchRoute
   '/security': typeof SecurityRoute
+  '/sentinel': typeof SentinelRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/app/bi': typeof AppBiRoute
@@ -423,6 +528,7 @@ export interface FileRoutesByFullPath {
   '/app/command': typeof AppCommandRoute
   '/app/copilot': typeof AppCopilotRoute
   '/app/crm': typeof AppCrmRoute
+  '/app/customer': typeof AppCustomerRoute
   '/app/dealrooms': typeof AppDealroomsRoute
   '/app/docchat': typeof AppDocchatRoute
   '/app/documents': typeof AppDocumentsRoute
@@ -435,15 +541,23 @@ export interface FileRoutesByFullPath {
   '/app/market': typeof AppMarketRoute
   '/app/marketing': typeof AppMarketingRoute
   '/app/marketplace': typeof AppMarketplaceRoute
+  '/app/messages': typeof AppMessagesRoute
+  '/app/onboarding': typeof AppOnboardingRoute
   '/app/recommendations': typeof AppRecommendationsRoute
   '/app/risk': typeof AppRiskRoute
   '/app/salesintel': typeof AppSalesintelRoute
+  '/app/supreme-agent': typeof AppSupremeAgentRoute
   '/app/supreme-intelligence': typeof AppSupremeIntelligenceRoute
   '/app/users': typeof AppUsersRoute
   '/app/voice': typeof AppVoiceRoute
   '/app/workflows': typeof AppWorkflowsRoute
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
+  '/fort/broker': typeof FortBrokerRoute
+  '/fort/builder': typeof FortBuilderRoute
+  '/fort/enterprise': typeof FortEnterpriseRoute
+  '/fort/individual': typeof FortIndividualRoute
+  '/fort/platform': typeof FortPlatformRoute
   '/product/ai-voice': typeof ProductAiVoiceRoute
   '/product/bi': typeof ProductBiRoute
   '/product/crm': typeof ProductCrmRoute
@@ -466,8 +580,13 @@ export interface FileRoutesByFullPath {
   '/solutions/developers': typeof SolutionsDevelopersRoute
   '/solutions/enterprises': typeof SolutionsEnterprisesRoute
   '/app/': typeof AppIndexRoute
+  '/fort/': typeof FortIndexRoute
   '/resources/': typeof ResourcesIndexRoute
+  '/api/public/media-stream': typeof ApiPublicMediaStreamRoute
+  '/api/public/upload-media': typeof ApiPublicUploadMediaRoute
   '/app/settings/branding': typeof AppSettingsBrandingRoute
+  '/app/settings/integrations': typeof AppSettingsIntegrationsRoute
+  '/api/public/auth/callback': typeof ApiPublicAuthCallbackRoute
   '/api/public/realtifyu/callback': typeof ApiPublicRealtifyuCallbackRoute
 }
 export interface FileRoutesByTo {
@@ -477,11 +596,13 @@ export interface FileRoutesByTo {
   '/careers': typeof CareersRoute
   '/contact': typeof ContactRoute
   '/dpa': typeof DpaRoute
+  '/port': typeof PortRoute
   '/press': typeof PressRoute
   '/privacy': typeof PrivacyRoute
   '/realtifyu': typeof RealtifyuRouteWithChildren
   '/search': typeof SearchRoute
   '/security': typeof SecurityRoute
+  '/sentinel': typeof SentinelRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/app/bi': typeof AppBiRoute
@@ -489,6 +610,7 @@ export interface FileRoutesByTo {
   '/app/command': typeof AppCommandRoute
   '/app/copilot': typeof AppCopilotRoute
   '/app/crm': typeof AppCrmRoute
+  '/app/customer': typeof AppCustomerRoute
   '/app/dealrooms': typeof AppDealroomsRoute
   '/app/docchat': typeof AppDocchatRoute
   '/app/documents': typeof AppDocumentsRoute
@@ -501,15 +623,23 @@ export interface FileRoutesByTo {
   '/app/market': typeof AppMarketRoute
   '/app/marketing': typeof AppMarketingRoute
   '/app/marketplace': typeof AppMarketplaceRoute
+  '/app/messages': typeof AppMessagesRoute
+  '/app/onboarding': typeof AppOnboardingRoute
   '/app/recommendations': typeof AppRecommendationsRoute
   '/app/risk': typeof AppRiskRoute
   '/app/salesintel': typeof AppSalesintelRoute
+  '/app/supreme-agent': typeof AppSupremeAgentRoute
   '/app/supreme-intelligence': typeof AppSupremeIntelligenceRoute
   '/app/users': typeof AppUsersRoute
   '/app/voice': typeof AppVoiceRoute
   '/app/workflows': typeof AppWorkflowsRoute
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
+  '/fort/broker': typeof FortBrokerRoute
+  '/fort/builder': typeof FortBuilderRoute
+  '/fort/enterprise': typeof FortEnterpriseRoute
+  '/fort/individual': typeof FortIndividualRoute
+  '/fort/platform': typeof FortPlatformRoute
   '/product/ai-voice': typeof ProductAiVoiceRoute
   '/product/bi': typeof ProductBiRoute
   '/product/crm': typeof ProductCrmRoute
@@ -532,8 +662,13 @@ export interface FileRoutesByTo {
   '/solutions/developers': typeof SolutionsDevelopersRoute
   '/solutions/enterprises': typeof SolutionsEnterprisesRoute
   '/app': typeof AppIndexRoute
+  '/fort': typeof FortIndexRoute
   '/resources': typeof ResourcesIndexRoute
+  '/api/public/media-stream': typeof ApiPublicMediaStreamRoute
+  '/api/public/upload-media': typeof ApiPublicUploadMediaRoute
   '/app/settings/branding': typeof AppSettingsBrandingRoute
+  '/app/settings/integrations': typeof AppSettingsIntegrationsRoute
+  '/api/public/auth/callback': typeof ApiPublicAuthCallbackRoute
   '/api/public/realtifyu/callback': typeof ApiPublicRealtifyuCallbackRoute
 }
 export interface FileRoutesById {
@@ -545,11 +680,14 @@ export interface FileRoutesById {
   '/careers': typeof CareersRoute
   '/contact': typeof ContactRoute
   '/dpa': typeof DpaRoute
+  '/fort': typeof FortRouteWithChildren
+  '/port': typeof PortRoute
   '/press': typeof PressRoute
   '/privacy': typeof PrivacyRoute
   '/realtifyu': typeof RealtifyuRouteWithChildren
   '/search': typeof SearchRoute
   '/security': typeof SecurityRoute
+  '/sentinel': typeof SentinelRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/app/bi': typeof AppBiRoute
@@ -557,6 +695,7 @@ export interface FileRoutesById {
   '/app/command': typeof AppCommandRoute
   '/app/copilot': typeof AppCopilotRoute
   '/app/crm': typeof AppCrmRoute
+  '/app/customer': typeof AppCustomerRoute
   '/app/dealrooms': typeof AppDealroomsRoute
   '/app/docchat': typeof AppDocchatRoute
   '/app/documents': typeof AppDocumentsRoute
@@ -569,15 +708,23 @@ export interface FileRoutesById {
   '/app/market': typeof AppMarketRoute
   '/app/marketing': typeof AppMarketingRoute
   '/app/marketplace': typeof AppMarketplaceRoute
+  '/app/messages': typeof AppMessagesRoute
+  '/app/onboarding': typeof AppOnboardingRoute
   '/app/recommendations': typeof AppRecommendationsRoute
   '/app/risk': typeof AppRiskRoute
   '/app/salesintel': typeof AppSalesintelRoute
+  '/app/supreme-agent': typeof AppSupremeAgentRoute
   '/app/supreme-intelligence': typeof AppSupremeIntelligenceRoute
   '/app/users': typeof AppUsersRoute
   '/app/voice': typeof AppVoiceRoute
   '/app/workflows': typeof AppWorkflowsRoute
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
+  '/fort/broker': typeof FortBrokerRoute
+  '/fort/builder': typeof FortBuilderRoute
+  '/fort/enterprise': typeof FortEnterpriseRoute
+  '/fort/individual': typeof FortIndividualRoute
+  '/fort/platform': typeof FortPlatformRoute
   '/product/ai-voice': typeof ProductAiVoiceRoute
   '/product/bi': typeof ProductBiRoute
   '/product/crm': typeof ProductCrmRoute
@@ -600,8 +747,13 @@ export interface FileRoutesById {
   '/solutions/developers': typeof SolutionsDevelopersRoute
   '/solutions/enterprises': typeof SolutionsEnterprisesRoute
   '/app/': typeof AppIndexRoute
+  '/fort/': typeof FortIndexRoute
   '/resources/': typeof ResourcesIndexRoute
+  '/api/public/media-stream': typeof ApiPublicMediaStreamRoute
+  '/api/public/upload-media': typeof ApiPublicUploadMediaRoute
   '/app/settings/branding': typeof AppSettingsBrandingRoute
+  '/app/settings/integrations': typeof AppSettingsIntegrationsRoute
+  '/api/public/auth/callback': typeof ApiPublicAuthCallbackRoute
   '/api/public/realtifyu/callback': typeof ApiPublicRealtifyuCallbackRoute
 }
 export interface FileRouteTypes {
@@ -614,11 +766,14 @@ export interface FileRouteTypes {
     | '/careers'
     | '/contact'
     | '/dpa'
+    | '/fort'
+    | '/port'
     | '/press'
     | '/privacy'
     | '/realtifyu'
     | '/search'
     | '/security'
+    | '/sentinel'
     | '/sitemap.xml'
     | '/terms'
     | '/app/bi'
@@ -626,6 +781,7 @@ export interface FileRouteTypes {
     | '/app/command'
     | '/app/copilot'
     | '/app/crm'
+    | '/app/customer'
     | '/app/dealrooms'
     | '/app/docchat'
     | '/app/documents'
@@ -638,15 +794,23 @@ export interface FileRouteTypes {
     | '/app/market'
     | '/app/marketing'
     | '/app/marketplace'
+    | '/app/messages'
+    | '/app/onboarding'
     | '/app/recommendations'
     | '/app/risk'
     | '/app/salesintel'
+    | '/app/supreme-agent'
     | '/app/supreme-intelligence'
     | '/app/users'
     | '/app/voice'
     | '/app/workflows'
     | '/auth/forgot-password'
     | '/auth/reset-password'
+    | '/fort/broker'
+    | '/fort/builder'
+    | '/fort/enterprise'
+    | '/fort/individual'
+    | '/fort/platform'
     | '/product/ai-voice'
     | '/product/bi'
     | '/product/crm'
@@ -669,8 +833,13 @@ export interface FileRouteTypes {
     | '/solutions/developers'
     | '/solutions/enterprises'
     | '/app/'
+    | '/fort/'
     | '/resources/'
+    | '/api/public/media-stream'
+    | '/api/public/upload-media'
     | '/app/settings/branding'
+    | '/app/settings/integrations'
+    | '/api/public/auth/callback'
     | '/api/public/realtifyu/callback'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -680,11 +849,13 @@ export interface FileRouteTypes {
     | '/careers'
     | '/contact'
     | '/dpa'
+    | '/port'
     | '/press'
     | '/privacy'
     | '/realtifyu'
     | '/search'
     | '/security'
+    | '/sentinel'
     | '/sitemap.xml'
     | '/terms'
     | '/app/bi'
@@ -692,6 +863,7 @@ export interface FileRouteTypes {
     | '/app/command'
     | '/app/copilot'
     | '/app/crm'
+    | '/app/customer'
     | '/app/dealrooms'
     | '/app/docchat'
     | '/app/documents'
@@ -704,15 +876,23 @@ export interface FileRouteTypes {
     | '/app/market'
     | '/app/marketing'
     | '/app/marketplace'
+    | '/app/messages'
+    | '/app/onboarding'
     | '/app/recommendations'
     | '/app/risk'
     | '/app/salesintel'
+    | '/app/supreme-agent'
     | '/app/supreme-intelligence'
     | '/app/users'
     | '/app/voice'
     | '/app/workflows'
     | '/auth/forgot-password'
     | '/auth/reset-password'
+    | '/fort/broker'
+    | '/fort/builder'
+    | '/fort/enterprise'
+    | '/fort/individual'
+    | '/fort/platform'
     | '/product/ai-voice'
     | '/product/bi'
     | '/product/crm'
@@ -735,8 +915,13 @@ export interface FileRouteTypes {
     | '/solutions/developers'
     | '/solutions/enterprises'
     | '/app'
+    | '/fort'
     | '/resources'
+    | '/api/public/media-stream'
+    | '/api/public/upload-media'
     | '/app/settings/branding'
+    | '/app/settings/integrations'
+    | '/api/public/auth/callback'
     | '/api/public/realtifyu/callback'
   id:
     | '__root__'
@@ -747,11 +932,14 @@ export interface FileRouteTypes {
     | '/careers'
     | '/contact'
     | '/dpa'
+    | '/fort'
+    | '/port'
     | '/press'
     | '/privacy'
     | '/realtifyu'
     | '/search'
     | '/security'
+    | '/sentinel'
     | '/sitemap.xml'
     | '/terms'
     | '/app/bi'
@@ -759,6 +947,7 @@ export interface FileRouteTypes {
     | '/app/command'
     | '/app/copilot'
     | '/app/crm'
+    | '/app/customer'
     | '/app/dealrooms'
     | '/app/docchat'
     | '/app/documents'
@@ -771,15 +960,23 @@ export interface FileRouteTypes {
     | '/app/market'
     | '/app/marketing'
     | '/app/marketplace'
+    | '/app/messages'
+    | '/app/onboarding'
     | '/app/recommendations'
     | '/app/risk'
     | '/app/salesintel'
+    | '/app/supreme-agent'
     | '/app/supreme-intelligence'
     | '/app/users'
     | '/app/voice'
     | '/app/workflows'
     | '/auth/forgot-password'
     | '/auth/reset-password'
+    | '/fort/broker'
+    | '/fort/builder'
+    | '/fort/enterprise'
+    | '/fort/individual'
+    | '/fort/platform'
     | '/product/ai-voice'
     | '/product/bi'
     | '/product/crm'
@@ -802,8 +999,13 @@ export interface FileRouteTypes {
     | '/solutions/developers'
     | '/solutions/enterprises'
     | '/app/'
+    | '/fort/'
     | '/resources/'
+    | '/api/public/media-stream'
+    | '/api/public/upload-media'
     | '/app/settings/branding'
+    | '/app/settings/integrations'
+    | '/api/public/auth/callback'
     | '/api/public/realtifyu/callback'
   fileRoutesById: FileRoutesById
 }
@@ -815,11 +1017,14 @@ export interface RootRouteChildren {
   CareersRoute: typeof CareersRoute
   ContactRoute: typeof ContactRoute
   DpaRoute: typeof DpaRoute
+  FortRoute: typeof FortRouteWithChildren
+  PortRoute: typeof PortRoute
   PressRoute: typeof PressRoute
   PrivacyRoute: typeof PrivacyRoute
   RealtifyuRoute: typeof RealtifyuRouteWithChildren
   SearchRoute: typeof SearchRoute
   SecurityRoute: typeof SecurityRoute
+  SentinelRoute: typeof SentinelRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TermsRoute: typeof TermsRoute
   ProductAiVoiceRoute: typeof ProductAiVoiceRoute
@@ -843,6 +1048,9 @@ export interface RootRouteChildren {
   SolutionsDevelopersRoute: typeof SolutionsDevelopersRoute
   SolutionsEnterprisesRoute: typeof SolutionsEnterprisesRoute
   ResourcesIndexRoute: typeof ResourcesIndexRoute
+  ApiPublicMediaStreamRoute: typeof ApiPublicMediaStreamRoute
+  ApiPublicUploadMediaRoute: typeof ApiPublicUploadMediaRoute
+  ApiPublicAuthCallbackRoute: typeof ApiPublicAuthCallbackRoute
   ApiPublicRealtifyuCallbackRoute: typeof ApiPublicRealtifyuCallbackRoute
 }
 
@@ -897,6 +1105,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DpaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/fort': {
+      id: '/fort'
+      path: '/fort'
+      fullPath: '/fort'
+      preLoaderRoute: typeof FortRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/port': {
+      id: '/port'
+      path: '/port'
+      fullPath: '/port'
+      preLoaderRoute: typeof PortRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/press': {
       id: '/press'
       path: '/press'
@@ -930,6 +1152,13 @@ declare module '@tanstack/react-router' {
       path: '/security'
       fullPath: '/security'
       preLoaderRoute: typeof SecurityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sentinel': {
+      id: '/sentinel'
+      path: '/sentinel'
+      fullPath: '/sentinel'
+      preLoaderRoute: typeof SentinelRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sitemap.xml': {
@@ -986,6 +1215,13 @@ declare module '@tanstack/react-router' {
       path: '/crm'
       fullPath: '/app/crm'
       preLoaderRoute: typeof AppCrmRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/customer': {
+      id: '/app/customer'
+      path: '/customer'
+      fullPath: '/app/customer'
+      preLoaderRoute: typeof AppCustomerRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/dealrooms': {
@@ -1072,6 +1308,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppMarketplaceRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/messages': {
+      id: '/app/messages'
+      path: '/messages'
+      fullPath: '/app/messages'
+      preLoaderRoute: typeof AppMessagesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/onboarding': {
+      id: '/app/onboarding'
+      path: '/onboarding'
+      fullPath: '/app/onboarding'
+      preLoaderRoute: typeof AppOnboardingRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/recommendations': {
       id: '/app/recommendations'
       path: '/recommendations'
@@ -1091,6 +1341,13 @@ declare module '@tanstack/react-router' {
       path: '/salesintel'
       fullPath: '/app/salesintel'
       preLoaderRoute: typeof AppSalesintelRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/supreme-agent': {
+      id: '/app/supreme-agent'
+      path: '/supreme-agent'
+      fullPath: '/app/supreme-agent'
+      preLoaderRoute: typeof AppSupremeAgentRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/supreme-intelligence': {
@@ -1134,6 +1391,48 @@ declare module '@tanstack/react-router' {
       fullPath: '/auth/reset-password'
       preLoaderRoute: typeof AuthResetPasswordRouteImport
       parentRoute: typeof AuthRoute
+    }
+    '/fort/': {
+      id: '/fort/'
+      path: '/'
+      fullPath: '/fort/'
+      preLoaderRoute: typeof FortIndexRouteImport
+      parentRoute: typeof FortRoute
+    }
+    '/fort/broker': {
+      id: '/fort/broker'
+      path: '/broker'
+      fullPath: '/fort/broker'
+      preLoaderRoute: typeof FortBrokerRouteImport
+      parentRoute: typeof FortRoute
+    }
+    '/fort/builder': {
+      id: '/fort/builder'
+      path: '/builder'
+      fullPath: '/fort/builder'
+      preLoaderRoute: typeof FortBuilderRouteImport
+      parentRoute: typeof FortRoute
+    }
+    '/fort/enterprise': {
+      id: '/fort/enterprise'
+      path: '/enterprise'
+      fullPath: '/fort/enterprise'
+      preLoaderRoute: typeof FortEnterpriseRouteImport
+      parentRoute: typeof FortRoute
+    }
+    '/fort/individual': {
+      id: '/fort/individual'
+      path: '/individual'
+      fullPath: '/fort/individual'
+      preLoaderRoute: typeof FortIndividualRouteImport
+      parentRoute: typeof FortRoute
+    }
+    '/fort/platform': {
+      id: '/fort/platform'
+      path: '/platform'
+      fullPath: '/fort/platform'
+      preLoaderRoute: typeof FortPlatformRouteImport
+      parentRoute: typeof FortRoute
     }
     '/product/ai-voice': {
       id: '/product/ai-voice'
@@ -1289,12 +1588,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SolutionsEnterprisesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/media-stream': {
+      id: '/api/public/media-stream'
+      path: '/api/public/media-stream'
+      fullPath: '/api/public/media-stream'
+      preLoaderRoute: typeof ApiPublicMediaStreamRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/upload-media': {
+      id: '/api/public/upload-media'
+      path: '/api/public/upload-media'
+      fullPath: '/api/public/upload-media'
+      preLoaderRoute: typeof ApiPublicUploadMediaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/app/settings/branding': {
       id: '/app/settings/branding'
       path: '/settings/branding'
       fullPath: '/app/settings/branding'
       preLoaderRoute: typeof AppSettingsBrandingRouteImport
       parentRoute: typeof AppRoute
+    }
+    '/app/settings/integrations': {
+      id: '/app/settings/integrations'
+      path: '/settings/integrations'
+      fullPath: '/app/settings/integrations'
+      preLoaderRoute: typeof AppSettingsIntegrationsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/api/public/auth/callback': {
+      id: '/api/public/auth/callback'
+      path: '/api/public/auth/callback'
+      fullPath: '/api/public/auth/callback'
+      preLoaderRoute: typeof ApiPublicAuthCallbackRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/public/realtifyu/callback': {
       id: '/api/public/realtifyu/callback'
@@ -1312,6 +1639,7 @@ interface AppRouteChildren {
   AppCommandRoute: typeof AppCommandRoute
   AppCopilotRoute: typeof AppCopilotRoute
   AppCrmRoute: typeof AppCrmRoute
+  AppCustomerRoute: typeof AppCustomerRoute
   AppDealroomsRoute: typeof AppDealroomsRoute
   AppDocchatRoute: typeof AppDocchatRoute
   AppDocumentsRoute: typeof AppDocumentsRoute
@@ -1324,15 +1652,19 @@ interface AppRouteChildren {
   AppMarketRoute: typeof AppMarketRoute
   AppMarketingRoute: typeof AppMarketingRoute
   AppMarketplaceRoute: typeof AppMarketplaceRoute
+  AppMessagesRoute: typeof AppMessagesRoute
+  AppOnboardingRoute: typeof AppOnboardingRoute
   AppRecommendationsRoute: typeof AppRecommendationsRoute
   AppRiskRoute: typeof AppRiskRoute
   AppSalesintelRoute: typeof AppSalesintelRoute
+  AppSupremeAgentRoute: typeof AppSupremeAgentRoute
   AppSupremeIntelligenceRoute: typeof AppSupremeIntelligenceRoute
   AppUsersRoute: typeof AppUsersRoute
   AppVoiceRoute: typeof AppVoiceRoute
   AppWorkflowsRoute: typeof AppWorkflowsRoute
   AppIndexRoute: typeof AppIndexRoute
   AppSettingsBrandingRoute: typeof AppSettingsBrandingRoute
+  AppSettingsIntegrationsRoute: typeof AppSettingsIntegrationsRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
@@ -1341,6 +1673,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppCommandRoute: AppCommandRoute,
   AppCopilotRoute: AppCopilotRoute,
   AppCrmRoute: AppCrmRoute,
+  AppCustomerRoute: AppCustomerRoute,
   AppDealroomsRoute: AppDealroomsRoute,
   AppDocchatRoute: AppDocchatRoute,
   AppDocumentsRoute: AppDocumentsRoute,
@@ -1353,15 +1686,19 @@ const AppRouteChildren: AppRouteChildren = {
   AppMarketRoute: AppMarketRoute,
   AppMarketingRoute: AppMarketingRoute,
   AppMarketplaceRoute: AppMarketplaceRoute,
+  AppMessagesRoute: AppMessagesRoute,
+  AppOnboardingRoute: AppOnboardingRoute,
   AppRecommendationsRoute: AppRecommendationsRoute,
   AppRiskRoute: AppRiskRoute,
   AppSalesintelRoute: AppSalesintelRoute,
+  AppSupremeAgentRoute: AppSupremeAgentRoute,
   AppSupremeIntelligenceRoute: AppSupremeIntelligenceRoute,
   AppUsersRoute: AppUsersRoute,
   AppVoiceRoute: AppVoiceRoute,
   AppWorkflowsRoute: AppWorkflowsRoute,
   AppIndexRoute: AppIndexRoute,
   AppSettingsBrandingRoute: AppSettingsBrandingRoute,
+  AppSettingsIntegrationsRoute: AppSettingsIntegrationsRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
@@ -1377,6 +1714,26 @@ const AuthRouteChildren: AuthRouteChildren = {
 }
 
 const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
+
+interface FortRouteChildren {
+  FortBrokerRoute: typeof FortBrokerRoute
+  FortBuilderRoute: typeof FortBuilderRoute
+  FortEnterpriseRoute: typeof FortEnterpriseRoute
+  FortIndividualRoute: typeof FortIndividualRoute
+  FortPlatformRoute: typeof FortPlatformRoute
+  FortIndexRoute: typeof FortIndexRoute
+}
+
+const FortRouteChildren: FortRouteChildren = {
+  FortBrokerRoute: FortBrokerRoute,
+  FortBuilderRoute: FortBuilderRoute,
+  FortEnterpriseRoute: FortEnterpriseRoute,
+  FortIndividualRoute: FortIndividualRoute,
+  FortPlatformRoute: FortPlatformRoute,
+  FortIndexRoute: FortIndexRoute,
+}
+
+const FortRouteWithChildren = FortRoute._addFileChildren(FortRouteChildren)
 
 interface RealtifyuRouteChildren {
   RealtifyuConnectionsRoute: typeof RealtifyuConnectionsRoute
@@ -1398,11 +1755,14 @@ const rootRouteChildren: RootRouteChildren = {
   CareersRoute: CareersRoute,
   ContactRoute: ContactRoute,
   DpaRoute: DpaRoute,
+  FortRoute: FortRouteWithChildren,
+  PortRoute: PortRoute,
   PressRoute: PressRoute,
   PrivacyRoute: PrivacyRoute,
   RealtifyuRoute: RealtifyuRouteWithChildren,
   SearchRoute: SearchRoute,
   SecurityRoute: SecurityRoute,
+  SentinelRoute: SentinelRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TermsRoute: TermsRoute,
   ProductAiVoiceRoute: ProductAiVoiceRoute,
@@ -1426,6 +1786,9 @@ const rootRouteChildren: RootRouteChildren = {
   SolutionsDevelopersRoute: SolutionsDevelopersRoute,
   SolutionsEnterprisesRoute: SolutionsEnterprisesRoute,
   ResourcesIndexRoute: ResourcesIndexRoute,
+  ApiPublicMediaStreamRoute: ApiPublicMediaStreamRoute,
+  ApiPublicUploadMediaRoute: ApiPublicUploadMediaRoute,
+  ApiPublicAuthCallbackRoute: ApiPublicAuthCallbackRoute,
   ApiPublicRealtifyuCallbackRoute: ApiPublicRealtifyuCallbackRoute,
 }
 export const routeTree = rootRouteImport

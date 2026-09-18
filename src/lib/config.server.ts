@@ -19,8 +19,9 @@ import process from "node:process";
 export function getServerConfig() {
   return {
     nodeEnv: process.env.NODE_ENV,
-    // Add server-only values here, e.g.:
-    //   databaseUrl: process.env.DATABASE_URL,
-    //   stripeSecretKey: process.env.STRIPE_SECRET_KEY,
+    deepgramApiKey: process.env.DEEPGRAM_API_KEY,
+    openaiApiKey: process.env.OPENAI_API_KEY || process.env.AI_API_KEY,
+    openaiBaseUrl: process.env.OPENAI_BASE_URL || process.env.AI_GATEWAY_URL || "https://api.openai.com/v1",
   };
 }
+

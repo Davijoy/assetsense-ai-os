@@ -95,11 +95,14 @@ export function Nav() {
           >
             <Search className="h-4 w-4" />
           </Link>
-          <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
-            <Link to="/app">Open Console</Link>
+          <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex text-muted-foreground hover:text-foreground">
+            <Link to="/auth" search={{ next: "/fort" }}>Sign In</Link>
           </Button>
-          <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow">
-            Book Demo
+          <Button asChild variant="outline" size="sm" className="hidden sm:inline-flex border-gold/40 text-gold hover:bg-gold/10 hover:text-gold">
+            <Link to="/fort">Enter Sentinel Fort</Link>
+          </Button>
+          <Button asChild size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow">
+            <Link to="/contact">Book Demo</Link>
           </Button>
         </div>
       </div>

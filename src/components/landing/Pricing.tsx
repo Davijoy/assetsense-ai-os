@@ -1,13 +1,14 @@
+import { Link } from "@tanstack/react-router";
 import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const tiers = [
   { name: "Starter", price: "₹4,999", period: "/mo", desc: "For solo brokers getting started.",
-    features: ["Up to 500 leads","Property CRM","Email & WhatsApp","Basic analytics"], cta: "Start free trial", featured: false },
+    features: ["Up to 500 leads","Property CRM","Email & WhatsApp","Basic analytics"], cta: "Start free trial", to: "/auth?next=/fort", featured: false },
   { name: "Professional", price: "₹14,999", period: "/mo", desc: "For growing brokerage teams.",
-    features: ["Unlimited leads","AI lead scoring","Marketing automation","Channel partner portal","Priority support"], cta: "Start free trial", featured: true },
+    features: ["Unlimited leads","AI lead scoring","Marketing automation","Channel partner portal","Priority support"], cta: "Start free trial", to: "/auth?next=/fort", featured: true },
   { name: "Enterprise", price: "Custom", period: "", desc: "For developers & enterprises.",
-    features: ["Multi-tenant ERP","AI Voice agents","Developer dashboards","BI & data warehouse","SLA & dedicated CSM"], cta: "Contact sales", featured: false },
+    features: ["Multi-tenant ERP","AI Voice agents","Developer dashboards","BI & data warehouse","SLA & dedicated CSM"], cta: "Contact sales", to: "/contact", featured: false },
 ];
 
 export function Pricing() {
@@ -39,8 +40,12 @@ export function Pricing() {
                 <span className="font-display text-5xl">{t.price}</span>
                 <span className="text-muted-foreground">{t.period}</span>
               </div>
-              <Button className={`mt-6 w-full ${t.featured ? "bg-primary text-primary-foreground hover:bg-primary/90" : "bg-surface-elevated text-foreground hover:bg-surface"}`}>
-                {t.cta}
+              <Button asChild className={`mt-6 w-full ${t.featured ? "bg-primary text-primary-foreground hover:bg-primary/90" : "bg-surface-elevated text-foreground hover:bg-surface"}`}>
+                {t.to === "/contact" ? (
+                  <Link to="/contact">{t.cta}</Link>
+                ) : (
+                  <Link to="/auth" search={{ next: "/fort" }}>{t.cta}</Link>
+                )}
               </Button>
               <ul className="mt-8 space-y-3 border-t border-border pt-6">
                 {t.features.map((f) => (
