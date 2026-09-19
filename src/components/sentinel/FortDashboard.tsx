@@ -146,6 +146,20 @@ export function FortDashboard({ fort, roles, workspace }: FortDashboardProps) {
     };
   }, []);
 
+  const liveSources = useMemo(() => {
+    if (!previews) return [] as { label: string; value: string }[];
+    const entries: { label: string; value: number | null | undefined }[] = [
+      { label: "CRM Leads", value: previews["/app/crm"]?.leads },
+      { label: "Leads Pipeline", value: previews["/app/leads"]?.leads },
+      { label: "Marketplace Properties", value: previews["/app/marketplace"]?.properties },
+      { label: "Market Listings", value: previews["/app/market"]?.listings },
+      { label: "Active Deals", value: previews["/app/dealrooms"]?.deals },
+    ];
+    return entries
+      .filter((e): e is { label: string; value: number } => typeof e.value === "number")
+      .map((e) => ({ label: e.label, value: e.value.toLocaleString() }));
+  }, [previews]);
+
   if (!workspaceResolved) {
     return (
       <div className="mx-auto w-full max-w-7xl px-4 py-10">
@@ -169,19 +183,7 @@ export function FortDashboard({ fort, roles, workspace }: FortDashboardProps) {
   // Live sources that actually returned a countable row set (SHELL_SOURCES).
   // A source that is missing/errored stays out of this list — we never invent
   // a number for it. The panel renders INSUFFICIENT DATA when nothing loaded.
-  const liveSources = useMemo(() => {
-    if (!previews) return [] as { label: string; value: string }[];
-    const entries: { label: string; value: number | null | undefined }[] = [
-      { label: "CRM Leads", value: previews["/app/crm"]?.leads },
-      { label: "Leads Pipeline", value: previews["/app/leads"]?.leads },
-      { label: "Marketplace Properties", value: previews["/app/marketplace"]?.properties },
-      { label: "Market Listings", value: previews["/app/market"]?.listings },
-      { label: "Active Deals", value: previews["/app/dealrooms"]?.deals },
-    ];
-    return entries
-      .filter((e): e is { label: string; value: number } => typeof e.value === "number")
-      .map((e) => ({ label: e.label, value: e.value.toLocaleString() }));
-  }, [previews]);
+
 
   return (
     <div className="relative w-full px-3 sm:px-5 py-3 max-w-[1600px] mx-auto space-y-2.5">
