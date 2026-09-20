@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
@@ -146,6 +146,16 @@ function saveFallbackSession(session: any) {
 }
 
 function AuthPage() {
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+
+  if (pathname !== "/auth") {
+    return <Outlet />;
+  }
+
+  return <AuthLoginPage />;
+}
+
+function AuthLoginPage() {
   const navigate = useNavigate();
   const { next } = Route.useSearch();
   const target = safeNext(next);
@@ -359,3 +369,4 @@ function AuthPage() {
     </div>
   );
 }
+
