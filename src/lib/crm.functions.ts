@@ -659,7 +659,16 @@ export function mapDatabaseRowsToLiveLeads(
 export const getLiveLeads = createServerFn({ method: "GET" })
   .middleware([requireRoles(["admin", "manager", "agent", "viewer", "builder", "developer"])])
   .handler(async ({ context }): Promise<LiveLead[]> => {
-    const { supabase } = context as { supabase: any };
+    const { supabase, userId, roles } = context as {
+  supabase: any;
+  userId: string;
+  roles?: string[];
+};
+
+console.log("[getLiveLeads][diagnostic]", {
+  userId,
+  roles: roles ?? [],
+});
 
     try {
       const [leadsRes, activitiesRes, profilesRes] = await Promise.all([
@@ -676,7 +685,13 @@ export const getLiveLeads = createServerFn({ method: "GET" })
           .from("profiles")
           .select("id, full_name, email"),
       ]);
-
+      console.log("[getLiveLeads][diagnostic-result]", {
+        userId,
+        leadCount: leadsRes.data?.length ?? 0,
+        leadError: leadsRes.error?.message ?? null,
+        activityCount: activitiesRes.data?.length ?? 0,
+        profileCount: profilesRes.data?.length ?? 0,
+      });
       if (leadsRes.error) {
         console.error("[getLiveLeads] Database error fetching leads:", leadsRes.error.message);
         throw new Error(`Failed to fetch leads: ${leadsRes.error.message}`);
