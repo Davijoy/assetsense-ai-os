@@ -46,7 +46,6 @@ import {
   formatExactTimestamp,
   getWorkspaceTeamMembers,
   getDefaultTimelineForLead,
-  DEFAULT_TEAM_MEMBERS,
 } from "@/lib/crm.functions";
 
 function WhatsAppIcon({ className }: { className?: string }) {
@@ -117,7 +116,7 @@ export function LeadDetailDrawer({
   const [loadingTimeline, setLoadingTimeline] = useState(false);
   const [newComment, setNewComment] = useState("");
   const [submittingComment, setSubmittingComment] = useState(false);
-  const [teamMembers, setTeamMembers] = useState<TeamMember[]>(DEFAULT_TEAM_MEMBERS);
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [assigningOwner, setAssigningOwner] = useState(false);
   const [changingStage, setChangingStage] = useState(false);
   const [searchMember, setSearchMember] = useState("");
@@ -213,13 +212,22 @@ export function LeadDetailDrawer({
         }
       });
 
-    fetchMembersFn()
+    setTeamMembers([]);
+
+    fetchMembersFn({
+      data: { leadId: currentLead.id },
+    })
       .then((members) => {
-        if (mounted && Array.isArray(members) && members.length > 0) {
-          setTeamMembers(members);
+        if (mounted) {
+          setTeamMembers(Array.isArray(members) ? members : []);
         }
       })
-      .catch(() => {});
+      .catch((error) => {
+        console.error("[LeadDetailDrawer] Failed to load workspace members:", error);
+        if (mounted) {
+          setTeamMembers([]);
+        }
+      });
 
     return () => {
       mounted = false;
@@ -259,7 +267,7 @@ export function LeadDetailDrawer({
     currentLead.owner === "Unassigned" ||
     currentLead.owner === "none";
 
-  const safeTeamMembers = Array.isArray(teamMembers) ? teamMembers : DEFAULT_TEAM_MEMBERS;
+  const safeTeamMembers = Array.isArray(teamMembers) ? teamMembers : [];
   const safeTimeline = Array.isArray(timeline) ? timeline : [];
   const filteredMembers = safeTeamMembers.filter(
     (m) =>
@@ -502,8 +510,7 @@ export function LeadDetailDrawer({
       const res = await assignExecutiveFn({
         data: {
           leadId: currentLead.id,
-          targetExecutiveId: targetMember.initials || targetMember.id,
-          targetExecutiveName: targetMember.name,
+          targetExecutiveId: targetMember.id,
           notes: assignNotes.trim() || undefined,
         },
       });
@@ -512,6 +519,7 @@ export function LeadDetailDrawer({
         ...currentLead,
         owner: res.owner,
         ownerName: res.ownerName,
+        assignedToId: targetMember.id,
       };
       setCurrentLead(updated);
       if (onLeadUpdated) onLeadUpdated(updated);
@@ -992,7 +1000,7 @@ export function LeadDetailDrawer({
                     </div>
                   ) : (
                     filteredMembers.map((m) => {
-                      const isAssigned = currentLead.owner === m.initials || currentLead.owner === m.id;
+                      const isAssigned = currentLead.assignedToId === m.id;
                       return (
                         <button
                           key={m.id}

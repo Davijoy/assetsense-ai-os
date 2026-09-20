@@ -590,7 +590,11 @@ export function mapDatabaseRowsToLiveLeads(
 
     const leadActs = activities.filter((a) => a.related_to_id === r.id);
     const lastAct = leadActs[0];
-    const ownerName = r.owner ? resolvePerformerName(r.owner, profileMap) : "Unassigned";
+    const ownerName = r.assigned_to
+      ? resolvePerformerName(r.assigned_to, profileMap)
+      : r.owner
+        ? resolvePerformerName(r.owner, profileMap)
+        : "Unassigned";
 
     let followUpDate: string | undefined;
     let followUpTime: string | undefined;
@@ -640,6 +644,7 @@ export function mapDatabaseRowsToLiveLeads(
       budgetInr: r.budget_inr,
       project: r.project || "General Inquiry",
       owner: r.owner || "Unassigned",
+      assignedToId: r.assigned_to ?? null,
       ownerName,
       lastActivity: lastAct?.description || "Lead record created in Sentinel Fort.",
       lastActivityAgo: r.created_at ? formatTimeAgo(r.created_at) : "Just now",
@@ -674,7 +679,7 @@ console.log("[getLiveLeads][diagnostic]", {
       const [leadsRes, activitiesRes, profilesRes] = await Promise.all([
         supabase
           .from("leads")
-          .select("id, name, email, phone, source, stage, score, budget_inr, project, owner, city, created_at")
+          .select("id, name, email, phone, source, stage, score, budget_inr, project, owner, assigned_to, city, created_at")
           .order("created_at", { ascending: false }),
         supabase
           .from("activities")
@@ -898,7 +903,7 @@ export const selfAssignLead = createServerFn({ method: "POST" })
   .middleware([requireRoles(["admin", "manager", "agent", "builder", "developer"])])
   .validator(
     z.object({
-      leadId: z.string(),
+      leadId: z.string().uuid(),
       forceReassign: z.boolean().optional(),
     })
   )
@@ -913,82 +918,143 @@ export const selfAssignLead = createServerFn({ method: "POST" })
     const { supabase, userId } = context as { supabase: any; userId: string };
     const { leadId, forceReassign } = data;
 
-    let actingName = "Aarav Mehta";
-    let actingInitials = "AM";
+    const { data: leadRow, error: leadError } = await supabase
+      .from("leads")
+      .select("id, owner, assigned_to, workspace_id")
+      .eq("id", leadId)
+      .maybeSingle();
 
-    try {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("full_name, email")
-        .eq("id", userId)
-        .maybeSingle();
-
-      if (profile?.full_name) {
-        actingName = profile.full_name;
-        actingInitials = actingName.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase() || "ME";
-      } else if (profile?.email) {
-        actingName = profile.email.split("@")[0];
-        actingInitials = actingName.slice(0, 2).toUpperCase();
-      }
-    } catch {
-      // Keep defaults
+    if (leadError) {
+      throw new Error(`Failed to verify lead state: ${leadError.message}`);
     }
 
-    let previousOwner: string | null = null;
+    if (!leadRow) {
+      throw new Error("LEAD_NOT_FOUND");
+    }
+
+    const { data: membership, error: membershipError } = await supabase
+      .from("workspace_members")
+      .select(`
+        user_id,
+        status,
+        roles ( name ),
+        profiles:user_id ( full_name, email )
+      `)
+      .eq("workspace_id", leadRow.workspace_id)
+      .eq("user_id", userId)
+      .eq("status", "active")
+      .maybeSingle();
+
+    if (membershipError) {
+      throw new Error(
+        `Failed to verify self-assignment workspace membership: ${membershipError.message}`
+      );
+    }
+
+    if (!membership || membership.roles?.name !== "member") {
+      throw new Error(
+        "SELF_ASSIGN_NOT_ELIGIBLE: You must be an active member of this lead's workspace."
+      );
+    }
+
+    const { data: appRoleRows, error: appRoleError } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId);
+
+    if (appRoleError) {
+      throw new Error(
+        `Failed to verify self-assignment application role: ${appRoleError.message}`
+      );
+    }
+
+    const appRoles = new Set(
+      (appRoleRows ?? []).map((row: any) => row.role)
+    );
+
+    if (!appRoles.has("agent") && !appRoles.has("manager")) {
+      throw new Error(
+        "SELF_ASSIGN_NOT_ELIGIBLE: Only a Sales Executive or Sales Manager can self-assign a lead."
+      );
+    }
+
+    const actingName =
+      membership.profiles?.full_name ||
+      membership.profiles?.email?.split("@")[0];
+
+    if (!actingName) {
+      throw new Error(
+        "SELF_ASSIGN_PROFILE_MISSING: Unable to resolve authenticated user identity."
+      );
+    }
+
+    const previousOwner = leadRow.owner ?? null;
+    const previousAssignedTo = leadRow.assigned_to ?? null;
+
+    const isAssignedToOther =
+      Boolean(previousAssignedTo) && previousAssignedTo !== userId;
+
+    /*
+     * Legacy rows may have owner text but no assigned_to UUID yet.
+     * Treat them as already assigned unless explicit reassignment is requested.
+     */
+    const hasLegacyAssignment =
+      !previousAssignedTo &&
+      Boolean(
+        previousOwner &&
+        previousOwner !== "Unassigned" &&
+        previousOwner !== "none" &&
+        previousOwner !== ""
+      );
+
+    if ((isAssignedToOther || hasLegacyAssignment) && !forceReassign) {
+      throw new Error(
+        `LEAD_ALREADY_ASSIGNED: Lead is already assigned to ${
+          previousOwner || previousAssignedTo
+        }. Use explicit reassignment.`
+      );
+    }
+
+    const { error: updateError } = await supabase
+      .from("leads")
+      .update({
+        assigned_to: userId,
+        owner: actingName,
+      })
+      .eq("id", leadId);
+
+    if (updateError) {
+      throw new Error(`Failed to self-assign lead: ${updateError.message}`);
+    }
+
     const nowIso = new Date().toISOString();
 
-    try {
-      if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(leadId)) {
-        const { data: leadRow, error: fetchErr } = await supabase
-          .from("leads")
-          .select("id, owner, workspace_id")
-          .eq("id", leadId)
-          .maybeSingle();
+    const { error: activityError } = await supabase
+      .from("activities")
+      .insert({
+        workspace_id: leadRow.workspace_id,
+        activity_type: "task",
+        subject: `Lead assigned to ${actingName} (Self Assign)`,
+        description: `Lead self-assigned by ${actingName}`,
+        related_to_type: "lead",
+        related_to_id: leadId,
+        performed_by: userId,
+        assigned_to: userId,
+        start_time: nowIso,
+        status: "completed",
+      });
 
-        if (fetchErr) {
-          throw new Error(`Failed to verify lead state: ${fetchErr.message}`);
-        }
-
-        if (leadRow) {
-          previousOwner = leadRow.owner ?? null;
-
-          const isCurrentlyAssigned = previousOwner && previousOwner !== "Unassigned" && previousOwner !== "none" && previousOwner !== "";
-          const isAssignedToOther = isCurrentlyAssigned && previousOwner !== actingInitials && previousOwner !== userId && previousOwner !== actingName;
-
-          if (isAssignedToOther && !forceReassign) {
-            throw new Error(`LEAD_ALREADY_ASSIGNED: Lead is already assigned to ${previousOwner}. Use explicit reassignment.`);
-          }
-
-          await supabase
-            .from("leads")
-            .update({ owner: actingInitials })
-            .eq("id", leadId);
-
-          await supabase.from("activities").insert({
-            workspace_id: leadRow.workspace_id,
-            activity_type: "task",
-            subject: `Lead assigned to ${actingName} (Self Assign)`,
-            description: `Lead self-assigned by ${actingName}`,
-            related_to_type: "lead",
-            related_to_id: leadId,
-            performed_by: userId,
-            assigned_to: userId,
-            start_time: nowIso,
-            status: "completed",
-          });
-        }
-      }
-    } catch (e: any) {
-      if (e?.message?.includes("LEAD_ALREADY_ASSIGNED")) {
-        throw e;
-      }
-      console.warn("[selfAssignLead] Note: DB update caught error:", e);
+    if (activityError) {
+      console.error(
+        "[selfAssignLead] Lead assignment succeeded but activity logging failed:",
+        activityError
+      );
     }
 
     return {
       success: true,
       leadId,
-      owner: actingInitials,
+      owner: actingName,
       ownerName: actingName,
       assignmentType: "SELF_ASSIGN",
       previousOwner,
@@ -1002,9 +1068,8 @@ export const assignLeadToExecutive = createServerFn({ method: "POST" })
   .middleware([requireRoles(["admin", "manager", "agent", "builder", "developer"])])
   .validator(
     z.object({
-      leadId: z.string(),
-      targetExecutiveId: z.string(),
-      targetExecutiveName: z.string().optional(),
+      leadId: z.string().uuid(),
+      targetExecutiveId: z.string().uuid(),
       notes: z.string().optional(),
     })
   )
@@ -1017,64 +1082,133 @@ export const assignLeadToExecutive = createServerFn({ method: "POST" })
     previousOwner: string | null;
   }> => {
     const { supabase, userId } = context as { supabase: any; userId: string };
-    const { leadId, targetExecutiveId, targetExecutiveName, notes } = data;
+    const { leadId, targetExecutiveId, notes } = data;
 
-    const matchedMember = DEFAULT_TEAM_MEMBERS.find(
-      (m) => m.initials === targetExecutiveId || m.id === targetExecutiveId
+    const { data: leadRow, error: leadError } = await supabase
+      .from("leads")
+      .select("id, owner, assigned_to, workspace_id")
+      .eq("id", leadId)
+      .maybeSingle();
+
+    if (leadError) {
+      throw new Error(`Failed to load lead for assignment: ${leadError.message}`);
+    }
+
+    if (!leadRow) {
+      throw new Error("LEAD_NOT_FOUND");
+    }
+
+    const { data: membership, error: membershipError } = await supabase
+      .from("workspace_members")
+      .select(`
+        user_id,
+        status,
+        roles ( name ),
+        profiles:user_id ( full_name, email )
+      `)
+      .eq("workspace_id", leadRow.workspace_id)
+      .eq("user_id", targetExecutiveId)
+      .eq("status", "active")
+      .maybeSingle();
+
+    if (membershipError) {
+      throw new Error(`Failed to verify assignee workspace membership: ${membershipError.message}`);
+    }
+
+    if (!membership || membership.roles?.name !== "member") {
+      throw new Error("ASSIGNEE_NOT_ELIGIBLE: User is not an active workspace member.");
+    }
+
+    const { data: targetRoleRows, error: targetRoleError } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", targetExecutiveId);
+
+    if (targetRoleError) {
+      throw new Error(`Failed to verify assignee application role: ${targetRoleError.message}`);
+    }
+
+    const targetRoles = new Set(
+      (targetRoleRows ?? []).map((row: any) => row.role)
     );
-    const resolvedName = targetExecutiveName || matchedMember?.name || targetExecutiveId;
-    const targetOwnerKey = matchedMember?.initials || targetExecutiveId;
 
-    let previousOwner: string | null = null;
-    let isReassignment = false;
-    const nowIso = new Date().toISOString();
+    if (!targetRoles.has("agent") && !targetRoles.has("manager")) {
+      throw new Error(
+        "ASSIGNEE_NOT_ELIGIBLE: User must be a Sales Executive or Sales Manager."
+      );
+    }
 
-    try {
-      if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(leadId)) {
-        const { data: leadRow } = await supabase
-          .from("leads")
-          .select("id, owner, workspace_id")
-          .eq("id", leadId)
-          .maybeSingle();
+    const resolvedName =
+      membership.profiles?.full_name ||
+      membership.profiles?.email?.split("@")[0];
 
-        if (leadRow) {
-          previousOwner = leadRow.owner ?? null;
-          isReassignment = Boolean(previousOwner && previousOwner !== "Unassigned" && previousOwner !== "none" && previousOwner !== "");
+    if (!resolvedName) {
+      throw new Error("ASSIGNEE_PROFILE_MISSING: Unable to resolve assignee identity.");
+    }
 
-          await supabase
-            .from("leads")
-            .update({ owner: targetOwnerKey })
-            .eq("id", leadId);
+    const previousOwner = leadRow.owner ?? null;
+    const previousAssignedTo = leadRow.assigned_to ?? null;
 
-          const subjectText = isReassignment
-            ? `Lead reassigned to ${resolvedName}`
-            : `Lead assigned to ${resolvedName}`;
+    const isReassignment = Boolean(
+      previousAssignedTo ||
+      (
+        previousOwner &&
+        previousOwner !== "Unassigned" &&
+        previousOwner !== "none" &&
+        previousOwner !== ""
+      )
+    );
 
-          const descText = notes
-            ? `Lead assigned to ${resolvedName} (${matchedMember?.role || "Sales Executive"}). Note: ${notes}`
-            : `Lead assigned to ${resolvedName} (${matchedMember?.role || "Sales Executive"})`;
+    const { error: updateError } = await supabase
+      .from("leads")
+      .update({
+        assigned_to: targetExecutiveId,
+        owner: resolvedName,
+      })
+      .eq("id", leadId);
 
-          await supabase.from("activities").insert({
-            workspace_id: leadRow.workspace_id,
-            activity_type: "task",
-            subject: subjectText,
-            description: descText,
-            related_to_type: "lead",
-            related_to_id: leadId,
-            performed_by: userId,
-            start_time: nowIso,
-            status: "completed",
-          });
-        }
-      }
-    } catch (e) {
-      console.warn("[assignLeadToExecutive] DB update caught error:", e);
+    if (updateError) {
+      throw new Error(`Failed to assign lead: ${updateError.message}`);
+    }
+
+    const roleLabel = targetRoles.has("manager")
+      ? "Sales Manager"
+      : "Sales Executive";
+
+    const subjectText = isReassignment
+      ? `Lead reassigned to ${resolvedName}`
+      : `Lead assigned to ${resolvedName}`;
+
+    const descText = notes
+      ? `Lead assigned to ${resolvedName} (${roleLabel}). Note: ${notes}`
+      : `Lead assigned to ${resolvedName} (${roleLabel})`;
+
+    const { error: activityError } = await supabase
+      .from("activities")
+      .insert({
+        workspace_id: leadRow.workspace_id,
+        activity_type: "task",
+        subject: subjectText,
+        description: descText,
+        related_to_type: "lead",
+        related_to_id: leadId,
+        performed_by: userId,
+        assigned_to: targetExecutiveId,
+        start_time: new Date().toISOString(),
+        status: "completed",
+      });
+
+    if (activityError) {
+      console.error(
+        "[assignLeadToExecutive] Lead assignment succeeded but activity logging failed:",
+        activityError
+      );
     }
 
     return {
       success: true,
       leadId,
-      owner: targetOwnerKey,
+      owner: resolvedName,
       ownerName: resolvedName,
       assignmentType: isReassignment ? "REASSIGN" : "ASSIGN_TO_EXECUTIVE",
       previousOwner,
@@ -1088,7 +1222,7 @@ export const unassignLead = createServerFn({ method: "POST" })
   .middleware([requireRoles(["admin", "manager", "agent", "builder", "developer"])])
   .validator(
     z.object({
-      leadId: z.string(),
+      leadId: z.string().uuid(),
       reason: z.string().optional(),
     })
   )
@@ -1101,37 +1235,56 @@ export const unassignLead = createServerFn({ method: "POST" })
   }> => {
     const { supabase, userId } = context as { supabase: any; userId: string };
     const { leadId, reason } = data;
+
+    const { data: leadRow, error: leadError } = await supabase
+      .from("leads")
+      .select("id, owner, assigned_to, workspace_id")
+      .eq("id", leadId)
+      .maybeSingle();
+
+    if (leadError) {
+      throw new Error(`Failed to load lead for unassignment: ${leadError.message}`);
+    }
+
+    if (!leadRow) {
+      throw new Error("LEAD_NOT_FOUND");
+    }
+
+    const { error: updateError } = await supabase
+      .from("leads")
+      .update({
+        owner: null,
+        assigned_to: null,
+      })
+      .eq("id", leadId);
+
+    if (updateError) {
+      throw new Error(`Failed to unassign lead: ${updateError.message}`);
+    }
+
     const nowIso = new Date().toISOString();
 
-    try {
-      if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(leadId)) {
-        const { data: leadRow } = await supabase
-          .from("leads")
-          .select("id, owner, workspace_id")
-          .eq("id", leadId)
-          .maybeSingle();
+    const { error: activityError } = await supabase
+      .from("activities")
+      .insert({
+        workspace_id: leadRow.workspace_id,
+        activity_type: "task",
+        subject: "Lead unassigned",
+        description: reason
+          ? `Lead was unassigned. Reason: ${reason}`
+          : "Lead returned to unassigned inbox pool.",
+        related_to_type: "lead",
+        related_to_id: leadId,
+        performed_by: userId,
+        start_time: nowIso,
+        status: "completed",
+      });
 
-        if (leadRow) {
-          await supabase
-            .from("leads")
-            .update({ owner: null })
-            .eq("id", leadId);
-
-          await supabase.from("activities").insert({
-            workspace_id: leadRow.workspace_id,
-            activity_type: "task",
-            subject: "Lead unassigned",
-            description: reason ? `Lead was unassigned. Reason: ${reason}` : "Lead returned to unassigned inbox pool.",
-            related_to_type: "lead",
-            related_to_id: leadId,
-            performed_by: userId,
-            start_time: nowIso,
-            status: "completed",
-          });
-        }
-      }
-    } catch (e) {
-      console.warn("[unassignLead] DB update error:", e);
+    if (activityError) {
+      console.error(
+        "[unassignLead] Lead unassignment succeeded but activity logging failed:",
+        activityError
+      );
     }
 
     return {
@@ -1782,52 +1935,117 @@ export const getLeadAssignmentHistory = createServerFn({ method: "GET" })
  * Get active team members for lead assignment
  */
 export const getWorkspaceTeamMembers = createServerFn({ method: "GET" })
-  .middleware([requireRoles(["admin", "manager", "agent", "viewer", "builder", "developer"])])
-  .handler(async ({ context }): Promise<TeamMember[]> => {
+  .middleware([requireRoles(["admin", "manager", "agent", "builder", "developer"])])
+  .validator(
+    z.object({
+      leadId: z.string().uuid(),
+    })
+  )
+  .handler(async ({ context, data }): Promise<TeamMember[]> => {
     const { supabase } = context as { supabase: any };
 
-    try {
-      const { data: members, error } = await supabase
-        .from("workspace_members")
-        .select(`
-          id,
-          user_id,
-          status,
-          roles ( name ),
-          profiles:user_id ( full_name, email, avatar_url )
-        `)
-        .eq("status", "active");
+    const { data: lead, error: leadError } = await supabase
+      .from("leads")
+      .select("id, workspace_id")
+      .eq("id", data.leadId)
+      .maybeSingle();
 
-      if (!error && members && members.length > 0) {
-        const formatted: TeamMember[] = members.map((m: any) => {
-          const name = m.profiles?.full_name || m.profiles?.email?.split("@")[0] || "Team Member";
-          const initials = name
+    if (leadError) {
+      throw new Error(`Failed to resolve lead workspace: ${leadError.message}`);
+    }
+
+    if (!lead?.workspace_id) {
+      return [];
+    }
+
+    const { data: members, error: membersError } = await supabase
+      .from("workspace_members")
+      .select(`
+        user_id,
+        status,
+        roles ( name ),
+        profiles:user_id ( full_name, email, avatar_url )
+      `)
+      .eq("workspace_id", lead.workspace_id)
+      .eq("status", "active");
+
+    if (membersError) {
+      throw new Error(`Failed to load workspace members: ${membersError.message}`);
+    }
+
+    const memberUserIds = (members ?? [])
+      .filter(
+        (m: any) =>
+          m.user_id &&
+          m.profiles &&
+          m.roles?.name === "member"
+      )
+      .map((m: any) => m.user_id);
+
+    if (memberUserIds.length === 0) {
+      return [];
+    }
+
+    const { data: appRoleRows, error: appRoleError } = await supabase
+      .from("user_roles")
+      .select("user_id, role")
+      .in("user_id", memberUserIds);
+
+    if (appRoleError) {
+      throw new Error(`Failed to resolve assignable member roles: ${appRoleError.message}`);
+    }
+
+    const rolesByUser = new Map<string, Set<string>>();
+
+    for (const row of appRoleRows ?? []) {
+      if (!rolesByUser.has(row.user_id)) {
+        rolesByUser.set(row.user_id, new Set<string>());
+      }
+
+      rolesByUser.get(row.user_id)!.add(row.role);
+    }
+
+    return (members ?? [])
+      .filter((m: any) => {
+        if (!m.user_id || !m.profiles || m.roles?.name !== "member") {
+          return false;
+        }
+
+        const appRoles = rolesByUser.get(m.user_id);
+
+        return Boolean(
+          appRoles &&
+          (appRoles.has("agent") || appRoles.has("manager"))
+        );
+      })
+      .map((m: any): TeamMember => {
+        const name =
+          m.profiles?.full_name ||
+          m.profiles?.email?.split("@")[0] ||
+          "Team Member";
+
+        const initials =
+          name
             .split(" ")
+            .filter(Boolean)
             .map((n: string) => n[0])
             .join("")
             .slice(0, 2)
             .toUpperCase() || "TM";
-          return {
-            id: initials,
-            name,
-            initials,
-            role: m.roles?.name || "Sales Executive",
-            email: m.profiles?.email,
-            status: m.status,
-            avatarUrl: m.profiles?.avatar_url,
-          };
-        });
 
-        if (formatted.length > 0) {
-          if (!formatted.some((m) => m.id === "AI")) {
-            formatted.push(DEFAULT_TEAM_MEMBERS.find((m) => m.id === "AI")!);
-          }
-          return formatted;
-        }
-      }
-    } catch (e) {
-      console.warn("[getWorkspaceTeamMembers] Falling back to default team members:", e);
-    }
+        const appRoles = rolesByUser.get(m.user_id);
+        const displayRole = appRoles?.has("manager")
+          ? "Sales Manager"
+          : "Sales Executive";
 
-    return DEFAULT_TEAM_MEMBERS;
+        return {
+          id: m.user_id,
+          name,
+          initials,
+          role: displayRole,
+          email: m.profiles?.email,
+          status: m.status,
+          avatarUrl: m.profiles?.avatar_url,
+        };
+      });
   });
