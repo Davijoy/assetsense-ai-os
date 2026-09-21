@@ -35,7 +35,6 @@ import {
   getLeadActivityTimeline,
   addLeadComment,
   assignLeadOwner,
-  selfAssignLead,
   assignLeadToExecutive,
   unassignLead,
   updateLeadStage,
@@ -154,7 +153,6 @@ export function LeadDetailDrawer({
   const fetchTimelineFn = useServerFn(getLeadActivityTimeline);
   const addCommentFn = useServerFn(addLeadComment);
   const assignOwnerFn = useServerFn(assignLeadOwner);
-  const selfAssignFn = useServerFn(selfAssignLead);
   const assignExecutiveFn = useServerFn(assignLeadToExecutive);
   const unassignLeadFn = useServerFn(unassignLead);
   const updateStageFn = useServerFn(updateLeadStage);
@@ -455,50 +453,6 @@ export function LeadDetailDrawer({
       toast.error(e?.message || "Failed to update follow-up");
     } finally {
       setSavingFollowUp(false);
-    }
-  };
-
-  const handleSelfAssign = async () => {
-    if (assigningOwner) return;
-    setAssigningOwner(true);
-
-    try {
-      const res = await selfAssignFn({
-        data: {
-          leadId: currentLead.id,
-          forceReassign: true,
-        },
-      });
-
-      const updated: LiveLead = {
-        ...currentLead,
-        owner: res.owner,
-        ownerName: res.ownerName,
-      };
-      setCurrentLead(updated);
-      if (onLeadUpdated) onLeadUpdated(updated);
-      toast.success(`Lead assigned to ${res.ownerName}`);
-
-      const nowIso = new Date().toISOString();
-      setTimeline((prev) => [
-        {
-          id: `act-assign-${Date.now()}`,
-          leadId: currentLead.id,
-          type: "assignment",
-          subject: `Lead assigned to ${res.ownerName} (Self Assign)`,
-          description: `Lead claimed and self-assigned by ${res.ownerName}`,
-          performedBy: res.ownerName,
-          createdAt: nowIso,
-          exactTimestamp: formatExactTimestamp(nowIso).exact,
-          timeAgo: "Just now",
-        },
-        ...(Array.isArray(prev) ? prev : []),
-      ]);
-      setPickerOpen(false);
-    } catch (e: any) {
-      toast.error(e?.message || "Failed to self-assign lead");
-    } finally {
-      setAssigningOwner(false);
     }
   };
 
@@ -940,18 +894,6 @@ export function LeadDetailDrawer({
 
             {/* Quick Action Buttons */}
             <div className="flex flex-wrap items-center gap-2">
-              {!isAssignedToMe && (
-                <button
-                  type="button"
-                  disabled={assigningOwner}
-                  onClick={handleSelfAssign}
-                  className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#B38F26] px-3.5 py-2 text-xs font-bold text-black hover:brightness-110 active:scale-[0.98] transition-all shadow-sm disabled:opacity-50"
-                >
-                  <UserPlus className="h-3.5 w-3.5 text-black" />
-                  <span>Assign to Me</span>
-                </button>
-              )}
-
               <button
                 type="button"
                 disabled={assigningOwner}
