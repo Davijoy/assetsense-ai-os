@@ -91,6 +91,7 @@ import { Route as AppSettingsBrandingRouteImport } from './routes/app.settings.b
 import { Route as AppSettingsIntegrationsRouteImport } from './routes/app.settings.integrations'
 import { Route as ApiPublicAuthCallbackRouteImport } from './routes/api/public/auth.callback'
 import { Route as ApiPublicRealtifyuCallbackRouteImport } from './routes/api/public/realtifyu.callback'
+import { Route as ApiPublicWebhooksMetaLeadsRouteImport } from './routes/api/public/webhooks/meta-leads'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -504,6 +505,12 @@ const ApiPublicRealtifyuCallbackRoute =
     path: '/api/public/realtifyu/callback',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicWebhooksMetaLeadsRoute =
+  ApiPublicWebhooksMetaLeadsRouteImport.update({
+    id: '/api/public/webhooks/meta-leads',
+    path: '/api/public/webhooks/meta-leads',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -588,6 +595,7 @@ export interface FileRoutesByFullPath {
   '/app/settings/integrations': typeof AppSettingsIntegrationsRoute
   '/api/public/auth/callback': typeof ApiPublicAuthCallbackRoute
   '/api/public/realtifyu/callback': typeof ApiPublicRealtifyuCallbackRoute
+  '/api/public/webhooks/meta-leads': typeof ApiPublicWebhooksMetaLeadsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -670,6 +678,7 @@ export interface FileRoutesByTo {
   '/app/settings/integrations': typeof AppSettingsIntegrationsRoute
   '/api/public/auth/callback': typeof ApiPublicAuthCallbackRoute
   '/api/public/realtifyu/callback': typeof ApiPublicRealtifyuCallbackRoute
+  '/api/public/webhooks/meta-leads': typeof ApiPublicWebhooksMetaLeadsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -755,6 +764,7 @@ export interface FileRoutesById {
   '/app/settings/integrations': typeof AppSettingsIntegrationsRoute
   '/api/public/auth/callback': typeof ApiPublicAuthCallbackRoute
   '/api/public/realtifyu/callback': typeof ApiPublicRealtifyuCallbackRoute
+  '/api/public/webhooks/meta-leads': typeof ApiPublicWebhooksMetaLeadsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -841,6 +851,7 @@ export interface FileRouteTypes {
     | '/app/settings/integrations'
     | '/api/public/auth/callback'
     | '/api/public/realtifyu/callback'
+    | '/api/public/webhooks/meta-leads'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -923,6 +934,7 @@ export interface FileRouteTypes {
     | '/app/settings/integrations'
     | '/api/public/auth/callback'
     | '/api/public/realtifyu/callback'
+    | '/api/public/webhooks/meta-leads'
   id:
     | '__root__'
     | '/'
@@ -1007,6 +1019,7 @@ export interface FileRouteTypes {
     | '/app/settings/integrations'
     | '/api/public/auth/callback'
     | '/api/public/realtifyu/callback'
+    | '/api/public/webhooks/meta-leads'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -1052,6 +1065,7 @@ export interface RootRouteChildren {
   ApiPublicUploadMediaRoute: typeof ApiPublicUploadMediaRoute
   ApiPublicAuthCallbackRoute: typeof ApiPublicAuthCallbackRoute
   ApiPublicRealtifyuCallbackRoute: typeof ApiPublicRealtifyuCallbackRoute
+  ApiPublicWebhooksMetaLeadsRoute: typeof ApiPublicWebhooksMetaLeadsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1630,6 +1644,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicRealtifyuCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/webhooks/meta-leads': {
+      id: '/api/public/webhooks/meta-leads'
+      path: '/api/public/webhooks/meta-leads'
+      fullPath: '/api/public/webhooks/meta-leads'
+      preLoaderRoute: typeof ApiPublicWebhooksMetaLeadsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -1790,6 +1811,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicUploadMediaRoute: ApiPublicUploadMediaRoute,
   ApiPublicAuthCallbackRoute: ApiPublicAuthCallbackRoute,
   ApiPublicRealtifyuCallbackRoute: ApiPublicRealtifyuCallbackRoute,
+  ApiPublicWebhooksMetaLeadsRoute: ApiPublicWebhooksMetaLeadsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
