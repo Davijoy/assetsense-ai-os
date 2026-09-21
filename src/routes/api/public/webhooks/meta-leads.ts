@@ -1,5 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createHmac, timingSafeEqual } from "node:crypto";
+import {
+  isServiceRoleAvailable,
+  supabaseAdmin,
+} from "@/integrations/supabase/client.server";
 
 function jsonResponse(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -232,20 +236,165 @@ export const Route = createFileRoute("/api/public/webhooks/meta-leads")({
             });
           }
 
+          if (!isServiceRoleAvailable()) {
+            console.error(
+              "[meta-leads] Supabase service role is not configured",
+            );
+
+            return jsonResponse(
+              { error: "Webhook ingestion is not configured" },
+              503,
+            );
+          }
+
+          let mappedCount = 0;
+          let unmappedCount = 0;
+          let duplicateCount = 0;
+
+          for (const event of leadgenEvents) {
+            /*
+             * Idempotency check.
+             *
+             * Meta can retry webhook deliveries. leadgen_id is the canonical
+             * ingestion key, so an already-recorded event is acknowledged
+             * without creating another ingestion row.
+             */
+            const { data: existingEvent, error: existingEventError } =
+              await (supabaseAdmin as any)
+                .from("meta_lead_events")
+                .select("id,status")
+                .eq("leadgen_id", event.leadgenId)
+                .maybeSingle();
+
+            if (existingEventError) {
+              throw new Error(
+                `Meta event deduplication lookup failed: ${existingEventError.message}`,
+              );
+            }
+
+            if (existingEvent) {
+              duplicateCount += 1;
+
+              console.info("[meta-leads] Duplicate leadgen event acknowledged", {
+                status: existingEvent.status,
+              });
+
+              continue;
+            }
+
+            /*
+             * Resolve the Meta Page/Form pair to exactly one active Sentinel
+             * workspace mapping.
+             *
+             * There is intentionally NO default-workspace fallback.
+             */
+            const { data: formMapping, error: formMappingError } =
+              await (supabaseAdmin as any)
+                .from("meta_lead_forms")
+                .select("id,workspace_id,connection_id")
+                .eq("page_id", event.pageId)
+                .eq("form_id", event.formId)
+                .eq("active", true)
+                .maybeSingle();
+
+            if (formMappingError) {
+              throw new Error(
+                `Meta form mapping lookup failed: ${formMappingError.message}`,
+              );
+            }
+
+            if (!formMapping) {
+              const { error: unmappedInsertError } =
+                await (supabaseAdmin as any)
+                  .from("meta_lead_events")
+                  .insert({
+                    leadgen_id: event.leadgenId,
+                    page_id: event.pageId,
+                    form_id: event.formId,
+                    status: "unmapped",
+                  });
+
+              if (unmappedInsertError) {
+                // A concurrent Meta retry may have inserted the same
+                // leadgen_id after our initial lookup.
+                if (unmappedInsertError.code === "23505") {
+                  duplicateCount += 1;
+                  continue;
+                }
+
+                throw new Error(
+                  `Unmapped Meta event insert failed: ${unmappedInsertError.message}`,
+                );
+              }
+
+              unmappedCount += 1;
+
+              console.warn("[meta-leads] Leadgen event has no active mapping");
+
+              continue;
+            }
+
+            const { error: eventInsertError } =
+              await (supabaseAdmin as any)
+                .from("meta_lead_events")
+                .insert({
+                  workspace_id: formMapping.workspace_id,
+                  connection_id: formMapping.connection_id,
+                  form_mapping_id: formMapping.id,
+                  leadgen_id: event.leadgenId,
+                  page_id: event.pageId,
+                  form_id: event.formId,
+                  status: "received",
+                });
+
+            if (eventInsertError) {
+              // Same race protection for concurrent/retried deliveries.
+              if (eventInsertError.code === "23505") {
+                duplicateCount += 1;
+                continue;
+              }
+
+              throw new Error(
+                `Mapped Meta event insert failed: ${eventInsertError.message}`,
+              );
+            }
+
+            mappedCount += 1;
+          }
+
+          console.info("[meta-leads] Leadgen ingestion routing complete", {
+            eventCount: leadgenEvents.length,
+            mappedCount,
+            unmappedCount,
+            duplicateCount,
+          });
+
           /*
-           * Signature-authenticated and leadgen-validated receiver foundation.
+           * This stage deliberately stops after secure routing + durable
+           * idempotent event ingestion.
            *
-           * Before production CRM lead ingestion is enabled we will add:
-           * 1. Page/form -> Sentinel workspace resolution.
-           * 2. Graph API retrieval using the authorized Page connection.
-           * 3. Lead normalization and deduplication.
-           * 4. CRM insertion and activity/audit logging.
+           * Next production stage:
+           * 1. Fetch the full lead from Meta Graph API.
+           * 2. Normalize approved lead fields.
+           * 3. Create the workspace-scoped CRM lead.
+           * 4. Link meta_lead_events.lead_id.
+           * 5. Append the lead creation to audit_logs.
            *
            * Never log access tokens, App Secrets, signatures,
            * or full customer lead data.
            */
 
-          return jsonResponse({ received: true }, 200);
+          return jsonResponse(
+            {
+              received: true,
+              actionable: true,
+              eventCount: leadgenEvents.length,
+              mappedCount,
+              unmappedCount,
+              duplicateCount,
+            },
+            200,
+          );
         } catch (error) {
           console.error(
             "[meta-leads] Webhook processing failed",
