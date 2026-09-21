@@ -937,8 +937,7 @@ export const selfAssignLead = createServerFn({ method: "POST" })
       .select(`
         user_id,
         status,
-        roles ( name ),
-        profiles:user_id ( full_name, email )
+        roles ( name )
       `)
       .eq("workspace_id", leadRow.workspace_id)
       .eq("user_id", userId)
@@ -978,9 +977,21 @@ export const selfAssignLead = createServerFn({ method: "POST" })
       );
     }
 
+    const { data: actingProfile, error: actingProfileError } = await supabase
+      .from("profiles")
+      .select("full_name, email")
+      .eq("id", userId)
+      .maybeSingle();
+
+    if (actingProfileError) {
+      throw new Error(
+        `Failed to resolve self-assignment profile: ${actingProfileError.message}`
+      );
+    }
+
     const actingName =
-      membership.profiles?.full_name ||
-      membership.profiles?.email?.split("@")[0];
+      actingProfile?.full_name ||
+      actingProfile?.email?.split("@")[0];
 
     if (!actingName) {
       throw new Error(
@@ -1103,8 +1114,7 @@ export const assignLeadToExecutive = createServerFn({ method: "POST" })
       .select(`
         user_id,
         status,
-        roles ( name ),
-        profiles:user_id ( full_name, email )
+        roles ( name )
       `)
       .eq("workspace_id", leadRow.workspace_id)
       .eq("user_id", targetExecutiveId)
@@ -1138,9 +1148,21 @@ export const assignLeadToExecutive = createServerFn({ method: "POST" })
       );
     }
 
+    const { data: targetProfile, error: targetProfileError } = await supabase
+      .from("profiles")
+      .select("full_name, email")
+      .eq("id", targetExecutiveId)
+      .maybeSingle();
+
+    if (targetProfileError) {
+      throw new Error(
+        `Failed to resolve assignee profile: ${targetProfileError.message}`
+      );
+    }
+
     const resolvedName =
-      membership.profiles?.full_name ||
-      membership.profiles?.email?.split("@")[0];
+      targetProfile?.full_name ||
+      targetProfile?.email?.split("@")[0];
 
     if (!resolvedName) {
       throw new Error("ASSIGNEE_PROFILE_MISSING: Unable to resolve assignee identity.");
@@ -1963,8 +1985,7 @@ export const getWorkspaceTeamMembers = createServerFn({ method: "GET" })
       .select(`
         user_id,
         status,
-        roles ( name ),
-        profiles:user_id ( full_name, email, avatar_url )
+        roles ( name )
       `)
       .eq("workspace_id", lead.workspace_id)
       .eq("status", "active");
@@ -1977,7 +1998,6 @@ export const getWorkspaceTeamMembers = createServerFn({ method: "GET" })
       .filter(
         (m: any) =>
           m.user_id &&
-          m.profiles &&
           m.roles?.name === "member"
       )
       .map((m: any) => m.user_id);
@@ -1986,10 +2006,25 @@ export const getWorkspaceTeamMembers = createServerFn({ method: "GET" })
       return [];
     }
 
-    const { data: appRoleRows, error: appRoleError } = await supabase
-      .from("user_roles")
-      .select("user_id, role")
-      .in("user_id", memberUserIds);
+    const [
+      { data: appRoleRows, error: appRoleError },
+      { data: profileRows, error: profileError },
+    ] = await Promise.all([
+      supabase
+        .from("user_roles")
+        .select("user_id, role")
+        .in("user_id", memberUserIds),
+      supabase
+        .from("profiles")
+        .select("id, full_name, email, avatar_url")
+        .in("id", memberUserIds),
+    ]);
+
+    if (profileError) {
+      throw new Error(
+        `Failed to resolve workspace member profiles: ${profileError.message}`
+      );
+    }
 
     if (appRoleError) {
       throw new Error(`Failed to resolve assignable member roles: ${appRoleError.message}`);
@@ -2005,23 +2040,31 @@ export const getWorkspaceTeamMembers = createServerFn({ method: "GET" })
       rolesByUser.get(row.user_id)!.add(row.role);
     }
 
+    const profilesByUser = new Map<string, any>(
+      (profileRows ?? []).map((profile: any) => [profile.id, profile])
+    );
+
     return (members ?? [])
       .filter((m: any) => {
-        if (!m.user_id || !m.profiles || m.roles?.name !== "member") {
+        if (!m.user_id || m.roles?.name !== "member") {
           return false;
         }
 
         const appRoles = rolesByUser.get(m.user_id);
+        const profile = profilesByUser.get(m.user_id);
 
         return Boolean(
+          profile &&
           appRoles &&
           (appRoles.has("agent") || appRoles.has("manager"))
         );
       })
       .map((m: any): TeamMember => {
+        const profile = profilesByUser.get(m.user_id);
+
         const name =
-          m.profiles?.full_name ||
-          m.profiles?.email?.split("@")[0] ||
+          profile?.full_name ||
+          profile?.email?.split("@")[0] ||
           "Team Member";
 
         const initials =
@@ -2043,9 +2086,9 @@ export const getWorkspaceTeamMembers = createServerFn({ method: "GET" })
           name,
           initials,
           role: displayRole,
-          email: m.profiles?.email,
+          email: profile?.email,
           status: m.status,
-          avatarUrl: m.profiles?.avatar_url,
+          avatarUrl: profile?.avatar_url,
         };
       });
   });
