@@ -39,6 +39,95 @@ function verifyMetaSignature(
   );
 }
 
+
+type MetaLeadgenEvent = {
+  leadgenId: string;
+  pageId: string;
+  formId: string;
+};
+
+function extractMetaLeadgenEvents(payload: unknown): MetaLeadgenEvent[] {
+  if (!payload || typeof payload !== "object") {
+    return [];
+  }
+
+  const root = payload as {
+    object?: unknown;
+    entry?: unknown;
+  };
+
+  if (root.object !== "page" || !Array.isArray(root.entry)) {
+    return [];
+  }
+
+  const events: MetaLeadgenEvent[] = [];
+
+  for (const entry of root.entry) {
+    if (!entry || typeof entry !== "object") {
+      continue;
+    }
+
+    const entryObject = entry as {
+      id?: unknown;
+      changes?: unknown;
+    };
+
+    if (!Array.isArray(entryObject.changes)) {
+      continue;
+    }
+
+    for (const change of entryObject.changes) {
+      if (!change || typeof change !== "object") {
+        continue;
+      }
+
+      const changeObject = change as {
+        field?: unknown;
+        value?: unknown;
+      };
+
+      if (changeObject.field !== "leadgen") {
+        continue;
+      }
+
+      if (!changeObject.value || typeof changeObject.value !== "object") {
+        continue;
+      }
+
+      const value = changeObject.value as {
+        leadgen_id?: unknown;
+        page_id?: unknown;
+        form_id?: unknown;
+      };
+
+      const leadgenId =
+        typeof value.leadgen_id === "string" ? value.leadgen_id.trim() : "";
+
+      const pageId =
+        typeof value.page_id === "string"
+          ? value.page_id.trim()
+          : typeof entryObject.id === "string"
+            ? entryObject.id.trim()
+            : "";
+
+      const formId =
+        typeof value.form_id === "string" ? value.form_id.trim() : "";
+
+      if (!leadgenId || !pageId || !formId) {
+        continue;
+      }
+
+      events.push({
+        leadgenId,
+        pageId,
+        formId,
+      });
+    }
+  }
+
+  return events;
+}
+
 export const Route = createFileRoute("/api/public/webhooks/meta-leads")({
   server: {
     handlers: {
@@ -127,19 +216,30 @@ export const Route = createFileRoute("/api/public/webhooks/meta-leads")({
               ? String((payload as { object?: unknown }).object ?? "")
               : "";
 
+          const leadgenEvents = extractMetaLeadgenEvents(payload);
+
           console.info("[meta-leads] Verified webhook received", {
             objectType: objectType || "unknown",
+            leadgenEventCount: leadgenEvents.length,
           });
 
+          if (leadgenEvents.length === 0) {
+            console.info("[meta-leads] No actionable leadgen events");
+
+            return jsonResponse({
+              received: true,
+              actionable: false,
+            });
+          }
+
           /*
-           * Signature-authenticated receiver foundation.
+           * Signature-authenticated and leadgen-validated receiver foundation.
            *
            * Before production CRM lead ingestion is enabled we will add:
-           * 1. Meta leadgen event validation.
-           * 2. Page/form -> Sentinel workspace resolution.
-           * 3. Graph API retrieval using the authorized Page connection.
-           * 4. Lead normalization and deduplication.
-           * 5. CRM insertion and activity/audit logging.
+           * 1. Page/form -> Sentinel workspace resolution.
+           * 2. Graph API retrieval using the authorized Page connection.
+           * 3. Lead normalization and deduplication.
+           * 4. CRM insertion and activity/audit logging.
            *
            * Never log access tokens, App Secrets, signatures,
            * or full customer lead data.
