@@ -132,6 +132,104 @@ function extractMetaLeadgenEvents(payload: unknown): MetaLeadgenEvent[] {
   return events;
 }
 
+
+type MetaLeadField = {
+  name: string;
+  values?: unknown[];
+};
+
+type MetaGraphLead = {
+  id: string;
+  created_time?: string;
+  form_id?: string;
+  ad_id?: string;
+  ad_name?: string;
+  adset_id?: string;
+  adset_name?: string;
+  campaign_id?: string;
+  campaign_name?: string;
+  field_data?: MetaLeadField[];
+};
+
+async function fetchMetaLeadById(
+  leadgenId: string,
+  accessToken: string,
+): Promise<MetaGraphLead> {
+  const graphVersion = process.env.META_GRAPH_API_VERSION?.trim();
+
+  if (!graphVersion) {
+    throw new Error("META_GRAPH_API_VERSION is not configured");
+  }
+
+  const url = new URL(
+    `https://graph.facebook.com/${graphVersion}/${encodeURIComponent(leadgenId)}`,
+  );
+
+  url.searchParams.set(
+    "fields",
+    [
+      "id",
+      "created_time",
+      "form_id",
+      "ad_id",
+      "ad_name",
+      "adset_id",
+      "adset_name",
+      "campaign_id",
+      "campaign_name",
+      "field_data",
+    ].join(","),
+  );
+
+  const response = await fetch(url, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      Accept: "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    let metaError = `HTTP ${response.status}`;
+
+    try {
+      const payload = (await response.json()) as {
+        error?: {
+          message?: string;
+          type?: string;
+          code?: number;
+          error_subcode?: number;
+        };
+      };
+
+      if (payload?.error) {
+        const parts = [
+          payload.error.type,
+          payload.error.code != null ? `code=${payload.error.code}` : undefined,
+          payload.error.error_subcode != null
+            ? `subcode=${payload.error.error_subcode}`
+            : undefined,
+          payload.error.message,
+        ].filter(Boolean);
+
+        metaError = parts.join(" | ");
+      }
+    } catch {
+      // Keep the status-only message. Never log token-bearing URLs or raw bodies.
+    }
+
+    throw new Error(`Meta lead retrieval failed: ${metaError}`);
+  }
+
+  const lead = (await response.json()) as MetaGraphLead;
+
+  if (!lead?.id) {
+    throw new Error("Meta lead retrieval returned no lead id");
+  }
+
+  return lead;
+}
+
 export const Route = createFileRoute("/api/public/webhooks/meta-leads")({
   server: {
     handlers: {
