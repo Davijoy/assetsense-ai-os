@@ -432,18 +432,22 @@ export const Route = createFileRoute("/api/public/webhooks/meta-leads")({
               continue;
             }
 
-            const { error: eventInsertError } =
-              await (supabaseAdmin as any)
-                .from("meta_lead_events")
-                .insert({
-                  workspace_id: formMapping.workspace_id,
-                  connection_id: formMapping.connection_id,
-                  form_mapping_id: formMapping.id,
-                  leadgen_id: event.leadgenId,
-                  page_id: event.pageId,
-                  form_id: event.formId,
-                  status: "received",
-                });
+            const {
+              data: insertedEvent,
+              error: eventInsertError,
+            } = await (supabaseAdmin as any)
+              .from("meta_lead_events")
+              .insert({
+                workspace_id: formMapping.workspace_id,
+                connection_id: formMapping.connection_id,
+                form_mapping_id: formMapping.id,
+                leadgen_id: event.leadgenId,
+                page_id: event.pageId,
+                form_id: event.formId,
+                status: "received",
+              })
+              .select("id")
+              .single();
 
             if (eventInsertError) {
               // Same race protection for concurrent/retried deliveries.
@@ -455,6 +459,10 @@ export const Route = createFileRoute("/api/public/webhooks/meta-leads")({
               throw new Error(
                 `Mapped Meta event insert failed: ${eventInsertError.message}`,
               );
+            }
+
+            if (!insertedEvent?.id) {
+              throw new Error("Mapped Meta event insert returned no event id");
             }
 
             mappedCount += 1;
