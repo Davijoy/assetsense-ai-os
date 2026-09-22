@@ -230,6 +230,125 @@ async function fetchMetaLeadById(
   return lead;
 }
 
+
+async function processMetaLeadEvent(
+  eventId: string,
+): Promise<MetaGraphLead> {
+  const { data: ingestionEvent, error: eventLookupError } =
+    await (supabaseAdmin as any)
+      .from("meta_lead_events")
+      .select(
+        "id,workspace_id,connection_id,leadgen_id,status,attempt_count",
+      )
+      .eq("id", eventId)
+      .single();
+
+  if (eventLookupError) {
+    throw new Error(
+      `Meta ingestion event lookup failed: ${eventLookupError.message}`,
+    );
+  }
+
+  if (!ingestionEvent?.workspace_id || !ingestionEvent?.connection_id) {
+    throw new Error("Meta ingestion event is not mapped to a workspace");
+  }
+
+  if (ingestionEvent.status !== "received") {
+    throw new Error(
+      `Meta ingestion event cannot be fetched from status ${ingestionEvent.status}`,
+    );
+  }
+
+  const { data: connection, error: connectionLookupError } =
+    await (supabaseAdmin as any)
+      .from("meta_connections")
+      .select("id,workspace_id,page_id,access_token,status")
+      .eq("id", ingestionEvent.connection_id)
+      .eq("workspace_id", ingestionEvent.workspace_id)
+      .single();
+
+  if (connectionLookupError) {
+    throw new Error(
+      `Meta connection lookup failed: ${connectionLookupError.message}`,
+    );
+  }
+
+  if (!connection?.access_token) {
+    throw new Error("Meta connection has no server-side access token");
+  }
+
+  if (connection.status !== "active") {
+    throw new Error(
+      `Meta connection is not active: ${connection.status}`,
+    );
+  }
+
+  const attemptCount =
+    Number.isFinite(Number(ingestionEvent.attempt_count))
+      ? Number(ingestionEvent.attempt_count) + 1
+      : 1;
+
+  const { error: fetchingUpdateError } =
+    await (supabaseAdmin as any)
+      .from("meta_lead_events")
+      .update({
+        status: "fetching",
+        attempt_count: attemptCount,
+        error_code: null,
+        error_message: null,
+      })
+      .eq("id", eventId)
+      .eq("status", "received");
+
+  if (fetchingUpdateError) {
+    throw new Error(
+      `Meta event fetching transition failed: ${fetchingUpdateError.message}`,
+    );
+  }
+
+  try {
+    const lead = await fetchMetaLeadById(
+      ingestionEvent.leadgen_id,
+      connection.access_token,
+    );
+
+    const { error: fetchedUpdateError } =
+      await (supabaseAdmin as any)
+        .from("meta_lead_events")
+        .update({
+          status: "fetched",
+          processed_at: new Date().toISOString(),
+          error_code: null,
+          error_message: null,
+        })
+        .eq("id", eventId)
+        .eq("status", "fetching");
+
+    if (fetchedUpdateError) {
+      throw new Error(
+        `Meta event fetched transition failed: ${fetchedUpdateError.message}`,
+      );
+    }
+
+    return lead;
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : String(error);
+
+    await (supabaseAdmin as any)
+      .from("meta_lead_events")
+      .update({
+        status: "failed",
+        processed_at: new Date().toISOString(),
+        error_code: "META_GRAPH_FETCH_FAILED",
+        error_message: message.slice(0, 1000),
+      })
+      .eq("id", eventId);
+
+    throw error;
+  }
+}
+
 export const Route = createFileRoute("/api/public/webhooks/meta-leads")({
   server: {
     handlers: {
