@@ -853,14 +853,34 @@ export const updateLeadStage = createServerFn({ method: "POST" })
           leadUpdate.follow_up_status = "completed";
         }
 
-        const { error: leadUpdateError } = await supabase
+        const { data: persistedLead, error: leadUpdateError } = await supabase
           .from("leads")
           .update(leadUpdate)
-          .eq("id", leadId);
+          .eq("id", leadId)
+          .select("id, stage, site_visit_date, site_visit_time, follow_up_date, follow_up_time, follow_up_status")
+          .maybeSingle();
 
         if (leadUpdateError) {
           throw new Error(
             `Lead scheduling update failed: ${leadUpdateError.message}`,
+          );
+        }
+
+        if (!persistedLead) {
+          throw new Error(
+            "Lead scheduling update did not persist. The database returned no updated row.",
+          );
+        }
+
+        if (
+          stage === "Site Visit Scheduled" &&
+          (
+            persistedLead.site_visit_date !== siteVisitDate ||
+            String(persistedLead.site_visit_time ?? "").slice(0, 5) !== siteVisitTime
+          )
+        ) {
+          throw new Error(
+            "Site visit date/time verification failed after database update.",
           );
         }
 
@@ -897,7 +917,8 @@ export const updateLeadStage = createServerFn({ method: "POST" })
         }
       }
     } catch (e) {
-      console.warn("[updateLeadStage] Note: DB update caught error:", e);
+      console.error("[updateLeadStage] Database update failed:", e);
+      throw e;
     }
 
     return {
