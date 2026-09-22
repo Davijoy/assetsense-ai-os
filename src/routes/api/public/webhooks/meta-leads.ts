@@ -584,6 +584,19 @@ export const Route = createFileRoute("/api/public/webhooks/meta-leads")({
               throw new Error("Mapped Meta event insert returned no event id");
             }
 
+            /*
+             * Controlled processing mode.
+             *
+             * Production defaults to durable ingestion + fast acknowledgement.
+             * Inline processing is opt-in for controlled integration testing only.
+             *
+             * Do not enable META_PROCESS_INLINE in production until webhook
+             * processing is moved behind a durable worker/queue.
+             */
+            if (process.env.META_PROCESS_INLINE === "1") {
+              await processMetaLeadEvent(insertedEvent.id);
+            }
+
             mappedCount += 1;
           }
 
