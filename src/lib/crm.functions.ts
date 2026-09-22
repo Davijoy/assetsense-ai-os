@@ -596,40 +596,64 @@ export function mapDatabaseRowsToLiveLeads(
         ? resolvePerformerName(r.owner, profileMap)
         : "Unassigned";
 
-    let followUpDate: string | undefined;
-    let followUpTime: string | undefined;
-    let followUpStatus: "pending" | "completed" | "rescheduled" | "overdue" | undefined;
-    let followUpNotes: string | undefined;
-    let siteVisitDate: string | undefined;
-    let siteVisitTime: string | undefined;
+    const normalizeDbTime = (value: unknown): string | undefined =>
+      typeof value === "string" && value.trim()
+        ? value.trim().slice(0, 5)
+        : undefined;
 
-    if (stage === "Call Back") {
+    let followUpDate: string | undefined =
+      typeof r.follow_up_date === "string" && r.follow_up_date
+        ? r.follow_up_date
+        : undefined;
+    let followUpTime: string | undefined = normalizeDbTime(r.follow_up_time);
+    let followUpStatus:
+      | "pending"
+      | "completed"
+      | "rescheduled"
+      | "overdue"
+      | undefined =
+      ["pending", "completed", "rescheduled", "overdue"].includes(
+        String(r.follow_up_status ?? ""),
+      )
+        ? r.follow_up_status
+        : undefined;
+    let followUpNotes: string | undefined =
+      typeof r.follow_up_notes === "string" && r.follow_up_notes
+        ? r.follow_up_notes
+        : undefined;
+
+    let siteVisitDate: string | undefined =
+      typeof r.site_visit_date === "string" && r.site_visit_date
+        ? r.site_visit_date
+        : undefined;
+    let siteVisitTime: string | undefined = normalizeDbTime(r.site_visit_time);
+
+    if (stage === "Call Back" && !followUpDate) {
       followUpDate = todayStr;
-      followUpTime = "15:00";
-      followUpStatus = "pending";
-      followUpNotes = "Scheduled call back request from lead.";
-    } else if (stage === "RNR (Ringing Not Responded)") {
+      followUpTime = followUpTime || "15:00";
+      followUpStatus = followUpStatus || "pending";
+      followUpNotes = followUpNotes || "Scheduled call back request from lead.";
+    } else if (stage === "RNR (Ringing Not Responded)" && !followUpDate) {
       followUpDate = todayStr;
-      followUpTime = "17:30";
-      followUpStatus = "pending";
-      followUpNotes = "Retry after ringing not answered.";
-    } else if (stage === "Busy") {
+      followUpTime = followUpTime || "17:30";
+      followUpStatus = followUpStatus || "pending";
+      followUpNotes = followUpNotes || "Retry after ringing not answered.";
+    } else if (stage === "Busy" && !followUpDate) {
       followUpDate = todayStr;
-      followUpTime = "16:30";
-      followUpStatus = "pending";
-      followUpNotes = "Prospect requested callback after meeting.";
-    } else if (stage === "Switch Off") {
+      followUpTime = followUpTime || "16:30";
+      followUpStatus = followUpStatus || "pending";
+      followUpNotes = followUpNotes || "Prospect requested callback after meeting.";
+    } else if (stage === "Switch Off" && !followUpDate) {
       followUpDate = tomorrowStr;
-      followUpTime = "11:00";
-      followUpStatus = "pending";
-      followUpNotes = "Number unreachable; follow up next morning.";
-    } else if (stage === "Site Visit Scheduled") {
-      followUpDate = tomorrowStr;
-      followUpTime = "11:00";
-      followUpStatus = "pending";
-      followUpNotes = "Site visit confirmed with sales executive.";
-      siteVisitDate = tomorrowStr;
-      siteVisitTime = "11:00";
+      followUpTime = followUpTime || "11:00";
+      followUpStatus = followUpStatus || "pending";
+      followUpNotes = followUpNotes || "Number unreachable; follow up next morning.";
+    } else if (stage === "Site Visit Scheduled" && siteVisitDate) {
+      followUpDate = followUpDate || siteVisitDate;
+      followUpTime = followUpTime || siteVisitTime;
+      followUpStatus = followUpStatus || "pending";
+      followUpNotes =
+        followUpNotes || "Site visit confirmed with sales executive.";
     }
 
     return {
@@ -679,7 +703,7 @@ console.log("[getLiveLeads][diagnostic]", {
       const [leadsRes, activitiesRes, profilesRes] = await Promise.all([
         supabase
           .from("leads")
-          .select("id, name, email, phone, source, stage, score, budget_inr, project, owner, assigned_to, city, created_at")
+          .select("id, name, email, phone, source, stage, score, budget_inr, project, owner, assigned_to, city, created_at, site_visit_date, site_visit_time, follow_up_date, follow_up_time, follow_up_status, follow_up_notes")
           .order("created_at", { ascending: false }),
         supabase
           .from("activities")
@@ -744,6 +768,15 @@ export const updateLeadStage = createServerFn({ method: "POST" })
     const { supabase, userId } = context as { supabase: any; userId: string };
     const { leadId, stage, siteVisitDate, siteVisitTime, notes } = data;
 
+    if (
+      stage === "Site Visit Scheduled" &&
+      (!siteVisitDate || !siteVisitTime)
+    ) {
+      throw new Error(
+        "Site Visit Scheduled requires an exact visit date and time",
+      );
+    }
+
     const todayStr = new Date().toISOString().split("T")[0];
     const tomorrowDate = new Date();
     tomorrowDate.setDate(tomorrowDate.getDate() + 1);
@@ -766,8 +799,8 @@ export const updateLeadStage = createServerFn({ method: "POST" })
       followUpDate = tomorrowStr;
       followUpTime = "11:00";
     } else if (stage === "Site Visit Scheduled") {
-      followUpDate = siteVisitDate || tomorrowStr;
-      followUpTime = siteVisitTime || "11:00";
+      followUpDate = siteVisitDate;
+      followUpTime = siteVisitTime;
     } else if (stage === "Booked" || stage === "Not Interested" || stage === "Dropped Plan") {
       followUpStatus = "completed";
     }
@@ -787,13 +820,49 @@ export const updateLeadStage = createServerFn({ method: "POST" })
           performerName = profileRes.data.full_name;
         }
 
-        await supabase
+        const isSiteVisit =
+          stage.toLowerCase().includes("visit") || !!siteVisitDate;
+        const isFollowUpDisposition = [
+          "Call Back",
+          "Busy",
+          "Switch Off",
+          "RNR",
+        ].some((d) => stage.includes(d));
+
+        const leadUpdate: Record<string, unknown> = {
+          stage: stage.toLowerCase(),
+        };
+
+        if (stage === "Site Visit Scheduled") {
+          leadUpdate.site_visit_date = siteVisitDate;
+          leadUpdate.site_visit_time = siteVisitTime;
+          leadUpdate.follow_up_date = siteVisitDate;
+          leadUpdate.follow_up_time = siteVisitTime;
+          leadUpdate.follow_up_status = "pending";
+          leadUpdate.follow_up_notes =
+            notes || `Site visit scheduled for ${siteVisitDate} at ${siteVisitTime}`;
+        } else if (isFollowUpDisposition) {
+          leadUpdate.follow_up_date = followUpDate;
+          leadUpdate.follow_up_time = followUpTime;
+          leadUpdate.follow_up_status = "pending";
+        } else if (
+          stage === "Booked" ||
+          stage === "Not Interested" ||
+          stage === "Dropped Plan"
+        ) {
+          leadUpdate.follow_up_status = "completed";
+        }
+
+        const { error: leadUpdateError } = await supabase
           .from("leads")
-          .update({ stage: stage.toLowerCase() })
+          .update(leadUpdate)
           .eq("id", leadId);
 
-        const isSiteVisit = stage.toLowerCase().includes("visit") || !!siteVisitDate;
-        const isFollowUpDisposition = ["Call Back", "Busy", "Switch Off", "RNR"].some((d) => stage.includes(d));
+        if (leadUpdateError) {
+          throw new Error(
+            `Lead scheduling update failed: ${leadUpdateError.message}`,
+          );
+        }
 
         const subject = isSiteVisit && siteVisitDate
           ? `Site Visit Scheduled for ${siteVisitDate}${siteVisitTime ? ` at ${siteVisitTime}` : ""}`
