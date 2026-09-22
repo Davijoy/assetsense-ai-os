@@ -110,6 +110,16 @@ export const Route = createFileRoute("/fort")({
       fort = fortFallbackContext("ERROR", "RESOLUTION_FAILED");
     }
 
+    const hasInternalAccess =
+      fort.status === "ACTIVE" &&
+      fort.role.appRoles.some((role) =>
+        ["admin", "manager", "agent"].includes(role),
+      );
+
+    if (!hasInternalAccess) {
+      throw redirect({ to: "/" });
+    }
+
     return {
       fort,
       // Back-compatible shape for the Fort pages and the Companion. Both fields

@@ -282,7 +282,13 @@ export const resolveFortWorkspace = createServerFn({ method: "GET" })
 
     // Fail closed: without a verified app_role nothing is exposed. The account
     // is NOT elevated to make the surface look populated.
-    const grantsVisible = status === "ACTIVE";
+    const hasInternalAccess = appRoles.some((role) =>
+      ["admin", "manager", "agent"].includes(role),
+    );
+
+    // Public/viewer identities are not Virtual Office users.
+    // Only explicitly provisioned operating roles receive Fort grants.
+    const grantsVisible = status === "ACTIVE" && hasInternalAccess;
 
     // When status is not ACTIVE (e.g. role mismatch or unverified), data access fails closed.
     workspaceId = grantsVisible ? workspaceId : null;

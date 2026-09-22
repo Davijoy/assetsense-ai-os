@@ -133,8 +133,14 @@ export const Route = createFileRoute("/app")({
       fort = fortFallbackContext("ERROR", "RESOLUTION_FAILED");
     }
 
-    if (fort.status !== "ACTIVE") {
-      throw redirect({ to: "/fort" });
+    const hasInternalAccess =
+      fort.status === "ACTIVE" &&
+      fort.role.appRoles.some((role) =>
+        ["admin", "manager", "agent"].includes(role),
+      );
+
+    if (!hasInternalAccess) {
+      throw redirect({ to: "/" });
     }
 
     return {
