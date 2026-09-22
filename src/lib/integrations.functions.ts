@@ -16,20 +16,17 @@ import type {
 export const INITIAL_SOCKET_CONFIGS: IntegrationSocketConfig[] = [
   {
     id: "facebook_lead_ads",
-    name: "Meta Lead Ads Webhook Socket",
+    name: "Meta Lead Ads",
     category: "Social & Lead Ads",
-    description: "Real-time webhook listener for Facebook & Instagram instant lead generation forms.",
-    status: "active",
-    enabled: true,
-    endpointUrl: "https://app.assetsense.ai/api/public/webhooks/meta-leads",
-    secretKey: "fb_sec_leadgen_88f92a10b",
-    verifyToken: "sentinel_meta_leadgen_verify_tok_99x",
-    appId: "982347812901842",
-    pageId: "441298510293810",
-    lastEventAt: "2 mins ago",
-    totalEventsCount: 1428,
-    successRate: 99.6,
-    avgLatencyMs: 38,
+    description: "Real-time Meta Lead Ads ingestion for Facebook and Instagram instant forms.",
+    status: "standby",
+    enabled: false,
+    endpointUrl: "https://sentinel-fort.com/api/public/webhooks/meta-leads",
+    secretKey: "",
+    verifyToken: "",
+    totalEventsCount: 0,
+    successRate: 0,
+    avgLatencyMs: 0,
     fieldMappings: {
       nameField: "full_name",
       phoneField: "phone_number",
@@ -196,29 +193,6 @@ export const INITIAL_SOCKET_CONFIGS: IntegrationSocketConfig[] = [
 
 export const INITIAL_TRAFFIC_LOGS: SocketTrafficLog[] = [
   {
-    id: "log_10928",
-    timestamp: "Just now",
-    socketType: "facebook_lead_ads",
-    socketName: "Meta Lead Ads Socket",
-    method: "POST",
-    endpoint: "/api/public/webhooks/meta-leads",
-    statusCode: 200,
-    latencyMs: 34,
-    payloadPreview: JSON.stringify({
-      leadgen_id: "lead_fb_882941",
-      full_name: "Vikram Malhotra",
-      phone_number: "+91 98201 88392",
-      email: "vikram.m@zenithholdings.in",
-      property_type: "The Grand Penthouse",
-      budget_bracket: "₹7.5 Cr - ₹9 Cr",
-      campaign_name: "Meta Luxury Flagship Q3",
-    }),
-    status: "VERIFIED",
-    leadCreatedId: "lead_meta_01",
-    leadName: "Vikram Malhotra",
-    sourceDetails: "Facebook Instant Form (ID: 99182)",
-  },
-  {
     id: "log_10927",
     timestamp: "4 mins ago",
     socketType: "inbound_webhook",
@@ -328,8 +302,8 @@ export const INITIAL_TRAFFIC_LOGS: SocketTrafficLog[] = [
   },
 ];
 
-const STORAGE_SOCKETS_KEY = "sentinel_integration_sockets_v1";
-const STORAGE_LOGS_KEY = "sentinel_socket_traffic_logs_v1";
+const STORAGE_SOCKETS_KEY = "sentinel_integration_sockets_v2";
+const STORAGE_LOGS_KEY = "sentinel_socket_traffic_logs_v2";
 
 export function loadStoredSockets(): IntegrationSocketConfig[] {
   if (typeof window === "undefined") return INITIAL_SOCKET_CONFIGS;

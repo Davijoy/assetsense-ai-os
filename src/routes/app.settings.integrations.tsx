@@ -63,14 +63,14 @@ function IntegrationsSettingsPage() {
   const [testPayloadText, setTestPayloadText] = useState<string>(() =>
     JSON.stringify(
       {
-        full_name: "Vikram Malhotra",
-        phone_number: "+91 98201 88392",
-        email: "vikram.m@zenithholdings.in",
-        property_type: "The Grand Penthouse · Worli",
-        budget_bracket: "₹7.5 Cr - ₹9 Cr",
-        platform: "Meta Instant Lead Form",
-        campaign_name: "Flagship Luxury Q3",
-        customer_message: "Requested urgent site visit with senior portfolio advisor.",
+        name: "Website Test Lead",
+        phone: "+91 90000 00000",
+        email: "website-test@example.com",
+        requirement: "2BHK Apartment",
+        budget: "₹1 Cr - ₹1.5 Cr",
+        source: "Website Inbound Test",
+        campaign: "Sentinel Integration Test",
+        message: "Controlled inbound webhook test payload.",
       },
       null,
       2
@@ -353,7 +353,7 @@ function IntegrationsSettingsPage() {
                     </label>
                     <input
                       type="text"
-                      defaultValue={selectedSocket.appId || "982347812901842"}
+                      defaultValue={selectedSocket.appId || ""}
                       className="mt-1.5 w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs font-mono text-zinc-300"
                     />
                   </div>
@@ -363,56 +363,50 @@ function IntegrationsSettingsPage() {
                     </label>
                     <input
                       type="text"
-                      defaultValue={selectedSocket.pageId || "441298510293810"}
+                      defaultValue={selectedSocket.pageId || ""}
                       className="mt-1.5 w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs font-mono text-zinc-300"
                     />
                   </div>
                 </div>
               </div>
 
-              {/* Simulation Card */}
+              {/* Meta Connection State */}
               <div className="rounded-lg border border-zinc-800 bg-zinc-950/60 p-5">
                 <div className="flex items-center justify-between">
                   <h3 className="text-xs font-semibold uppercase tracking-wider text-gold font-mono">
-                    Test Meta Lead Payload
+                    Meta Lead Ads Connection
                   </h3>
-                  <span className="text-[11px] text-zinc-500">Simulates real Meta Webhook Event</span>
+                  <span className="text-[11px] text-zinc-500">
+                    {selectedSocket.status === "connected" ||
+                    selectedSocket.status === "active"
+                      ? "Connected"
+                      : "Not Connected"}
+                  </span>
                 </div>
 
                 <p className="mt-2 text-xs text-zinc-400">
-                  Trigger an instantaneous test leadgen payload to verify that your Sentinel CRM pipeline and agent assignment respond with 0 latency.
+                  Connect an authorized Meta Page and Instant Form to begin receiving real Lead Ads events through Sentinel Fort.
                 </p>
 
-                <div className="mt-4">
-                  <button
-                    onClick={() => {
-                      setSelectedSocketId("facebook_lead_ads");
-                      handleRunSimulation();
-                    }}
-                    disabled={simulating}
-                    className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50 shadow-glow"
-                  >
-                    <Play className="h-3.5 w-3.5" />
-                    {simulating ? "Dispatching Lead…" : "Emit Test Meta Lead Ping"}
-                  </button>
+                <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2 text-[11px]">
+                  <div className="rounded-md border border-zinc-800 bg-zinc-900/60 p-3">
+                    <div className="text-zinc-500">Webhook endpoint</div>
+                    <div className="mt-1 break-all font-mono text-zinc-200">
+                      https://sentinel-fort.com/api/public/webhooks/meta-leads
+                    </div>
+                  </div>
+
+                  <div className="rounded-md border border-zinc-800 bg-zinc-900/60 p-3">
+                    <div className="text-zinc-500">Connected Page</div>
+                    <div className="mt-1 text-zinc-200">
+                      {selectedSocket.pageId || "Not connected"}
+                    </div>
+                  </div>
                 </div>
 
-                {simulationResult && (
-                  <div className="mt-4 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3 text-xs text-emerald-300">
-                    <div className="flex items-center gap-2 font-medium">
-                      <CheckCircle2 className="h-4 w-4 text-emerald-400" />
-                      {simulationResult.message}
-                    </div>
-                    {simulationResult.mappedLead && (
-                      <div className="mt-2 grid grid-cols-2 gap-1.5 text-[11px] text-zinc-300">
-                        <div>Client: <span className="font-semibold text-white">{simulationResult.mappedLead.name}</span></div>
-                        <div>Phone: <span className="font-semibold text-white">{simulationResult.mappedLead.phone}</span></div>
-                        <div>Budget: <span className="font-semibold text-white">{simulationResult.mappedLead.budget}</span></div>
-                        <div>Assigned: <span className="font-semibold text-gold">{simulationResult.mappedLead.assignedTo}</span></div>
-                      </div>
-                    )}
-                  </div>
-                )}
+                <div className="mt-4 rounded-md border border-amber-500/20 bg-amber-500/5 p-3 text-xs text-amber-200">
+                  Awaiting an authorized Meta Page connection. No simulated Meta lead is being generated.
+                </div>
               </div>
             </div>
           </div>
