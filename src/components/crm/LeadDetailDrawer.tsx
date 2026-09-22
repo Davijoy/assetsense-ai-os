@@ -1018,14 +1018,16 @@ export function LeadDetailDrawer({
                 <span className="text-stone-400 block text-[10px] uppercase font-semibold">Email</span>
                 <span className="text-stone-200 truncate block">{email}</span>
               </div>
-              {currentLead.siteVisitDate && (
+              {currentLead.siteVisitDate && currentLead.siteVisitTime ? (
                 <div className="col-span-2 mt-1 rounded-xl border border-violet-500/40 bg-violet-950/30 p-2.5 flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Calendar className="h-4 w-4 text-violet-400 shrink-0" />
                     <div>
-                      <span className="text-[10px] uppercase font-bold text-violet-300 block">Site Visit Scheduled</span>
+                      <span className="text-[10px] uppercase font-bold text-violet-300 block">
+                        Site Visit Appointment
+                      </span>
                       <span className="text-xs font-bold text-white">
-                        {currentLead.siteVisitDate} {currentLead.siteVisitTime ? `at ${currentLead.siteVisitTime}` : ""}
+                        {currentLead.siteVisitDate} at {currentLead.siteVisitTime}
                       </span>
                     </div>
                   </div>
@@ -1037,7 +1039,28 @@ export function LeadDetailDrawer({
                     Reschedule
                   </button>
                 </div>
-              )}
+              ) : currentLead.stage.toLowerCase().includes("visit") ? (
+                <div className="col-span-2 mt-1 rounded-xl border border-amber-500/40 bg-amber-950/20 p-3 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-amber-400 shrink-0" />
+                    <div>
+                      <span className="text-[10px] uppercase font-bold text-amber-300 block">
+                        Site Visit Date & Time Missing
+                      </span>
+                      <span className="text-xs text-stone-300">
+                        The lead is marked for a site visit, but no appointment has been booked yet.
+                      </span>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setSiteVisitModalOpen(true)}
+                    className="shrink-0 rounded-lg bg-amber-400 px-3 py-1.5 text-[10px] font-bold text-black hover:bg-amber-300 transition-all"
+                  >
+                    Schedule Visit
+                  </button>
+                </div>
+              ) : null}
             </div>
           </div>
 
