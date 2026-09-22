@@ -293,9 +293,24 @@ function IntegrationsSettingsPage() {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-400">
-                  Connected & Listening
-                </span>
+                {selectedSocket.status === "connected" ||
+                selectedSocket.status === "active" ? (
+                  <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-400">
+                    Connected & Listening
+                  </span>
+                ) : selectedSocket.status === "error" ? (
+                  <span className="rounded-full border border-red-500/30 bg-red-500/10 px-3 py-1 text-xs font-medium text-red-400">
+                    Connection Error
+                  </span>
+                ) : selectedSocket.status === "paused" ? (
+                  <span className="rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs font-medium text-amber-400">
+                    Paused
+                  </span>
+                ) : (
+                  <span className="rounded-full border border-zinc-700 bg-zinc-800/70 px-3 py-1 text-xs font-medium text-zinc-300">
+                    Not Connected
+                  </span>
+                )}
               </div>
             </div>
 
