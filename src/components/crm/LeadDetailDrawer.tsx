@@ -124,12 +124,8 @@ export function LeadDetailDrawer({
 
   // Site visit state
   const [siteVisitModalOpen, setSiteVisitModalOpen] = useState(false);
-  const [visitDate, setVisitDate] = useState(() => {
-    const d = new Date();
-    d.setDate(d.getDate() + 1);
-    return d.toISOString().split("T")[0];
-  });
-  const [visitTime, setVisitTime] = useState("11:00");
+  const [visitDate, setVisitDate] = useState("");
+  const [visitTime, setVisitTime] = useState("");
   const [visitNotes, setVisitNotes] = useState("");
 
   // SMS Modal State
@@ -552,6 +548,9 @@ export function LeadDetailDrawer({
     if (changingStage) return;
 
     if (newStage === "Site Visit Scheduled" || newStage === "Visit") {
+      setVisitDate(currentLead.siteVisitDate || "");
+      setVisitTime(currentLead.siteVisitTime || "");
+      setVisitNotes(currentLead.followUpNotes || "");
       setSiteVisitModalOpen(true);
       return;
     }
@@ -605,6 +604,11 @@ export function LeadDetailDrawer({
   const handleConfirmSiteVisit = async () => {
     if (!visitDate) {
       toast.error("Please select a date for the site visit");
+      return;
+    }
+
+    if (!visitTime) {
+      toast.error("Please select a time for the site visit");
       return;
     }
 
