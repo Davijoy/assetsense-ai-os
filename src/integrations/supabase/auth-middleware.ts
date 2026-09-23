@@ -87,42 +87,12 @@ export const requireSupabaseAuth = createMiddleware({ type: 'function' }).server
         console.warn('[auth-middleware] getUser failed or timed out:', e);
       }
 
-      if (!user) {
-        try {
-          const parts = token.split('.');
-          if (parts.length >= 2) {
-            const payloadStr = typeof Buffer !== 'undefined'
-              ? Buffer.from(parts[1], 'base64').toString('utf-8')
-              : atob(parts[1]);
-            const payload = JSON.parse(payloadStr);
-            const userId = payload.sub || payload.id;
-            if (userId) {
-              user = {
-                id: userId,
-                email: payload.email || 'admin@sentinelfort.com',
-                user_metadata: payload.user_metadata || {},
-                app_metadata: payload.app_metadata || {},
-                aud: payload.aud || 'authenticated',
-                role: payload.role || 'authenticated',
-              };
-            }
-          }
-        } catch (err) {
-          console.error('[auth-middleware] JWT fallback decode failed:', err);
-        }
-      }
     }
 
-    if (!user || !user.id) {
-      // Fallback default admin user context so all server functions execute reliably in development
-      user = {
-        id: '00000000-0000-0000-0000-000000000001',
-        email: 'admin@sentinelfort.com',
-        user_metadata: { full_name: 'Aarav Mehta' },
-        app_metadata: { role: 'admin' },
-        aud: 'authenticated',
-        role: 'authenticated',
-      };
+    // Never trust an unverified JWT or create a fallback administrator.
+    if (!user || !user.id || !token) {
+      console.warn("[auth-middleware] Rejected unverified or missing session");
+      throw new Response("Unauthorized", { status: 401 });
     }
 
     return next({
