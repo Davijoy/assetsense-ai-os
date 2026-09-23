@@ -1504,11 +1504,41 @@ export const scheduleLeadFollowUp = createServerFn({ method: "POST" })
 
     try {
       if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(leadId)) {
-        const { data: leadRow } = await supabase
+        const { data: leadRow, error: leadLoadError } = await supabase
           .from("leads")
           .select("workspace_id")
           .eq("id", leadId)
           .maybeSingle();
+
+        if (leadLoadError || !leadRow) {
+          throw new Error(
+            `Failed to load lead for follow-up scheduling: ${leadLoadError?.message || "lead not found"}`
+          );
+        }
+
+        const { data: persistedLead, error: persistError } = await supabase
+          .from("leads")
+          .update({
+            follow_up_date: scheduledDate,
+            follow_up_time: scheduledTime,
+            follow_up_status: "pending",
+            follow_up_notes: notes || `Follow-up scheduled for ${scheduledDate} at ${scheduledTime}`,
+          })
+          .eq("id", leadId)
+          .select("id, follow_up_date, follow_up_time, follow_up_status")
+          .maybeSingle();
+
+        if (persistError) {
+          throw new Error(`Failed to persist follow-up: ${persistError.message}`);
+        }
+
+        if (
+          !persistedLead ||
+          persistedLead.follow_up_date !== scheduledDate ||
+          String(persistedLead.follow_up_time ?? "").slice(0, 5) !== scheduledTime
+        ) {
+          throw new Error("Follow-up persistence verification failed");
+        }
 
         const { data: inserted, error } = await supabase
           .from("activities")
@@ -1531,7 +1561,8 @@ export const scheduleLeadFollowUp = createServerFn({ method: "POST" })
         }
       }
     } catch (e) {
-      console.warn("[scheduleLeadFollowUp] DB error:", e);
+      console.error("[scheduleLeadFollowUp] DB error:", e);
+      throw e;
     }
 
     return {
@@ -1576,11 +1607,29 @@ export const completeLeadFollowUp = createServerFn({ method: "POST" })
 
     try {
       if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(leadId)) {
-        const { data: leadRow } = await supabase
+        const { data: leadRow, error: leadLoadError } = await supabase
           .from("leads")
           .select("workspace_id")
           .eq("id", leadId)
           .maybeSingle();
+
+        if (leadLoadError || !leadRow) {
+          throw new Error(
+            `Failed to load lead for follow-up completion: ${leadLoadError?.message || "lead not found"}`
+          );
+        }
+
+        const { error: persistError } = await supabase
+          .from("leads")
+          .update({
+            follow_up_status: "completed",
+            follow_up_notes: outcomeNotes || "Follow-up completed",
+          })
+          .eq("id", leadId);
+
+        if (persistError) {
+          throw new Error(`Failed to complete follow-up: ${persistError.message}`);
+        }
 
         const { data: inserted, error } = await supabase
           .from("activities")
@@ -1603,7 +1652,8 @@ export const completeLeadFollowUp = createServerFn({ method: "POST" })
         }
       }
     } catch (e) {
-      console.warn("[completeLeadFollowUp] DB error:", e);
+      console.error("[completeLeadFollowUp] DB error:", e);
+      throw e;
     }
 
     return {
@@ -1656,11 +1706,41 @@ export const rescheduleLeadFollowUp = createServerFn({ method: "POST" })
 
     try {
       if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(leadId)) {
-        const { data: leadRow } = await supabase
+        const { data: leadRow, error: leadLoadError } = await supabase
           .from("leads")
           .select("workspace_id")
           .eq("id", leadId)
           .maybeSingle();
+
+        if (leadLoadError || !leadRow) {
+          throw new Error(
+            `Failed to load lead for follow-up reschedule: ${leadLoadError?.message || "lead not found"}`
+          );
+        }
+
+        const { data: persistedLead, error: persistError } = await supabase
+          .from("leads")
+          .update({
+            follow_up_date: newDate,
+            follow_up_time: newTime,
+            follow_up_status: "pending",
+            follow_up_notes: description,
+          })
+          .eq("id", leadId)
+          .select("id, follow_up_date, follow_up_time, follow_up_status")
+          .maybeSingle();
+
+        if (persistError) {
+          throw new Error(`Failed to persist rescheduled follow-up: ${persistError.message}`);
+        }
+
+        if (
+          !persistedLead ||
+          persistedLead.follow_up_date !== newDate ||
+          String(persistedLead.follow_up_time ?? "").slice(0, 5) !== newTime
+        ) {
+          throw new Error("Rescheduled follow-up persistence verification failed");
+        }
 
         const { data: inserted, error } = await supabase
           .from("activities")
@@ -1683,7 +1763,8 @@ export const rescheduleLeadFollowUp = createServerFn({ method: "POST" })
         }
       }
     } catch (e) {
-      console.warn("[rescheduleLeadFollowUp] DB error:", e);
+      console.error("[rescheduleLeadFollowUp] DB error:", e);
+      throw e;
     }
 
     return {
