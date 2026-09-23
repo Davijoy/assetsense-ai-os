@@ -163,12 +163,8 @@ export function LeadDetailDrawer({
     if (lead) {
       setTimeline((prev) => (Array.isArray(prev) && prev.length > 0 ? prev : getDefaultTimelineForLead(lead)));
     }
-    if (lead?.siteVisitDate) {
-      setVisitDate(lead.siteVisitDate);
-    }
-    if (lead?.siteVisitTime) {
-      setVisitTime(lead.siteVisitTime);
-    }
+    setVisitDate(lead?.siteVisitDate || "");
+    setVisitTime(lead?.siteVisitTime || "");
     if (lead?.followUpDate) {
       setFollowUpDate(lead.followUpDate);
     }
@@ -544,14 +540,18 @@ export function LeadDetailDrawer({
     }
   };
 
+  const openSiteVisitModal = () => {
+    setVisitDate(currentLead.siteVisitDate || "");
+    setVisitTime(currentLead.siteVisitTime || "");
+    setVisitNotes(currentLead.followUpNotes || "");
+    setSiteVisitModalOpen(true);
+  };
+
   const handleStageClick = async (newStage: string) => {
     if (changingStage) return;
 
     if (newStage === "Site Visit Scheduled" || newStage === "Visit") {
-      setVisitDate(currentLead.siteVisitDate || "");
-      setVisitTime(currentLead.siteVisitTime || "");
-      setVisitNotes(currentLead.followUpNotes || "");
-      setSiteVisitModalOpen(true);
+      openSiteVisitModal();
       return;
     }
 
@@ -1037,7 +1037,7 @@ export function LeadDetailDrawer({
                   </div>
                   <button
                     type="button"
-                    onClick={() => setSiteVisitModalOpen(true)}
+                    onClick={openSiteVisitModal}
                     className="text-[10px] font-bold text-violet-300 hover:text-white underline px-1"
                   >
                     Reschedule
@@ -1058,7 +1058,7 @@ export function LeadDetailDrawer({
                   </div>
                   <button
                     type="button"
-                    onClick={() => setSiteVisitModalOpen(true)}
+                    onClick={openSiteVisitModal}
                     className="shrink-0 rounded-lg bg-amber-400 px-3 py-1.5 text-[10px] font-bold text-black hover:bg-amber-300 transition-all"
                   >
                     Schedule Visit
