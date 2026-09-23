@@ -124,6 +124,17 @@ function CRM() {
 
   const routeContext = Route.useRouteContext() as any;
   const userRoles: string[] = routeContext?.user?.roles ?? routeContext?.fort?.role?.appRoles ?? [];
+  const displayName = String(routeContext?.user?.displayName || "there")
+    .trim()
+    .split(/\s+/)[0];
+
+  const hour = new Date().getHours();
+  const greeting = hour < 12
+    ? "Good morning"
+    : hour < 17
+      ? "Good afternoon"
+      : "Good evening";
+
   const isViewOnly =
     userRoles.length > 0 &&
     !userRoles.some((r) => ["admin", "manager", "agent"].includes(r));
@@ -215,7 +226,7 @@ function CRM() {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="text-xs uppercase tracking-[0.2em] text-primary">Sales · CRM Intelligence</p>
-          <h1 className="mt-1 font-display text-4xl">Good morning, <em>Aarav</em>.</h1>
+          <h1 className="mt-1 font-display text-4xl">{greeting}, <em>{displayName}</em>.</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Pipeline health & intake intelligence. Click any KPI card for interactive audit drilldown.
           </p>
