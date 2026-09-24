@@ -42,6 +42,15 @@ import {
 import { ROUTE_ROLES } from "@/lib/route-roles";
 import { AGENT_CAPABILITY_META } from "@/lib/supreme-agent-capability-meta";
 import type { AppRole } from "@/hooks/use-auth";
+import type { SentinelPersona } from "@/sentinel/types";
+
+export function defaultPersonaForRoles(roles: readonly string[]): SentinelPersona {
+  if (roles.includes("admin")) return "PLATFORM_ADMIN";
+  if (roles.includes("manager")) return "ENTERPRISE";
+  if (roles.includes("agent")) return "SALES_EXECUTIVE";
+  if (roles.includes("builder") || roles.includes("developer")) return "DEVELOPER";
+  return "BUYER";
+}
 
 // =============================================================
 // WORKSPACE STATUS

@@ -185,6 +185,11 @@ export function FortDashboard({ fort, roles, workspace }: FortDashboardProps) {
   // a number for it. The panel renders INSUFFICIENT DATA when nothing loaded.
 
 
+  const isSalesExecutive =
+    (fort.id === "BROKER" || roles.includes("agent")) &&
+    !roles.includes("admin") &&
+    !roles.includes("manager");
+
   return (
     <div className="relative w-full px-3 sm:px-5 py-3 max-w-[1600px] mx-auto space-y-2.5">
       {/* ── Top Hero: Compact Golden Executive Banner ── */}
@@ -201,15 +206,27 @@ export function FortDashboard({ fort, roles, workspace }: FortDashboardProps) {
                   SENTINEL FORT
                 </h1>
                 <span className="text-[9px] font-bold uppercase tracking-[0.22em] text-[#D4AF37]">
-                  OS
+                  {isSalesExecutive ? "SALES EXECUTIVE" : "OS"}
                 </span>
               </div>
               <div className="mt-0.5 flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-[0.2em] text-[#D4AF37]">
-                <span>INTELLIGENCE</span>
-                <span className="text-[7px] opacity-60">✦</span>
-                <span>GOVERNANCE</span>
-                <span className="text-[7px] opacity-60">✦</span>
-                <span>GROWTH</span>
+                {isSalesExecutive ? (
+                  <>
+                    <span>INTELLIGENCE</span>
+                    <span className="text-[7px] opacity-60">✦</span>
+                    <span>PIPELINE</span>
+                    <span className="text-[7px] opacity-60">✦</span>
+                    <span>DEALS</span>
+                  </>
+                ) : (
+                  <>
+                    <span>INTELLIGENCE</span>
+                    <span className="text-[7px] opacity-60">✦</span>
+                    <span>GOVERNANCE</span>
+                    <span className="text-[7px] opacity-60">✦</span>
+                    <span>GROWTH</span>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -235,7 +252,7 @@ export function FortDashboard({ fort, roles, workspace }: FortDashboardProps) {
               )}
               {workspace.role.appRoles.length > 0 && (
                 <span className="rounded-full bg-[#241F14] border border-[#524422] px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[#E5C368]">
-                  Role: {workspace.role.appRoles.join(" · ")}
+                  Role: {isSalesExecutive ? "Sales Executive" : workspace.role.appRoles.join(" · ")}
                 </span>
               )}
               <span className="flex items-center gap-1 text-[9px] font-bold text-emerald-400 bg-emerald-950/60 border border-emerald-800 rounded-full px-2 py-0.5">
@@ -272,18 +289,43 @@ export function FortDashboard({ fort, roles, workspace }: FortDashboardProps) {
               {fortClock}
             </span>
             <div className="flex items-center gap-1.5">
-              <Link
-                to="/app/crm"
-                className="rounded-lg border border-[#2E3648] bg-[#161A24] px-2 py-0.5 text-[10px] font-bold text-stone-200 hover:bg-[#202634] hover:border-[#D4AF37]/50 transition-colors"
-              >
-                CRM
-              </Link>
-              <Link
-                to="/app/market"
-                className="rounded-lg border border-[#2E3648] bg-[#161A24] px-2 py-0.5 text-[10px] font-bold text-stone-200 hover:bg-[#202634] hover:border-[#D4AF37]/50 transition-colors"
-              >
-                Market
-              </Link>
+              {isSalesExecutive ? (
+                <>
+                  <Link
+                    to="/app/leads"
+                    className="rounded-lg border border-[#2E3648] bg-[#161A24] px-2 py-0.5 text-[10px] font-bold text-stone-200 hover:bg-[#202634] hover:border-[#D4AF37]/50 transition-colors"
+                  >
+                    Leads
+                  </Link>
+                  <Link
+                    to="/app/crm"
+                    className="rounded-lg border border-[#2E3648] bg-[#161A24] px-2 py-0.5 text-[10px] font-bold text-stone-200 hover:bg-[#202634] hover:border-[#D4AF37]/50 transition-colors"
+                  >
+                    CRM
+                  </Link>
+                  <Link
+                    to="/app/dealrooms"
+                    className="rounded-lg border border-[#2E3648] bg-[#161A24] px-2 py-0.5 text-[10px] font-bold text-stone-200 hover:bg-[#202634] hover:border-[#D4AF37]/50 transition-colors"
+                  >
+                    Deals
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link
+                    to="/app/crm"
+                    className="rounded-lg border border-[#2E3648] bg-[#161A24] px-2 py-0.5 text-[10px] font-bold text-stone-200 hover:bg-[#202634] hover:border-[#D4AF37]/50 transition-colors"
+                  >
+                    CRM
+                  </Link>
+                  <Link
+                    to="/app/market"
+                    className="rounded-lg border border-[#2E3648] bg-[#161A24] px-2 py-0.5 text-[10px] font-bold text-stone-200 hover:bg-[#202634] hover:border-[#D4AF37]/50 transition-colors"
+                  >
+                    Market
+                  </Link>
+                </>
+              )}
               <Link
                 to={SUPREME_INTELLIGENCE_ROUTE}
                 className="fort-btn-gold px-2.5 py-0.5 rounded-lg text-[10px] font-bold"
@@ -308,7 +350,9 @@ export function FortDashboard({ fort, roles, workspace }: FortDashboardProps) {
           {/* Signal 1: Leads */}
           <div className="rounded-xl border border-[#232834] bg-[#151923]/90 backdrop-blur-xs p-2 flex flex-col justify-between hover:border-[#D4AF37]/40 transition-colors">
             <div className="flex items-center justify-between">
-              <span className="text-[9px] font-bold uppercase tracking-wider text-stone-400">Inbound Leads</span>
+              <span className="text-[9px] font-bold uppercase tracking-wider text-stone-400">
+                {isSalesExecutive ? "Assigned Leads" : "Inbound Leads"}
+              </span>
               <Users className="h-3.5 w-3.5 text-[#D4AF37]" />
             </div>
             <div className="mt-1">
@@ -317,14 +361,18 @@ export function FortDashboard({ fort, roles, workspace }: FortDashboardProps) {
                   <span className="text-[10px] font-medium text-stone-500">Data pending</span>
                 )}
               </div>
-              <p className="text-[9px] text-stone-500 font-medium">CRM records</p>
+              <p className="text-[9px] text-stone-500 font-medium">
+                {isSalesExecutive ? "Assigned scope" : "CRM records"}
+              </p>
             </div>
           </div>
 
           {/* Signal 2: Active Deals */}
           <div className="rounded-xl border border-[#232834] bg-[#151923]/90 backdrop-blur-xs p-2 flex flex-col justify-between hover:border-[#D4AF37]/40 transition-colors">
             <div className="flex items-center justify-between">
-              <span className="text-[9px] font-bold uppercase tracking-wider text-stone-400">Active Deals</span>
+              <span className="text-[9px] font-bold uppercase tracking-wider text-stone-400">
+                {isSalesExecutive ? "Assigned Deals" : "Active Deals"}
+              </span>
               <TrendingUp className="h-3.5 w-3.5 text-[#D4AF37]" />
             </div>
             <div className="mt-1">
@@ -333,7 +381,9 @@ export function FortDashboard({ fort, roles, workspace }: FortDashboardProps) {
                   <span className="text-[10px] font-medium text-stone-500">Data pending</span>
                 )}
               </div>
-              <p className="text-[9px] text-stone-500 font-medium">Dealrooms</p>
+              <p className="text-[9px] text-stone-500 font-medium">
+                {isSalesExecutive ? "Deal room scope" : "Dealrooms"}
+              </p>
             </div>
           </div>
 
@@ -367,17 +417,21 @@ export function FortDashboard({ fort, roles, workspace }: FortDashboardProps) {
             </div>
           </div>
 
-          {/* Signal 5: Governance Posture */}
+          {/* Signal 5: Governance / Operational Posture */}
           <div className="rounded-xl border border-[#232834] bg-[#151923]/90 backdrop-blur-xs p-2 flex flex-col justify-between hover:border-[#D4AF37]/40 transition-colors">
             <div className="flex items-center justify-between">
-              <span className="text-[9px] font-bold uppercase tracking-wider text-stone-400">Governance</span>
+              <span className="text-[9px] font-bold uppercase tracking-wider text-stone-400">
+                {isSalesExecutive ? "Field Posture" : "Governance"}
+              </span>
               <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
             </div>
             <div className="mt-1">
               <div className="text-sm font-bold text-stone-100 leading-tight">
                 Nominal
               </div>
-              <p className="text-[9px] text-stone-500 font-medium">Audit ready</p>
+              <p className="text-[9px] text-stone-500 font-medium">
+                {isSalesExecutive ? "Field active" : "Audit ready"}
+              </p>
             </div>
           </div>
 
@@ -402,232 +456,453 @@ export function FortDashboard({ fort, roles, workspace }: FortDashboardProps) {
         {/* ── Left / Center: 8 Experience Cards (8 cols on lg, 9 cols on xl) ── */}
         <div className="lg:col-span-8 xl:col-span-9 space-y-2.5">
           <div className="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-4 gap-2.5">
-            {/* 1. CRM CARD */}
-            <div className="fort-hub-card rounded-xl p-3 flex flex-col justify-between min-h-[135px]">
-              <div>
-                <div className="flex items-start justify-between">
-                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#241F14] border border-[#524422] text-[#E5C368] shadow-2xs">
-                    <Users className="h-4 w-4" />
+            {isSalesExecutive ? (
+              <>
+                {/* 1. LEADS CARD (Primary for Sales Executive) */}
+                <div className="fort-hub-card rounded-xl p-3 flex flex-col justify-between min-h-[135px]">
+                  <div>
+                    <div className="flex items-start justify-between">
+                      <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#241F14] border border-[#524422] text-[#E5C368] shadow-2xs">
+                        <Filter className="h-4 w-4" />
+                      </div>
+                    </div>
+                    <div className="mt-2">
+                      <h3 className="text-xs font-bold text-stone-100 tracking-tight leading-tight">LEADS</h3>
+                      <p className="text-[10px] text-stone-400 font-medium truncate">Pipeline & Flow</p>
+                    </div>
                   </div>
-                  
+                  <div className="mt-2 pt-2 border-t border-[#232834]">
+                    <div className="flex items-center justify-between text-xs mb-1.5">
+                      <span className="text-[10px] text-stone-400 font-medium">Pipeline</span>
+                      <MetricValue value={leadsPipelineCount ?? leadCount} loaded={previewsLoaded} />
+                    </div>
+                    <Link
+                      to="/app/leads"
+                      className="fort-btn-gold block w-full py-1 rounded-lg text-[10px] text-center font-bold"
+                    >
+                      Open Leads
+                    </Link>
+                  </div>
                 </div>
-                <div className="mt-2">
-                  <h3 className="text-xs font-bold text-stone-100 tracking-tight leading-tight">CRM</h3>
-                  <p className="text-[10px] text-stone-400 font-medium truncate">Customer Management</p>
-                </div>
-              </div>
-              <div className="mt-2 pt-2 border-t border-[#232834]">
-                <div className="flex items-center justify-between text-xs mb-1.5">
-                  <span className="text-[10px] text-stone-400 font-medium">Leads</span>
-                  <MetricValue value={leadCount} loaded={previewsLoaded} />
-                </div>
-                <Link
-                  to="/app/crm"
-                  className="fort-btn-gold block w-full py-1 rounded-lg text-[10px] text-center font-bold"
-                >
-                  Open CRM
-                </Link>
-              </div>
-            </div>
 
-            {/* 2. MARKET INTELLIGENCE CARD */}
-            <div className="fort-hub-card rounded-xl p-3 flex flex-col justify-between min-h-[135px]">
-              <div>
-                <div className="flex items-start justify-between">
-                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#241F14] border border-[#524422] text-[#E5C368] shadow-2xs">
-                    <BarChart3 className="h-4 w-4" />
+                {/* 2. CRM CARD */}
+                <div className="fort-hub-card rounded-xl p-3 flex flex-col justify-between min-h-[135px]">
+                  <div>
+                    <div className="flex items-start justify-between">
+                      <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#241F14] border border-[#524422] text-[#E5C368] shadow-2xs">
+                        <Users className="h-4 w-4" />
+                      </div>
+                    </div>
+                    <div className="mt-2">
+                      <h3 className="text-xs font-bold text-stone-100 tracking-tight leading-tight">CRM</h3>
+                      <p className="text-[10px] text-stone-400 font-medium truncate">Customer Management</p>
+                    </div>
                   </div>
-                  
+                  <div className="mt-2 pt-2 border-t border-[#232834]">
+                    <div className="flex items-center justify-between text-xs mb-1.5">
+                      <span className="text-[10px] text-stone-400 font-medium">Assigned</span>
+                      <MetricValue value={leadCount} loaded={previewsLoaded} />
+                    </div>
+                    <Link
+                      to="/app/crm"
+                      className="fort-btn-gold block w-full py-1 rounded-lg text-[10px] text-center font-bold"
+                    >
+                      Open CRM
+                    </Link>
+                  </div>
                 </div>
-                <div className="mt-2">
-                  <h3 className="text-xs font-bold text-stone-100 tracking-tight leading-tight">MARKET INTEL</h3>
-                  <p className="text-[10px] text-stone-400 font-medium truncate">Analysis & Trends</p>
-                </div>
-              </div>
-              <div className="mt-2 pt-2 border-t border-[#232834]">
-                <div className="flex items-center justify-between text-xs mb-1.5">
-                  <span className="text-[10px] text-stone-400 font-medium">Listings</span>
-                  <MetricValue value={listingCount} loaded={previewsLoaded} />
-                </div>
-                <Link
-                  to="/app/market"
-                  className="fort-btn-gold block w-full py-1 rounded-lg text-[10px] text-center font-bold"
-                >
-                  Open Market
-                </Link>
-              </div>
-            </div>
 
-            {/* 3. INVENTORY CARD */}
-            <div className="fort-hub-card rounded-xl p-3 flex flex-col justify-between min-h-[135px]">
-              <div>
-                <div className="flex items-start justify-between">
-                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#241F14] border border-[#524422] text-[#E5C368] shadow-2xs">
-                    <Package className="h-4 w-4" />
+                {/* 3. DEAL ROOMS CARD */}
+                <div className="fort-hub-card rounded-xl p-3 flex flex-col justify-between min-h-[135px]">
+                  <div>
+                    <div className="flex items-start justify-between">
+                      <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#241F14] border border-[#524422] text-[#E5C368] shadow-2xs">
+                        <Network className="h-4 w-4" />
+                      </div>
+                    </div>
+                    <div className="mt-2">
+                      <h3 className="text-xs font-bold text-stone-100 tracking-tight leading-tight">DEAL ROOMS</h3>
+                      <p className="text-[10px] text-stone-400 font-medium truncate">Negotiations & Closings</p>
+                    </div>
                   </div>
-                  
+                  <div className="mt-2 pt-2 border-t border-[#232834]">
+                    <div className="flex items-center justify-between text-xs mb-1.5">
+                      <span className="text-[10px] text-stone-400 font-medium">Deals</span>
+                      <MetricValue value={dealCount} loaded={previewsLoaded} />
+                    </div>
+                    <Link
+                      to="/app/dealrooms"
+                      className="fort-btn-gold block w-full py-1 rounded-lg text-[10px] text-center font-bold"
+                    >
+                      Open Deal Rooms
+                    </Link>
+                  </div>
                 </div>
-                <div className="mt-2">
-                  <h3 className="text-xs font-bold text-stone-100 tracking-tight leading-tight">INVENTORY</h3>
-                  <p className="text-[10px] text-stone-400 font-medium truncate">Assets & Units</p>
-                </div>
-              </div>
-              <div className="mt-2 pt-2 border-t border-[#232834]">
-                <div className="flex items-center justify-between text-xs mb-1.5">
-                  <span className="text-[10px] text-stone-400 font-medium">Assets</span>
-                  <MetricValue value={null} loaded={previewsLoaded} />
-                </div>
-                <Link
-                  to="/app/inventory"
-                  className="fort-btn-gold block w-full py-1 rounded-lg text-[10px] text-center font-bold"
-                >
-                  Open Inventory
-                </Link>
-              </div>
-            </div>
 
-            {/* 4. LEADS CARD */}
-            <div className="fort-hub-card rounded-xl p-3 flex flex-col justify-between min-h-[135px]">
-              <div>
-                <div className="flex items-start justify-between">
-                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#241F14] border border-[#524422] text-[#E5C368] shadow-2xs">
-                    <Filter className="h-4 w-4" />
+                {/* 4. COMMUNICATIONS / MESSAGES CARD */}
+                <div className="fort-hub-card rounded-xl p-3 flex flex-col justify-between min-h-[135px]">
+                  <div>
+                    <div className="flex items-start justify-between">
+                      <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#241F14] border border-[#524422] text-[#E5C368] shadow-2xs">
+                        <MessageSquare className="h-4 w-4" />
+                      </div>
+                    </div>
+                    <div className="mt-2">
+                      <h3 className="text-xs font-bold text-stone-100 tracking-tight leading-tight">MESSAGES</h3>
+                      <p className="text-[10px] text-stone-400 font-medium truncate">Alerts & Client Hub</p>
+                    </div>
                   </div>
-                  
+                  <div className="mt-2 pt-2 border-t border-[#232834]">
+                    <div className="flex items-center justify-between text-xs mb-1.5">
+                      <span className="text-[10px] text-stone-400 font-medium">Logs</span>
+                      <MetricValue value={activityCount} loaded={previewsLoaded} />
+                    </div>
+                    <Link
+                      to="/app/messages"
+                      className="fort-btn-gold block w-full py-1 rounded-lg text-[10px] text-center font-bold"
+                    >
+                      Open Messages
+                    </Link>
+                  </div>
                 </div>
-                <div className="mt-2">
-                  <h3 className="text-xs font-bold text-stone-100 tracking-tight leading-tight">LEADS</h3>
-                  <p className="text-[10px] text-stone-400 font-medium truncate">Pipeline & Flow</p>
-                </div>
-              </div>
-              <div className="mt-2 pt-2 border-t border-[#232834]">
-                <div className="flex items-center justify-between text-xs mb-1.5">
-                  <span className="text-[10px] text-stone-400 font-medium">Pipeline</span>
-                  <MetricValue value={leadsPipelineCount} loaded={previewsLoaded} />
-                </div>
-                <Link
-                  to="/app/leads"
-                  className="fort-btn-gold block w-full py-1 rounded-lg text-[10px] text-center font-bold"
-                >
-                  Open Leads
-                </Link>
-              </div>
-            </div>
 
-            {/* 5. SUPREME INTELLIGENCE CARD */}
-            <div className="fort-hub-card rounded-xl p-3 flex flex-col justify-between min-h-[135px]">
-              <div>
-                <div className="flex items-start justify-between">
-                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#241F14] border border-[#524422] text-[#E5C368] shadow-2xs">
-                    <Sparkles className="h-4 w-4" />
+                {/* 5. AI VOICE CARD */}
+                <div className="fort-hub-card rounded-xl p-3 flex flex-col justify-between min-h-[135px]">
+                  <div>
+                    <div className="flex items-start justify-between">
+                      <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#241F14] border border-[#524422] text-[#E5C368] shadow-2xs">
+                        <PhoneCall className="h-4 w-4" />
+                      </div>
+                    </div>
+                    <div className="mt-2">
+                      <h3 className="text-xs font-bold text-stone-100 tracking-tight leading-tight">AI VOICE</h3>
+                      <p className="text-[10px] text-stone-400 font-medium truncate">Follow-up & Calling</p>
+                    </div>
                   </div>
-                  
+                  <div className="mt-2 pt-2 border-t border-[#232834]">
+                    <div className="flex items-center justify-between text-xs mb-1.5">
+                      <span className="text-[10px] text-stone-400 font-medium">Voice AI</span>
+                      <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-400">
+                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                        READY
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={openSupremeVoice}
+                      className="fort-btn-gold block w-full py-1 rounded-lg text-[10px] text-center font-bold cursor-pointer"
+                    >
+                      Launch Voice
+                    </button>
+                  </div>
                 </div>
-                <div className="mt-2">
-                  <h3 className="text-xs font-bold text-stone-100 tracking-tight leading-tight">SUPREME AI</h3>
-                  <p className="text-[10px] text-stone-400 font-medium truncate">Cross-Domain Insights</p>
-                </div>
-              </div>
-              <div className="mt-2 pt-2 border-t border-[#232834]">
-                <div className="flex items-center justify-between text-xs mb-1.5">
-                  <span className="text-[10px] text-stone-400 font-medium">Status</span>
-                  <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-400">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                    READY
-                  </span>
-                </div>
-                <Link
-                  to={SUPREME_INTELLIGENCE_ROUTE}
-                  className="fort-btn-gold block w-full py-1 rounded-lg text-[10px] text-center font-bold"
-                >
-                  Open Intelligence
-                </Link>
-              </div>
-            </div>
 
-            {/* 6. GOVERNANCE CARD */}
-            <div className="fort-hub-card rounded-xl p-3 flex flex-col justify-between min-h-[135px]">
-              <div>
-                <div className="flex items-start justify-between">
-                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#241F14] border border-[#524422] text-[#E5C368] shadow-2xs">
-                    <Shield className="h-4 w-4" />
+                {/* 6. SUPREME INTELLIGENCE CARD */}
+                <div className="fort-hub-card rounded-xl p-3 flex flex-col justify-between min-h-[135px]">
+                  <div>
+                    <div className="flex items-start justify-between">
+                      <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#241F14] border border-[#524422] text-[#E5C368] shadow-2xs">
+                        <Sparkles className="h-4 w-4" />
+                      </div>
+                    </div>
+                    <div className="mt-2">
+                      <h3 className="text-xs font-bold text-stone-100 tracking-tight leading-tight">SUPREME AI</h3>
+                      <p className="text-[10px] text-stone-400 font-medium truncate">Cross-Domain Insights</p>
+                    </div>
                   </div>
-                  
+                  <div className="mt-2 pt-2 border-t border-[#232834]">
+                    <div className="flex items-center justify-between text-xs mb-1.5">
+                      <span className="text-[10px] text-stone-400 font-medium">Status</span>
+                      <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-400">
+                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                        READY
+                      </span>
+                    </div>
+                    <Link
+                      to={SUPREME_INTELLIGENCE_ROUTE}
+                      className="fort-btn-gold block w-full py-1 rounded-lg text-[10px] text-center font-bold"
+                    >
+                      Open Intelligence
+                    </Link>
+                  </div>
                 </div>
-                <div className="mt-2">
-                  <h3 className="text-xs font-bold text-stone-100 tracking-tight leading-tight">GOVERNANCE</h3>
-                  <p className="text-[10px] text-stone-400 font-medium truncate">Compliance & Risk</p>
-                </div>
-              </div>
-              <div className="mt-2 pt-2 border-t border-[#232834]">
-                <div className="flex items-center justify-between text-xs mb-1.5">
-                  <span className="text-[10px] text-stone-400 font-medium">Policies</span>
-                  <MetricValue value={null} loaded={previewsLoaded} />
-                </div>
-                <Link
-                  to="/app/command"
-                  className="fort-btn-gold block w-full py-1 rounded-lg text-[10px] text-center font-bold"
-                >
-                  Open Governance
-                </Link>
-              </div>
-            </div>
 
-            {/* 7. COMMUNICATIONS CARD */}
-            <div className="fort-hub-card rounded-xl p-3 flex flex-col justify-between min-h-[135px]">
-              <div>
-                <div className="flex items-start justify-between">
-                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#241F14] border border-[#524422] text-[#E5C368] shadow-2xs">
-                    <MessageSquare className="h-4 w-4" />
+                {/* 7. INVENTORY CARD */}
+                <div className="fort-hub-card rounded-xl p-3 flex flex-col justify-between min-h-[135px]">
+                  <div>
+                    <div className="flex items-start justify-between">
+                      <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#241F14] border border-[#524422] text-[#E5C368] shadow-2xs">
+                        <Package className="h-4 w-4" />
+                      </div>
+                    </div>
+                    <div className="mt-2">
+                      <h3 className="text-xs font-bold text-stone-100 tracking-tight leading-tight">INVENTORY</h3>
+                      <p className="text-[10px] text-stone-400 font-medium truncate">Assets & Units</p>
+                    </div>
                   </div>
-                  
+                  <div className="mt-2 pt-2 border-t border-[#232834]">
+                    <div className="flex items-center justify-between text-xs mb-1.5">
+                      <span className="text-[10px] text-stone-400 font-medium">Assets</span>
+                      <MetricValue value={null} loaded={previewsLoaded} />
+                    </div>
+                    <Link
+                      to="/app/inventory"
+                      className="fort-btn-gold block w-full py-1 rounded-lg text-[10px] text-center font-bold"
+                    >
+                      Open Inventory
+                    </Link>
+                  </div>
                 </div>
-                <div className="mt-2">
-                  <h3 className="text-xs font-bold text-stone-100 tracking-tight leading-tight">MESSAGES</h3>
-                  <p className="text-[10px] text-stone-400 font-medium truncate">Alerts & Hub</p>
-                </div>
-              </div>
-              <div className="mt-2 pt-2 border-t border-[#232834]">
-                <div className="flex items-center justify-between text-xs mb-1.5">
-                  <span className="text-[10px] text-stone-400 font-medium">Unread</span>
-                  <MetricValue value={null} loaded={previewsLoaded} />
-                </div>
-                <Link
-                  to="/app/messages"
-                  className="fort-btn-gold block w-full py-1 rounded-lg text-[10px] text-center font-bold"
-                >
-                  Open Messages
-                </Link>
-              </div>
-            </div>
 
-            {/* 8. BRANDING CARD */}
-            <div className="fort-hub-card rounded-xl p-3 flex flex-col justify-between min-h-[135px]">
-              <div>
-                <div className="flex items-start justify-between">
-                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#241F14] border border-[#524422] text-[#E5C368] shadow-2xs">
-                    <Award className="h-4 w-4" />
+                {/* 8. MARKET INTELLIGENCE CARD */}
+                <div className="fort-hub-card rounded-xl p-3 flex flex-col justify-between min-h-[135px]">
+                  <div>
+                    <div className="flex items-start justify-between">
+                      <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#241F14] border border-[#524422] text-[#E5C368] shadow-2xs">
+                        <BarChart3 className="h-4 w-4" />
+                      </div>
+                    </div>
+                    <div className="mt-2">
+                      <h3 className="text-xs font-bold text-stone-100 tracking-tight leading-tight">MARKET INTEL</h3>
+                      <p className="text-[10px] text-stone-400 font-medium truncate">Analysis & Trends</p>
+                    </div>
                   </div>
-                  
+                  <div className="mt-2 pt-2 border-t border-[#232834]">
+                    <div className="flex items-center justify-between text-xs mb-1.5">
+                      <span className="text-[10px] text-stone-400 font-medium">Listings</span>
+                      <MetricValue value={listingCount} loaded={previewsLoaded} />
+                    </div>
+                    <Link
+                      to="/app/market"
+                      className="fort-btn-gold block w-full py-1 rounded-lg text-[10px] text-center font-bold"
+                    >
+                      Open Market
+                    </Link>
+                  </div>
                 </div>
-                <div className="mt-2">
-                  <h3 className="text-xs font-bold text-stone-100 tracking-tight leading-tight">BRANDING</h3>
-                  <p className="text-[10px] text-stone-400 font-medium truncate">Identity & Style</p>
+              </>
+            ) : (
+              <>
+                {/* 1. CRM CARD */}
+                <div className="fort-hub-card rounded-xl p-3 flex flex-col justify-between min-h-[135px]">
+                  <div>
+                    <div className="flex items-start justify-between">
+                      <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#241F14] border border-[#524422] text-[#E5C368] shadow-2xs">
+                        <Users className="h-4 w-4" />
+                      </div>
+                    </div>
+                    <div className="mt-2">
+                      <h3 className="text-xs font-bold text-stone-100 tracking-tight leading-tight">CRM</h3>
+                      <p className="text-[10px] text-stone-400 font-medium truncate">Customer Management</p>
+                    </div>
+                  </div>
+                  <div className="mt-2 pt-2 border-t border-[#232834]">
+                    <div className="flex items-center justify-between text-xs mb-1.5">
+                      <span className="text-[10px] text-stone-400 font-medium">Leads</span>
+                      <MetricValue value={leadCount} loaded={previewsLoaded} />
+                    </div>
+                    <Link
+                      to="/app/crm"
+                      className="fort-btn-gold block w-full py-1 rounded-lg text-[10px] text-center font-bold"
+                    >
+                      Open CRM
+                    </Link>
+                  </div>
                 </div>
-              </div>
-              <div className="mt-2 pt-2 border-t border-[#232834]">
-                <div className="flex items-center justify-between text-xs mb-1.5">
-                  <span className="text-[10px] text-stone-400 font-medium">Theme</span>
-                  <span className="text-[10px] font-bold text-[#E5C368]">Obsidian / Gold</span>
+
+                {/* 2. MARKET INTELLIGENCE CARD */}
+                <div className="fort-hub-card rounded-xl p-3 flex flex-col justify-between min-h-[135px]">
+                  <div>
+                    <div className="flex items-start justify-between">
+                      <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#241F14] border border-[#524422] text-[#E5C368] shadow-2xs">
+                        <BarChart3 className="h-4 w-4" />
+                      </div>
+                    </div>
+                    <div className="mt-2">
+                      <h3 className="text-xs font-bold text-stone-100 tracking-tight leading-tight">MARKET INTEL</h3>
+                      <p className="text-[10px] text-stone-400 font-medium truncate">Analysis & Trends</p>
+                    </div>
+                  </div>
+                  <div className="mt-2 pt-2 border-t border-[#232834]">
+                    <div className="flex items-center justify-between text-xs mb-1.5">
+                      <span className="text-[10px] text-stone-400 font-medium">Listings</span>
+                      <MetricValue value={listingCount} loaded={previewsLoaded} />
+                    </div>
+                    <Link
+                      to="/app/market"
+                      className="fort-btn-gold block w-full py-1 rounded-lg text-[10px] text-center font-bold"
+                    >
+                      Open Market
+                    </Link>
+                  </div>
                 </div>
-                <Link
-                  to="/app/settings/branding"
-                  className="fort-btn-gold block w-full py-1 rounded-lg text-[10px] text-center font-bold"
-                >
-                  Open Branding
-                </Link>
-              </div>
-            </div>
+
+                {/* 3. INVENTORY CARD */}
+                <div className="fort-hub-card rounded-xl p-3 flex flex-col justify-between min-h-[135px]">
+                  <div>
+                    <div className="flex items-start justify-between">
+                      <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#241F14] border border-[#524422] text-[#E5C368] shadow-2xs">
+                        <Package className="h-4 w-4" />
+                      </div>
+                    </div>
+                    <div className="mt-2">
+                      <h3 className="text-xs font-bold text-stone-100 tracking-tight leading-tight">INVENTORY</h3>
+                      <p className="text-[10px] text-stone-400 font-medium truncate">Assets & Units</p>
+                    </div>
+                  </div>
+                  <div className="mt-2 pt-2 border-t border-[#232834]">
+                    <div className="flex items-center justify-between text-xs mb-1.5">
+                      <span className="text-[10px] text-stone-400 font-medium">Assets</span>
+                      <MetricValue value={null} loaded={previewsLoaded} />
+                    </div>
+                    <Link
+                      to="/app/inventory"
+                      className="fort-btn-gold block w-full py-1 rounded-lg text-[10px] text-center font-bold"
+                    >
+                      Open Inventory
+                    </Link>
+                  </div>
+                </div>
+
+                {/* 4. LEADS CARD */}
+                <div className="fort-hub-card rounded-xl p-3 flex flex-col justify-between min-h-[135px]">
+                  <div>
+                    <div className="flex items-start justify-between">
+                      <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#241F14] border border-[#524422] text-[#E5C368] shadow-2xs">
+                        <Filter className="h-4 w-4" />
+                      </div>
+                    </div>
+                    <div className="mt-2">
+                      <h3 className="text-xs font-bold text-stone-100 tracking-tight leading-tight">LEADS</h3>
+                      <p className="text-[10px] text-stone-400 font-medium truncate">Pipeline & Flow</p>
+                    </div>
+                  </div>
+                  <div className="mt-2 pt-2 border-t border-[#232834]">
+                    <div className="flex items-center justify-between text-xs mb-1.5">
+                      <span className="text-[10px] text-stone-400 font-medium">Pipeline</span>
+                      <MetricValue value={leadsPipelineCount} loaded={previewsLoaded} />
+                    </div>
+                    <Link
+                      to="/app/leads"
+                      className="fort-btn-gold block w-full py-1 rounded-lg text-[10px] text-center font-bold"
+                    >
+                      Open Leads
+                    </Link>
+                  </div>
+                </div>
+
+                {/* 5. SUPREME INTELLIGENCE CARD */}
+                <div className="fort-hub-card rounded-xl p-3 flex flex-col justify-between min-h-[135px]">
+                  <div>
+                    <div className="flex items-start justify-between">
+                      <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#241F14] border border-[#524422] text-[#E5C368] shadow-2xs">
+                        <Sparkles className="h-4 w-4" />
+                      </div>
+                    </div>
+                    <div className="mt-2">
+                      <h3 className="text-xs font-bold text-stone-100 tracking-tight leading-tight">SUPREME AI</h3>
+                      <p className="text-[10px] text-stone-400 font-medium truncate">Cross-Domain Insights</p>
+                    </div>
+                  </div>
+                  <div className="mt-2 pt-2 border-t border-[#232834]">
+                    <div className="flex items-center justify-between text-xs mb-1.5">
+                      <span className="text-[10px] text-stone-400 font-medium">Status</span>
+                      <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-400">
+                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                        READY
+                      </span>
+                    </div>
+                    <Link
+                      to={SUPREME_INTELLIGENCE_ROUTE}
+                      className="fort-btn-gold block w-full py-1 rounded-lg text-[10px] text-center font-bold"
+                    >
+                      Open Intelligence
+                    </Link>
+                  </div>
+                </div>
+
+                {/* 6. GOVERNANCE CARD */}
+                <div className="fort-hub-card rounded-xl p-3 flex flex-col justify-between min-h-[135px]">
+                  <div>
+                    <div className="flex items-start justify-between">
+                      <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#241F14] border border-[#524422] text-[#E5C368] shadow-2xs">
+                        <Shield className="h-4 w-4" />
+                      </div>
+                    </div>
+                    <div className="mt-2">
+                      <h3 className="text-xs font-bold text-stone-100 tracking-tight leading-tight">GOVERNANCE</h3>
+                      <p className="text-[10px] text-stone-400 font-medium truncate">Compliance & Risk</p>
+                    </div>
+                  </div>
+                  <div className="mt-2 pt-2 border-t border-[#232834]">
+                    <div className="flex items-center justify-between text-xs mb-1.5">
+                      <span className="text-[10px] text-stone-400 font-medium">Policies</span>
+                      <MetricValue value={null} loaded={previewsLoaded} />
+                    </div>
+                    <Link
+                      to="/app/command"
+                      className="fort-btn-gold block w-full py-1 rounded-lg text-[10px] text-center font-bold"
+                    >
+                      Open Governance
+                    </Link>
+                  </div>
+                </div>
+
+                {/* 7. COMMUNICATIONS CARD */}
+                <div className="fort-hub-card rounded-xl p-3 flex flex-col justify-between min-h-[135px]">
+                  <div>
+                    <div className="flex items-start justify-between">
+                      <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#241F14] border border-[#524422] text-[#E5C368] shadow-2xs">
+                        <MessageSquare className="h-4 w-4" />
+                      </div>
+                    </div>
+                    <div className="mt-2">
+                      <h3 className="text-xs font-bold text-stone-100 tracking-tight leading-tight">MESSAGES</h3>
+                      <p className="text-[10px] text-stone-400 font-medium truncate">Alerts & Hub</p>
+                    </div>
+                  </div>
+                  <div className="mt-2 pt-2 border-t border-[#232834]">
+                    <div className="flex items-center justify-between text-xs mb-1.5">
+                      <span className="text-[10px] text-stone-400 font-medium">Unread</span>
+                      <MetricValue value={null} loaded={previewsLoaded} />
+                    </div>
+                    <Link
+                      to="/app/messages"
+                      className="fort-btn-gold block w-full py-1 rounded-lg text-[10px] text-center font-bold"
+                    >
+                      Open Messages
+                    </Link>
+                  </div>
+                </div>
+
+                {/* 8. BRANDING CARD */}
+                <div className="fort-hub-card rounded-xl p-3 flex flex-col justify-between min-h-[135px]">
+                  <div>
+                    <div className="flex items-start justify-between">
+                      <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#241F14] border border-[#524422] text-[#E5C368] shadow-2xs">
+                        <Award className="h-4 w-4" />
+                      </div>
+                    </div>
+                    <div className="mt-2">
+                      <h3 className="text-xs font-bold text-stone-100 tracking-tight leading-tight">BRANDING</h3>
+                      <p className="text-[10px] text-stone-400 font-medium truncate">Identity & Style</p>
+                    </div>
+                  </div>
+                  <div className="mt-2 pt-2 border-t border-[#232834]">
+                    <div className="flex items-center justify-between text-xs mb-1.5">
+                      <span className="text-[10px] text-stone-400 font-medium">Theme</span>
+                      <span className="text-[10px] font-bold text-[#E5C368]">Obsidian / Gold</span>
+                    </div>
+                    <Link
+                      to="/app/settings/branding"
+                      className="fort-btn-gold block w-full py-1 rounded-lg text-[10px] text-center font-bold"
+                    >
+                      Open Branding
+                    </Link>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
 
           {/* ── Bottom Compact Quote Strip ── */}

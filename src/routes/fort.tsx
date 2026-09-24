@@ -160,16 +160,27 @@ function FortLayout() {
     return map;
   }, [fort.modules, fort.consoleModules]);
 
-  const navItems = useMemo(() => [
-    { label: "FORT HOME", icon: Home, to: "/fort", state: "ACTIVE" as const, active: pathname === "/fort" || pathname.startsWith("/fort/") },
-    { label: "CRM", icon: Users, to: "/app/crm", state: grantMap.get("/app/crm") ?? "ACTIVE", active: pathname.includes("/crm") },
-    { label: "MARKET", icon: BarChart3, to: "/app/market", state: grantMap.get("/app/market") ?? "ACTIVE", active: pathname.includes("/market") },
-    { label: "INVENTORY", icon: Package, to: "/app/inventory", state: grantMap.get("/app/inventory") ?? "ACTIVE", active: pathname.includes("/inventory") },
-    { label: "LEADS", icon: Filter, to: "/app/leads", state: grantMap.get("/app/leads") ?? "ACTIVE", active: pathname.includes("/leads") },
-    { label: "INTELLIGENCE", icon: Sparkles, to: "/app/supreme-intelligence", state: grantMap.get("/app/supreme-intelligence") ?? "ACTIVE", active: pathname.includes("/supreme-intelligence") },
-    { label: "MESSAGES", icon: Mail, to: "/app/messages", state: grantMap.get("/app/messages") ?? "ACTIVE", active: pathname.includes("/messages") },
-    { label: "BRANDING", icon: Award, to: "/app/settings/branding", state: grantMap.get("/app/settings/branding") ?? "LOCKED", active: pathname.includes("/settings") },
-  ], [pathname, grantMap]);
+  const userRoles = user.roles ?? fort.role?.appRoles ?? [];
+  const isSalesExecutive =
+    userRoles.includes("agent") &&
+    !userRoles.includes("admin") &&
+    !userRoles.includes("manager");
+
+  const navItems = useMemo(() => {
+    const base = [
+      { label: "FORT HOME", icon: Home, to: "/fort", state: "ACTIVE" as const, active: pathname === "/fort" || pathname.startsWith("/fort/") },
+      { label: "LEADS", icon: Filter, to: "/app/leads", state: grantMap.get("/app/leads") ?? "ACTIVE", active: pathname.includes("/leads") },
+      { label: "CRM", icon: Users, to: "/app/crm", state: grantMap.get("/app/crm") ?? "ACTIVE", active: pathname.includes("/crm") },
+      { label: "MARKET", icon: BarChart3, to: "/app/market", state: grantMap.get("/app/market") ?? "ACTIVE", active: pathname.includes("/market") },
+      { label: "INVENTORY", icon: Package, to: "/app/inventory", state: grantMap.get("/app/inventory") ?? "ACTIVE", active: pathname.includes("/inventory") },
+      { label: "INTELLIGENCE", icon: Sparkles, to: "/app/supreme-intelligence", state: grantMap.get("/app/supreme-intelligence") ?? "ACTIVE", active: pathname.includes("/supreme-intelligence") },
+      { label: "MESSAGES", icon: Mail, to: "/app/messages", state: grantMap.get("/app/messages") ?? "ACTIVE", active: pathname.includes("/messages") },
+    ];
+    if (!isSalesExecutive) {
+      base.push({ label: "BRANDING", icon: Award, to: "/app/settings/branding", state: grantMap.get("/app/settings/branding") ?? "LOCKED", active: pathname.includes("/settings") });
+    }
+    return base;
+  }, [pathname, grantMap, isSalesExecutive]);
 
   // Live search over the accessible Fort navigation (locked modules excluded).
   const fortMatches = useMemo(() => {
@@ -181,14 +192,17 @@ function FortLayout() {
       .slice(0, 6);
   }, [fortQ, navItems]);
 
-  const userRoles = user.roles ?? fort.role?.appRoles ?? [];
   const roleTitle = userRoles.includes("admin") || userRoles.includes("platform_admin")
     ? "Platform Admin"
-    : userRoles.length > 0
-      ? userRoles.map((r) => r.charAt(0).toUpperCase() + r.slice(1)).join(" · ")
-      : fort.status === "ACTIVE"
-        ? "Verified Member"
-        : "Access Pending";
+    : userRoles.includes("manager")
+      ? "Sales Manager"
+      : isSalesExecutive
+        ? "Sales Executive"
+        : userRoles.length > 0
+          ? userRoles.map((r) => r.charAt(0).toUpperCase() + r.slice(1)).join(" · ")
+          : fort.status === "ACTIVE"
+            ? "Verified Member"
+            : "Access Pending";
 
   return (
     <div className="min-h-screen bg-[#0C0E14] text-stone-100 flex flex-col lg:flex-row antialiased selection:bg-[#2D2415] selection:text-[#E2C578]">
@@ -325,10 +339,16 @@ function FortLayout() {
           {/* Greeting */}
           <div className="leading-tight">
             <div className="flex items-center gap-1.5 text-sm font-bold text-stone-100 tracking-tight">
-              <span className="text-amber-400">👑</span>
+              {isSalesExecutive ? (
+                <ShieldCheck className="h-4 w-4 text-[#D4AF37]" />
+              ) : (
+                <span className="text-amber-400">👑</span>
+              )}
               <span>Welcome back, {userName}</span>
             </div>
-            <div className="text-[10px] text-stone-400 font-medium">Sentinel Fort Command Center</div>
+            <div className="text-[10px] text-stone-400 font-medium">
+              {isSalesExecutive ? "Sales Executive Workspace" : "Sentinel Fort Command Center"}
+            </div>
           </div>
 
           {/* Actions & Search */}

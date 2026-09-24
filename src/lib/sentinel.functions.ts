@@ -318,7 +318,21 @@ const SHELL_SOURCES: ReadonlyArray<{
 export const getFortShellPreviews = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<FortShellPreviewsResult> => {
-    const { supabase } = context as { supabase: any; userId: string };
+    const { supabase, userId } = context as { supabase: any; userId: string };
+
+    let userRoles: string[] = [];
+    try {
+      const { data: roleRows } = await (supabase as any)
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId);
+      userRoles = (roleRows ?? []).map((r: { role: string }) => r.role);
+    } catch {}
+
+    const isSalesExecutive =
+      userRoles.includes("agent") &&
+      !userRoles.includes("admin") &&
+      !userRoles.includes("manager");
 
     let workspaceResolved = false;
     try {
@@ -334,9 +348,13 @@ export const getFortShellPreviews = createServerFn({ method: "GET" })
         await Promise.all(
           metrics.map(async ([label]) => {
             try {
-              const { count, error } = await (supabase as any)
+              let query = (supabase as any)
                 .from(table)
                 .select("*", { count: "exact", head: true });
+              if (table === "leads" && isSalesExecutive) {
+                query = query.eq("assigned_to", userId);
+              }
+              const { count, error } = await query;
               entry[label] = error ? null : (count ?? 0);
             } catch {
               entry[label] = null; // table missing / transient failure → honest null

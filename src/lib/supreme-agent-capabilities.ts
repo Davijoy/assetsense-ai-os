@@ -50,14 +50,27 @@ export type { CapabilityHandler, CapabilitySchema };
  * compute the snapshot here and inject a constant-returning closure — the
  * TanStack createServerFn wrapper is NOT callable directly from this path.
  */
-async function computeCrmKpis(supabase: any, workspaceId: string): Promise<{
+export async function computeCrmKpis(
+  supabase: any,
+  workspaceId: string,
+  assignedTo?: string | null
+): Promise<{
   pipelineValueInr: number;
   activeLeads: number;
   conversionRatePct: number;
   averageResponseSeconds: number;
 }> {
+  let leadsQuery = supabase
+    .from("leads")
+    .select("id, budget_inr, created_at, stage, assigned_to")
+    .eq("workspace_id", workspaceId);
+
+  if (assignedTo) {
+    leadsQuery = leadsQuery.eq("assigned_to", assignedTo);
+  }
+
   const [leadsRes, propsRes, callsRes] = await Promise.all([
-    supabase.from("leads").select("id, budget_inr, created_at, stage").eq("workspace_id", workspaceId),
+    leadsQuery,
     supabase.from("properties").select("price_inr").eq("workspace_id", workspaceId).eq("is_draft", false),
     supabase.from("calls").select("lead_id, created_at").eq("workspace_id", workspaceId).order("created_at", { ascending: true }),
   ]);
@@ -65,15 +78,22 @@ async function computeCrmKpis(supabase: any, workspaceId: string): Promise<{
   if (propsRes.error) throw new Error(propsRes.error.message);
   if (callsRes.error) throw new Error(callsRes.error.message);
 
-  const leads = (leadsRes.data ?? []) as Array<{ id: string; budget_inr: number; created_at: string; stage: string }>;
-  const properties = (propsRes.data ?? []) as Array<{ price_inr: number }>;
+  let leads = (leadsRes.data ?? []) as Array<{ id: string; budget_inr: number; created_at: string; stage: string; assigned_to?: string | null }>;
+  if (assignedTo) {
+    leads = leads.filter((l) => l.assigned_to === assignedTo);
+  }
+  const properties = assignedTo ? [] : ((propsRes.data ?? []) as Array<{ price_inr: number }>);
   const booked = new Set(["booked", "closed", "won", "converted", "lost"]);
   const activeLeads = leads.filter((l) => !booked.has((l.stage ?? "new").toLowerCase())).length;
   const conversionRatePct = leads.length > 0 ? ((leads.length - activeLeads) / leads.length) * 100 : 0;
   const pipelineValueInr = leads.reduce((s, l) => s + (l.budget_inr ?? 0), 0) +
     properties.reduce((s, p) => s + (p.price_inr ?? 0), 0);
 
-  const calls = (callsRes.data ?? []) as Array<{ lead_id: string; created_at: string }>;
+  const assignedLeadIds = new Set(leads.map((l) => l.id));
+  let calls = (callsRes.data ?? []) as Array<{ lead_id: string; created_at: string }>;
+  if (assignedTo) {
+    calls = calls.filter((c) => c.lead_id && assignedLeadIds.has(c.lead_id));
+  }
   let averageResponseSeconds = 0;
   if (calls.length > 0) {
     const first = new Date(calls[0].created_at).getTime();
@@ -109,7 +129,7 @@ export function getCapability(capabilityId: string): AgentCapability | undefined
  */
 const CAPABILITY_HANDLERS: Record<string, CapabilityHandler> = {
   "crm.getCRMKPIs": async (args, supabase, workspaceId, dryRun) => {
-    const kpis = await computeCrmKpis(supabase, workspaceId);
+    const kpis = await computeCrmKpis(supabase, workspaceId, args?.assignedTo);
     return { ...kpis, generatedAt: new Date().toISOString(), _dryRun: dryRun };
   },
 

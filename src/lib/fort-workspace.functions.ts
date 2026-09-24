@@ -49,6 +49,7 @@ import {
 } from "@/lib/services/workspace.service";
 import {
   checkRoleSynchronization,
+  defaultPersonaForRoles,
   formatFortUserId,
   formatFortWorkspacePublicId,
   fortFallbackContext,
@@ -62,7 +63,7 @@ import {
   type FortWorkspaceContext,
 } from "@/lib/fort-experience";
 import { FORTS, personaToFort } from "@/sentinel/forts";
-import { isPersona } from "@/sentinel/personas";
+import { isPersona, PERSONAS } from "@/sentinel/personas";
 
 /** Every route any Fort can surface, deduped and stably ordered. */
 const FORT_ROUTES: string[] = Array.from(
@@ -77,6 +78,7 @@ const FORT_ROUTES: string[] = Array.from(
   where callers already import them from.
 */
 export {
+  defaultPersonaForRoles,
   fortFallbackContext,
   type FortIdentity,
   type FortMembershipContext,
@@ -96,20 +98,22 @@ const ResolveInput = z
 
 /**
  * The Fort experience surface for an account, read from the SERVER's stored
- * persona (`sentinel_user_profiles.primary_persona`).
+ * persona (`sentinel_user_profiles.primary_persona`) with fallback to canonical
+ * role-derived persona.
  *
  * EXPERIENCE ONLY, NEVER AUTHORIZATION. This selects which surface is shown and
  * the order the landing route is chosen in. It cannot grant a module, cannot
  * unlock a capability, and is not consulted by module or capability resolution —
- * those read the verified app_role set alone. A persona the server does not
- * recognise, or a profile read that fails, yields null and changes nothing.
+ * those read the verified app_role set alone.
  */
 export async function resolveFortIdentity(
   supabase: any,
   userId: string,
   workspaceId?: string | null,
-): Promise<{ fort: FortIdentity; moduleOrder: readonly string[] } | null> {
+  appRoles: readonly string[] = [],
+): Promise<{ fort: FortIdentity; moduleOrder: readonly string[]; persona: SentinelPersona } | null> {
   try {
+    let persona: SentinelPersona | null = null;
     let query = supabase
       .from("sentinel_user_profiles")
       .select("primary_persona")
@@ -118,8 +122,15 @@ export async function resolveFortIdentity(
       query = query.eq("workspace_id", workspaceId);
     }
     const { data, error } = await query.maybeSingle();
-    if (error) throw error;
-    const persona = (data as { primary_persona: string | null } | null)?.primary_persona ?? null;
+    if (!error && data?.primary_persona && isPersona(data.primary_persona)) {
+      persona = data.primary_persona as SentinelPersona;
+    }
+
+    // Canonical role-derived persona fallback
+    if (!persona && appRoles.length > 0) {
+      persona = defaultPersonaForRoles(appRoles);
+    }
+
     if (!persona || !isPersona(persona)) return null;
     const fortId = personaToFort(persona);
     if (!fortId) return null;
@@ -128,10 +139,22 @@ export async function resolveFortIdentity(
     return {
       fort: { id: fortId, route: definition.route, label: definition.label },
       moduleOrder: definition.modules,
+      persona,
     };
   } catch (e) {
     // Non-fatal: the account still resolves, it just has no preferred surface.
-    console.error("[fort] experience surface read failed (continuing without it):", e);
+    console.error("[fort] experience surface read failed (falling back to role default):", e);
+    if (appRoles.length > 0) {
+      const fallbackPersona = defaultPersonaForRoles(appRoles);
+      const fortId = personaToFort(fallbackPersona);
+      if (fortId && FORTS[fortId]) {
+        return {
+          fort: { id: fortId, route: FORTS[fortId].route, label: FORTS[fortId].label },
+          moduleOrder: FORTS[fortId].modules,
+          persona: fallbackPersona,
+        };
+      }
+    }
     return null;
   }
 }
@@ -244,11 +267,6 @@ export const resolveFortWorkspace = createServerFn({ method: "GET" })
       workspaceName = "Sentinel Fort HQ";
     }
 
-    // --- experience surface (NOT authorization) --------------------------
-    const experience = await resolveFortIdentity(supabase, userId, workspaceId);
-    const fort = experience?.fort ?? null;
-    const fortUserId = formatFortUserId(userId);
-
     const membershipRow = active.find((m) => m.workspaceId === workspaceId) ?? null;
 
     // Synchronize role if user holds valid System A membership but System B row was missing
@@ -261,6 +279,11 @@ export const resolveFortWorkspace = createServerFn({ method: "GET" })
         appRoles = ["agent"];
       }
     }
+
+    // --- experience surface (NOT authorization) --------------------------
+    const experience = await resolveFortIdentity(supabase, userId, workspaceId, appRoles);
+    const fort = experience?.fort ?? null;
+    const fortUserId = formatFortUserId(userId);
 
     // --- role synchronization check (System A vs System B) -------------
     // If System A and System B disagree on authority, FAIL CLOSED.
@@ -297,11 +320,15 @@ export const resolveFortWorkspace = createServerFn({ method: "GET" })
     // /app sidebar and the FORT surface can never disagree about access.
     const consoleModules = grantsVisible ? resolveConsoleModules(appRoles) : [];
 
-    // Where "Enter Workspace" opens. The user's own Fort module order is
-    // preferred, then the first granted console route. null when the server
-    // granted nothing — no hardcoded /app/crm fallback.
+    // Where "Enter Workspace" opens. The user's own Fort persona preferred landing
+    // is prioritized, then the Fort module order, then the first granted console route.
+    const preferredOrder = [
+      experience?.persona ? PERSONAS[experience.persona]?.landing : null,
+      ...(experience?.moduleOrder ?? []),
+    ].filter((r): r is string => Boolean(r));
+
     const landingRoute = grantsVisible
-      ? resolveLandingRoute(consoleModules, experience?.moduleOrder ?? [])
+      ? resolveLandingRoute(consoleModules, preferredOrder)
       : null;
 
     return {

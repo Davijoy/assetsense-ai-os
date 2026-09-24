@@ -517,13 +517,39 @@ export function calculateCRMKpiSnapshot(
 export const getCRMKPIs = createServerFn({ method: "GET" })
   .middleware([requireRoles(["admin", "manager", "agent", "viewer", "builder", "developer"])])
   .handler(async ({ context }): Promise<CRMKpiSnapshot> => {
-    const { supabase } = context as { supabase: any };
+    const { supabase, userId, roles } = context as {
+      supabase: any;
+      userId: string;
+      roles?: string[];
+    };
+
+    const isSalesExecutive =
+      roles?.includes("agent") &&
+      !roles?.includes("admin") &&
+      !roles?.includes("manager");
+
+    let leadsQuery = supabase
+      .from("leads")
+      .select("id, budget_inr, created_at, stage, assigned_to");
+    let callsQuery = supabase
+      .from("calls")
+      .select("lead_id, created_at")
+      .order("created_at", { ascending: true });
+    let activitiesQuery = supabase
+      .from("activities")
+      .select("related_to_id, created_at, activity_type")
+      .eq("related_to_type", "lead")
+      .order("created_at", { ascending: true });
+
+    if (isSalesExecutive) {
+      leadsQuery = leadsQuery.eq("assigned_to", userId);
+    }
 
     const [leadsResult, propertiesResult, callsResult, activitiesResult] = await Promise.all([
-      supabase.from("leads").select("id, budget_inr, created_at, stage"),
+      leadsQuery,
       supabase.from("properties").select("price_inr").eq("is_draft", false),
-      supabase.from("calls").select("lead_id, created_at").order("created_at", { ascending: true }),
-      supabase.from("activities").select("related_to_id, created_at, activity_type").eq("related_to_type", "lead").order("created_at", { ascending: true }),
+      callsQuery,
+      activitiesQuery,
     ]);
 
     if (leadsResult.error) {
@@ -536,15 +562,32 @@ export const getCRMKPIs = createServerFn({ method: "GET" })
       throw new Error(callsResult.error.message);
     }
 
-    const leads = (leadsResult.data ?? []) as Array<{
+    let leads = (leadsResult.data ?? []) as Array<{
       id: string;
       budget_inr: number | null;
       created_at: string | null;
       stage: string | null;
+      assigned_to?: string | null;
     }>;
-    const properties = (propertiesResult.data ?? []) as Array<{ price_inr: number | null }>;
-    const calls = (callsResult.data ?? []) as Array<{ lead_id: string | null; created_at: string | null }>;
-    const activities = (activitiesResult.data ?? []) as Array<{ related_to_id: string | null; created_at: string | null; activity_type: string | null }>;
+
+    // Defense-in-depth: enforce assigned_to filter in application layer for Sales Executives
+    if (isSalesExecutive) {
+      leads = leads.filter((l) => l.assigned_to === userId);
+    }
+
+    const assignedLeadIds = new Set(leads.map((l) => l.id));
+
+    let calls = (callsResult.data ?? []) as Array<{ lead_id: string | null; created_at: string | null }>;
+    let activities = (activitiesResult.data ?? []) as Array<{ related_to_id: string | null; created_at: string | null; activity_type: string | null }>;
+
+    if (isSalesExecutive) {
+      calls = calls.filter((c) => c.lead_id && assignedLeadIds.has(c.lead_id));
+      activities = activities.filter((a) => a.related_to_id && assignedLeadIds.has(a.related_to_id));
+    }
+
+    const properties = isSalesExecutive
+      ? []
+      : ((propertiesResult.data ?? []) as Array<{ price_inr: number | null }>);
 
     return calculateCRMKpiSnapshot(leads, properties, calls, activities);
   });

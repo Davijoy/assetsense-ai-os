@@ -5,8 +5,13 @@ import { loadExperienceDraft } from "@/lib/experience-draft";
 import { getSentinelProfile } from "@/lib/sentinel.functions";
 import { FortWorkspaceStateSurface } from "@/components/sentinel/FortWorkspaceState";
 import { useAuth } from "@/hooks/use-auth";
-import { checkRoleSynchronization, canExecuteCapability, fortFallbackContext } from "@/lib/fort-experience";
-import type { FortWorkspaceContext } from "@/lib/fort-workspace.functions";
+import {
+  checkRoleSynchronization,
+  canExecuteCapability,
+  defaultPersonaForRoles,
+  fortFallbackContext,
+  type FortWorkspaceContext,
+} from "@/lib/fort-experience";
 import type { SentinelPersona } from "@/sentinel/types";
 import { isPersona } from "@/sentinel/personas";
 import { FortDashboard } from "@/components/sentinel/FortDashboard";
@@ -71,14 +76,15 @@ function FortWelcome() {
     return () => window.clearTimeout(t);
   }, [ready]);
 
+  const userRoles = workspace.role?.appRoles ?? user.roles ?? [];
   const { persona, fortId } = useMemo(
     () =>
       resolveWelcomeFort({
         workspaceFort: (workspace.fort as any) ?? null,
-        profilePersona,
+        profilePersona: profilePersona ?? (userRoles.length > 0 ? defaultPersonaForRoles(userRoles) : null),
         draft,
       }),
-    [workspace.fort, profilePersona, draft],
+    [workspace.fort, profilePersona, draft, userRoles],
   );
 
   const { user: authUser } = useAuth();
