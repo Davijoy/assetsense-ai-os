@@ -565,6 +565,8 @@ function CRM() {
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
         onLeadUpdated={handleLeadUpdated}
+        readOnly={isViewOnly}
+        canManageAssignments={userRoles.some((r) => ["admin", "manager"].includes(r))}
       />
     </div>
   );

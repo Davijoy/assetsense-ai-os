@@ -684,22 +684,22 @@ export function mapDatabaseRowsToLiveLeads(
 
 /**
  * Fetch all live leads from the database for the active workspace.
+ * Platform Admin & Managers: full workspace.
+ * Sales Executives (agent): assigned leads only.
+ * Viewers: workspace leads (view-only).
  */
 export const getLiveLeads = createServerFn({ method: "GET" })
   .middleware([requireRoles(["admin", "manager", "agent", "viewer", "builder", "developer"])])
   .handler(async ({ context }): Promise<LiveLead[]> => {
     const { supabase, userId, roles } = context as {
-  supabase: any;
-  userId: string;
-  roles?: string[];
-};
-
-console.log("[getLiveLeads][diagnostic]", {
-  userId,
-  roles: roles ?? [],
-});
+      supabase: any;
+      userId: string;
+      roles?: string[];
+    };
 
     try {
+      const isSalesExecutive = roles?.includes("agent") && !roles?.includes("admin") && !roles?.includes("manager");
+
       const [leadsRes, activitiesRes, profilesRes] = await Promise.all([
         supabase
           .from("leads")
@@ -714,13 +714,7 @@ console.log("[getLiveLeads][diagnostic]", {
           .from("profiles")
           .select("id, full_name, email"),
       ]);
-      console.log("[getLiveLeads][diagnostic-result]", {
-        userId,
-        leadCount: leadsRes.data?.length ?? 0,
-        leadError: leadsRes.error?.message ?? null,
-        activityCount: activitiesRes.data?.length ?? 0,
-        profileCount: profilesRes.data?.length ?? 0,
-      });
+
       if (leadsRes.error) {
         console.error("[getLiveLeads] Database error fetching leads:", leadsRes.error.message);
         throw new Error(`Failed to fetch leads: ${leadsRes.error.message}`);
@@ -733,7 +727,14 @@ console.log("[getLiveLeads][diagnostic]", {
       const activities = (activitiesRes.data ?? []) as any[];
       const profiles = (profilesRes.data ?? []) as any[];
 
-      return mapDatabaseRowsToLiveLeads(leadsRes.data, activities, profiles);
+      let rawLeads = leadsRes.data as any[];
+
+      // Apply strict user-ID based assignment scoping for Sales Executives
+      if (isSalesExecutive) {
+        rawLeads = rawLeads.filter((r) => r.assigned_to === userId);
+      }
+
+      return mapDatabaseRowsToLiveLeads(rawLeads, activities, profiles);
     } catch (e: any) {
       console.error("[getLiveLeads] Exception caught while fetching leads:", e);
       throw e;
@@ -765,8 +766,14 @@ export const updateLeadStage = createServerFn({ method: "POST" })
     followUpStatus?: FollowUpStatus;
     activity?: LeadActivityItem;
   }> => {
-    const { supabase, userId } = context as { supabase: any; userId: string };
+    const { supabase, userId, roles } = context as { supabase: any; userId: string; roles?: string[] };
     const { leadId, stage, siteVisitDate, siteVisitTime, notes } = data;
+
+    const isSalesExecutive = roles?.includes("agent") && !roles?.includes("admin") && !roles?.includes("manager");
+
+    if (isSalesExecutive && stage.toLowerCase() === "negotiation") {
+      throw new Error("STAGE_BYPASS_RESTRICTED: Advancing a lead to Negotiation requires recording a Site Visit Outcome.");
+    }
 
     if (
       stage === "Site Visit Scheduled" &&
@@ -812,9 +819,13 @@ export const updateLeadStage = createServerFn({ method: "POST" })
     try {
       if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(leadId)) {
         const [leadRes, profileRes] = await Promise.all([
-          supabase.from("leads").select("workspace_id").eq("id", leadId).maybeSingle(),
+          supabase.from("leads").select("workspace_id, assigned_to").eq("id", leadId).maybeSingle(),
           supabase.from("profiles").select("full_name, email").eq("id", userId).maybeSingle(),
         ]);
+
+        if (isSalesExecutive && leadRes.data && leadRes.data.assigned_to && leadRes.data.assigned_to !== userId) {
+          throw new Error("UNAUTHORIZED_LEAD_ACCESS: Sales Executives can only update leads assigned to their authenticated user ID.");
+        }
 
         if (profileRes.data?.full_name) {
           performerName = profileRes.data.full_name;
@@ -946,9 +957,10 @@ export const updateLeadStage = createServerFn({ method: "POST" })
 
 /**
  * Assign lead owner / representative (general assign function).
+ * Strictly restricted to Sales Managers and Platform Administrators.
  */
 export const assignLeadOwner = createServerFn({ method: "POST" })
-  .middleware([requireRoles(["admin", "manager", "agent", "builder", "developer"])])
+  .middleware([requireRoles(["admin", "manager"])])
   .validator(
     z.object({
       leadId: z.string(),
@@ -957,7 +969,12 @@ export const assignLeadOwner = createServerFn({ method: "POST" })
     })
   )
   .handler(async ({ context, data }): Promise<{ success: boolean; leadId: string; owner: string; ownerName: string }> => {
-    const { supabase, userId } = context as { supabase: any; userId: string };
+    const { supabase, userId, roles } = context as { supabase: any; userId: string; roles?: string[] };
+    const isPrivileged = roles?.includes("admin") || roles?.includes("manager");
+    if (!isPrivileged) {
+      throw new Error("INSUFFICIENT_PRIVILEGES: Only Sales Managers and Platform Administrators can assign lead owners.");
+    }
+
     const { leadId, owner, ownerName } = data;
     const resolvedName = ownerName || DEFAULT_TEAM_MEMBERS.find((m) => m.initials === owner || m.id === owner)?.name || owner;
 
@@ -988,9 +1005,11 @@ export const assignLeadOwner = createServerFn({ method: "POST" })
 
 /**
  * Self-assign lead to the authenticated user with concurrency protection.
+ * Restricted strictly to Sales Managers and Platform Administrators.
+ * Sales Executives cannot self-assign leads.
  */
 export const selfAssignLead = createServerFn({ method: "POST" })
-  .middleware([requireRoles(["admin", "manager", "agent", "builder", "developer"])])
+  .middleware([requireRoles(["admin", "manager"])])
   .validator(
     z.object({
       leadId: z.string().uuid(),
@@ -1005,7 +1024,12 @@ export const selfAssignLead = createServerFn({ method: "POST" })
     assignmentType: "SELF_ASSIGN";
     previousOwner: string | null;
   }> => {
-    const { supabase, userId } = context as { supabase: any; userId: string };
+    const { supabase, userId, roles } = context as { supabase: any; userId: string; roles?: string[] };
+    const isPrivileged = roles?.includes("admin") || roles?.includes("manager");
+    if (!isPrivileged) {
+      throw new Error("INSUFFICIENT_PRIVILEGES: Sales Executives cannot self-assign leads. Lead assignments are strictly managed by Sales Managers and Platform Administrators.");
+    }
+
     const { leadId, forceReassign } = data;
 
     const { data: leadRow, error: leadError } = await supabase
@@ -1061,9 +1085,9 @@ export const selfAssignLead = createServerFn({ method: "POST" })
       (appRoleRows ?? []).map((row: any) => row.role)
     );
 
-    if (!appRoles.has("agent") && !appRoles.has("manager")) {
+    if (!appRoles.has("manager") && !appRoles.has("admin") && !roles?.includes("manager") && !roles?.includes("admin")) {
       throw new Error(
-        "SELF_ASSIGN_NOT_ELIGIBLE: Only a Sales Executive or Sales Manager can self-assign a lead."
+        "INSUFFICIENT_PRIVILEGES: Sales Executives cannot self-assign leads. Lead assignments are strictly managed by Sales Managers and Platform Administrators."
       );
     }
 
@@ -1108,12 +1132,16 @@ export const selfAssignLead = createServerFn({ method: "POST" })
         previousOwner !== ""
       );
 
-    if ((isAssignedToOther || hasLegacyAssignment) && !forceReassign) {
-      throw new Error(
-        `LEAD_ALREADY_ASSIGNED: Lead is already assigned to ${
-          previousOwner || previousAssignedTo
-        }. Use explicit reassignment.`
-      );
+    const isManagerOrAdmin = appRoles.has("manager") || appRoles.has("admin") || roles?.includes("admin") || roles?.includes("manager");
+
+    if ((isAssignedToOther || hasLegacyAssignment)) {
+      if (!forceReassign || !isManagerOrAdmin) {
+        throw new Error(
+          `LEAD_ALREADY_ASSIGNED: Lead is already assigned to ${
+            previousOwner || previousAssignedTo
+          }. Sales Executives cannot overwrite existing assignments.`
+        );
+      }
     }
 
     const { error: updateError } = await supabase
@@ -1164,9 +1192,10 @@ export const selfAssignLead = createServerFn({ method: "POST" })
 
 /**
  * Assign or reassign a lead to another sales executive in the same workspace.
+ * Strictly restricted to Sales Managers and Platform Administrators.
  */
 export const assignLeadToExecutive = createServerFn({ method: "POST" })
-  .middleware([requireRoles(["admin", "manager", "agent", "builder", "developer"])])
+  .middleware([requireRoles(["admin", "manager"])])
   .validator(
     z.object({
       leadId: z.string().uuid(),
@@ -1182,7 +1211,12 @@ export const assignLeadToExecutive = createServerFn({ method: "POST" })
     assignmentType: "ASSIGN_TO_EXECUTIVE" | "REASSIGN";
     previousOwner: string | null;
   }> => {
-    const { supabase, userId } = context as { supabase: any; userId: string };
+    const { supabase, userId, roles } = context as { supabase: any; userId: string; roles?: string[] };
+    const isPrivileged = roles?.includes("admin") || roles?.includes("manager");
+    if (!isPrivileged) {
+      throw new Error("INSUFFICIENT_PRIVILEGES: Only Sales Managers and Platform Administrators can assign or reassign leads.");
+    }
+
     const { leadId, targetExecutiveId, notes } = data;
 
     const { data: leadRow, error: leadError } = await supabase
@@ -1283,6 +1317,19 @@ export const assignLeadToExecutive = createServerFn({ method: "POST" })
       throw new Error(`Failed to assign lead: ${updateError.message}`);
     }
 
+    // Cascade opportunity assignment to ensure previous executive loses opportunity access
+    try {
+      await supabase
+        .from("deal_opportunities")
+        .update({
+          assigned_to: targetExecutiveId,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("lead_id", leadId);
+    } catch (oppSyncErr) {
+      console.warn("[assignLeadToExecutive] Opportunity assignment sync notice:", oppSyncErr);
+    }
+
     const roleLabel = targetRoles.has("manager")
       ? "Sales Manager"
       : "Sales Executive";
@@ -1329,9 +1376,10 @@ export const assignLeadToExecutive = createServerFn({ method: "POST" })
 
 /**
  * Unassign a lead.
+ * Strictly restricted to Sales Managers and Platform Administrators.
  */
 export const unassignLead = createServerFn({ method: "POST" })
-  .middleware([requireRoles(["admin", "manager", "agent", "builder", "developer"])])
+  .middleware([requireRoles(["admin", "manager"])])
   .validator(
     z.object({
       leadId: z.string().uuid(),
@@ -1345,7 +1393,12 @@ export const unassignLead = createServerFn({ method: "POST" })
     ownerName: string;
     assignmentType: "UNASSIGN";
   }> => {
-    const { supabase, userId } = context as { supabase: any; userId: string };
+    const { supabase, userId, roles } = context as { supabase: any; userId: string; roles?: string[] };
+    const isPrivileged = roles?.includes("admin") || roles?.includes("manager");
+    if (!isPrivileged) {
+      throw new Error("INSUFFICIENT_PRIVILEGES: Only Sales Managers and Platform Administrators can unassign leads.");
+    }
+
     const { leadId, reason } = data;
 
     const { data: leadRow, error: leadError } = await supabase
@@ -1372,6 +1425,19 @@ export const unassignLead = createServerFn({ method: "POST" })
 
     if (updateError) {
       throw new Error(`Failed to unassign lead: ${updateError.message}`);
+    }
+
+    // Unassign associated opportunity to remove executive visibility
+    try {
+      await supabase
+        .from("deal_opportunities")
+        .update({
+          assigned_to: null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("lead_id", leadId);
+    } catch (oppUnassignErr) {
+      console.warn("[unassignLead] Opportunity unassignment sync notice:", oppUnassignErr);
     }
 
     const nowIso = new Date().toISOString();
@@ -1406,6 +1472,523 @@ export const unassignLead = createServerFn({ method: "POST" })
       ownerName: "Unassigned",
       assignmentType: "UNASSIGN",
     };
+  });
+
+/**
+ * Idempotently create or retrieve a preliminary Deal Room opportunity for a lead.
+ * Uniquely maps one opportunity per originating lead without fabricating commercial data.
+ */
+export async function createOrLinkDealRoomForLead(
+  supabase: any,
+  {
+    leadId,
+    workspaceId,
+    userId,
+    unitInterest,
+    offeredBudgetInr,
+    notes,
+  }: {
+    leadId: string;
+    workspaceId?: string;
+    userId: string;
+    unitInterest?: string;
+    offeredBudgetInr?: number;
+    notes?: string;
+  }
+): Promise<{ opportunityId: string; dealId: string; isNew: boolean }> {
+  const { data: lead, error: leadErr } = await supabase
+    .from("leads")
+    .select("id, name, budget_inr, assigned_to, workspace_id")
+    .eq("id", leadId)
+    .maybeSingle();
+
+  if (leadErr) {
+    throw new Error(`Failed to query lead for opportunity creation: ${leadErr.message}`);
+  }
+
+  if (!lead) {
+    throw new Error(`LEAD_NOT_FOUND: Lead ${leadId} does not exist.`);
+  }
+
+  const wsId = lead.workspace_id || workspaceId;
+  if (!wsId) {
+    throw new Error(`WORKSPACE_REQUIRED: Lead ${leadId} is not associated with a valid workspace.`);
+  }
+
+  const targetBudget = offeredBudgetInr ?? lead.budget_inr ?? null;
+  const assignedTo = lead.assigned_to || userId;
+
+  // 1. Query deal_opportunities table first to check if preliminary opportunity already exists
+  const { data: existingOpp, error: oppCheckErr } = await supabase
+    .from("deal_opportunities")
+    .select("id, lead_id, stage, formal_deal_id")
+    .eq("lead_id", leadId)
+    .maybeSingle();
+
+  if (!oppCheckErr && existingOpp) {
+    if (unitInterest || targetBudget || notes) {
+      await supabase
+        .from("deal_opportunities")
+        .update({
+          unit_interest: unitInterest || undefined,
+          target_budget_inr: targetBudget || undefined,
+          notes: notes || undefined,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", existingOpp.id);
+    }
+    return {
+      opportunityId: existingOpp.id,
+      dealId: `DR-${existingOpp.id.slice(0, 4).toUpperCase()}`,
+      isNew: false,
+    };
+  }
+
+  // 2. Insert new preliminary opportunity (guaranteed 1 per originating lead)
+  const { data: createdOpp, error: createErr } = await supabase
+    .from("deal_opportunities")
+    .insert({
+      workspace_id: wsId,
+      lead_id: leadId,
+      assigned_to: assignedTo,
+      stage: "negotiation",
+      unit_interest: unitInterest || null,
+      target_budget_inr: targetBudget,
+      notes: notes || null,
+    })
+    .select("id")
+    .maybeSingle();
+
+  if (createErr) {
+    // Retry checking if concurrent request already created it
+    const { data: retryOpp } = await supabase
+      .from("deal_opportunities")
+      .select("id")
+      .eq("lead_id", leadId)
+      .maybeSingle();
+
+    if (retryOpp) {
+      return {
+        opportunityId: retryOpp.id,
+        dealId: `DR-${retryOpp.id.slice(0, 4).toUpperCase()}`,
+        isNew: false,
+      };
+    }
+
+    throw new Error(`Failed to create preliminary deal room opportunity: ${createErr.message}`);
+  }
+
+  if (!createdOpp) {
+    throw new Error("Failed to create preliminary deal room opportunity: Database returned no record.");
+  }
+
+  return {
+    opportunityId: createdOpp.id,
+    dealId: `DR-${createdOpp.id.slice(0, 4).toUpperCase()}`,
+    isNew: true,
+  };
+}
+
+/**
+ * Record Site Visit Outcome with atomic transitions:
+ * - INTERESTED: advance to Negotiation & initiate/retrieve preliminary Deal Room
+ * - NOT_INTERESTED: move to Outgoing with reason & timestamp
+ * - UNDECIDED: require explicit follow-up date and time; never fabricate appointments
+ */
+export const recordSiteVisitOutcome = createServerFn({ method: "POST" })
+  .middleware([requireRoles(["admin", "manager", "agent", "builder", "developer"])])
+  .validator(
+    z.object({
+      leadId: z.string().uuid(),
+      outcome: z.enum(["INTERESTED", "NOT_INTERESTED", "UNDECIDED"]),
+      notes: z.string().optional(),
+      reason: z.string().optional(),
+      nextFollowUpDate: z.string().optional(),
+      nextFollowUpTime: z.string().optional(),
+      unitInterest: z.string().optional(),
+      offeredBudgetInr: z.number().optional(),
+    })
+  )
+  .handler(async ({ context, data }): Promise<{
+    success: boolean;
+    leadId: string;
+    outcome: "INTERESTED" | "NOT_INTERESTED" | "UNDECIDED";
+    stage: string;
+    dealId?: string | null;
+    opportunityId?: string | null;
+    activity?: LeadActivityItem;
+  }> => {
+    const { supabase, userId, roles } = context as {
+      supabase: any;
+      userId: string;
+      roles?: string[];
+    };
+    const { leadId, outcome, notes, reason, nextFollowUpDate, nextFollowUpTime, unitInterest, offeredBudgetInr } = data;
+
+    const { data: leadRow, error: leadError } = await supabase
+      .from("leads")
+      .select("id, name, assigned_to, workspace_id, budget_inr, stage")
+      .eq("id", leadId)
+      .maybeSingle();
+
+    if (leadError || !leadRow) {
+      throw new Error(`Lead not found: ${leadError?.message || leadId}`);
+    }
+
+    // Strict user ID-based authorization (NO name-based heuristics)
+    const isSalesExecutive = roles?.includes("agent") && !roles?.includes("admin") && !roles?.includes("manager");
+    if (isSalesExecutive) {
+      if (leadRow.assigned_to !== userId) {
+        throw new Error("UNAUTHORIZED_LEAD_ACCESS: Sales Executives can only record outcomes for leads assigned to their authenticated user ID.");
+      }
+    }
+
+    // Validate UNDECIDED requirements: explicit follow-up date and time are strictly required
+    if (outcome === "UNDECIDED") {
+      if (!nextFollowUpDate || !nextFollowUpDate.trim() || !nextFollowUpTime || !nextFollowUpTime.trim()) {
+        throw new Error("VALIDATION_ERROR: Next follow-up date and time are required for undecided site visits. Appointments must not be fabricated.");
+      }
+    }
+
+    const nowIso = new Date().toISOString();
+
+    // 1. Attempt atomic stored procedure execution if available in database
+    if (typeof supabase.rpc === "function") {
+      try {
+        const { data: rpcRes, error: rpcErr } = await supabase.rpc("record_site_visit_outcome", {
+          p_lead_id: leadId,
+          p_workspace_id: leadRow.workspace_id,
+          p_outcome: outcome,
+          p_notes: notes || null,
+          p_reason: reason || null,
+          p_next_follow_up_date: nextFollowUpDate || null,
+          p_next_follow_up_time: nextFollowUpTime || null,
+          p_unit_interest: unitInterest || null,
+          p_offered_budget_inr: offeredBudgetInr || null,
+        });
+
+        if (!rpcErr && rpcRes && rpcRes.success) {
+          return {
+            success: true,
+            leadId,
+            outcome: rpcRes.outcome,
+            stage: rpcRes.stage,
+            dealId: rpcRes.dealId ?? null,
+            opportunityId: rpcRes.opportunityId ?? null,
+            activity: {
+              id: `act-outcome-${Date.now()}`,
+              leadId,
+              type: outcome === "INTERESTED" ? "meeting" : outcome === "NOT_INTERESTED" ? "task" : "call",
+              subject: outcome === "INTERESTED"
+                ? `Site Visit Outcome: Interested → Moved to Negotiation`
+                : outcome === "NOT_INTERESTED"
+                ? `Site Visit Outcome: Not Interested (Closed)`
+                : `Site Visit Outcome: Undecided (Follow-Up Scheduled)`,
+              description: notes || `Site visit outcome recorded: ${outcome}`,
+              performedBy: "Executive",
+              createdAt: nowIso,
+              exactTimestamp: formatExactTimestamp(nowIso).exact,
+              timeAgo: "Just now",
+            },
+          };
+        } else if (rpcErr && !rpcErr.message?.includes("function") && !rpcErr.message?.includes("does not exist")) {
+          // Genuine business exception raised by stored procedure
+          throw new Error(rpcErr.message);
+        }
+      } catch (rpcEx: any) {
+        if (!rpcEx.message?.includes("function") && !rpcEx.message?.includes("does not exist") && !rpcEx.message?.includes("is not a function")) {
+          throw rpcEx;
+        }
+      }
+    }
+
+    let newStage = leadRow.stage;
+    let dealIdResult: string | null = null;
+    let oppIdResult: string | null = null;
+    let activitySubject = "";
+    let activityDescription = "";
+    const leadUpdate: Record<string, unknown> = {};
+
+    if (outcome === "INTERESTED") {
+      newStage = "Negotiation";
+      leadUpdate.stage = "negotiation";
+      if (offeredBudgetInr && offeredBudgetInr > 0) {
+        leadUpdate.budget_inr = offeredBudgetInr;
+      }
+      leadUpdate.follow_up_status = "completed";
+
+      const oppRes = await createOrLinkDealRoomForLead(supabase, {
+        leadId,
+        workspaceId: leadRow.workspace_id,
+        userId,
+        unitInterest,
+        offeredBudgetInr,
+        notes,
+      });
+      oppIdResult = oppRes.opportunityId;
+      dealIdResult = oppRes.dealId;
+
+      activitySubject = `Site Visit Outcome: Interested → Moved to Negotiation`;
+      activityDescription = notes
+        ? `Prospect expressed interest. Preliminary Deal Room opportunity ${dealIdResult} created. Note: ${notes}`
+        : `Prospect expressed interest. Preliminary Deal Room opportunity ${dealIdResult} created.`;
+
+    } else if (outcome === "NOT_INTERESTED") {
+      newStage = "Not Interested";
+      leadUpdate.stage = "not_interested";
+      leadUpdate.follow_up_status = "completed";
+      leadUpdate.follow_up_notes = reason && notes
+        ? `Reason: ${reason} | ${notes}`
+        : reason
+        ? `Reason: ${reason}`
+        : notes || null;
+
+      // Update opportunity stage to closed_lost without deleting history
+      await supabase
+        .from("deal_opportunities")
+        .update({ stage: "closed_lost", updated_at: nowIso })
+        .eq("lead_id", leadId);
+
+      activitySubject = `Site Visit Outcome: Not Interested`;
+      let desc = "Lead marked Not Interested.";
+      if (reason && reason.trim()) {
+        desc += ` Reason: ${reason.trim()}.`;
+      }
+      if (notes && notes.trim()) {
+        desc += ` Note: ${notes.trim()}`;
+      }
+      activityDescription = desc;
+
+    } else if (outcome === "UNDECIDED") {
+      leadUpdate.follow_up_date = nextFollowUpDate!;
+      leadUpdate.follow_up_time = nextFollowUpTime!;
+      leadUpdate.follow_up_status = "pending";
+      leadUpdate.follow_up_notes = notes || "Follow-up touchpoint scheduled after undecided site visit.";
+
+      // Update opportunity stage to on_hold
+      await supabase
+        .from("deal_opportunities")
+        .update({ stage: "on_hold", updated_at: nowIso })
+        .eq("lead_id", leadId);
+
+      activitySubject = `Site Visit Outcome: Undecided (Follow-Up Scheduled)`;
+      let desc = `Site visit undecided. Next follow-up booked for ${nextFollowUpDate} at ${nextFollowUpTime}.`;
+      if (notes && notes.trim()) {
+        desc += ` Note: ${notes.trim()}`;
+      }
+      activityDescription = desc;
+    }
+
+    const { error: updateErr } = await supabase
+      .from("leads")
+      .update(leadUpdate)
+      .eq("id", leadId);
+
+    if (updateErr) {
+      throw new Error(`Failed to update lead outcome: ${updateErr.message}`);
+    }
+
+    const { data: performerProfile } = await supabase
+      .from("profiles")
+      .select("full_name, email")
+      .eq("id", userId)
+      .maybeSingle();
+    const performerName = performerProfile?.full_name || performerProfile?.email?.split("@")[0] || "Executive";
+
+    const { data: actRow, error: actErr } = await supabase
+      .from("activities")
+      .insert({
+        workspace_id: leadRow.workspace_id,
+        activity_type: "meeting",
+        subject: activitySubject,
+        description: activityDescription,
+        related_to_type: "lead",
+        related_to_id: leadId,
+        performed_by: userId,
+        start_time: nowIso,
+        status: "completed",
+      })
+      .select("id, created_at")
+      .maybeSingle();
+
+    if (actErr) {
+      console.warn("[recordSiteVisitOutcome] Activity log notice:", actErr.message);
+    }
+
+    return {
+      success: true,
+      leadId,
+      outcome,
+      stage: newStage,
+      dealId: dealIdResult,
+      opportunityId: oppIdResult,
+      activity: {
+        id: actRow?.id || `act-outcome-${Date.now()}`,
+        leadId,
+        type: "meeting",
+        subject: activitySubject,
+        description: activityDescription,
+        performedBy: performerName,
+        createdAt: nowIso,
+        exactTimestamp: formatExactTimestamp(nowIso).exact,
+        timeAgo: "Just now",
+      },
+    };
+  });
+
+export type DealRoomSummary = {
+  id: string;
+  dealId: string;
+  leadId?: string | null;
+  customer: string;
+  project: string;
+  unit: string;
+  value: string;
+  valueInr: number | null;
+  stage: string;
+  owner: string;
+  health: number | null;
+  closeProb: number | null;
+  cancelRisk: number | null;
+  collectionRisk: number | null;
+  currencyCode: string;
+  createdAt: string;
+  briefSummary?: string | null;
+};
+
+/**
+ * Fetch live workspace deal rooms scoped by user role.
+ * Viewer is denied access.
+ * Zero-fabrication: health, closure probabilities, and risk metrics return null when not computed.
+ */
+export const getWorkspaceDealRooms = createServerFn({ method: "GET" })
+  .middleware([requireRoles(["admin", "manager", "agent", "builder", "developer"])])
+  .handler(async ({ context }): Promise<DealRoomSummary[]> => {
+    const { supabase, userId, roles } = context as {
+      supabase: any;
+      userId: string;
+      roles?: string[];
+    };
+
+    try {
+      const isSalesExecutive = roles?.includes("agent") && !roles?.includes("admin") && !roles?.includes("manager");
+
+      const [dealsRes, opportunitiesRes, leadsRes, contactsRes, propertiesRes] = await Promise.all([
+        supabase
+          .from("deals")
+          .select("id, workspace_id, customer_id, project_id, unit_number, agreed_value, currency_code, agreement_date, current_status, created_at")
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("deal_opportunities")
+          .select("id, workspace_id, lead_id, assigned_to, stage, unit_interest, target_budget_inr, notes, formal_deal_id, created_at")
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("leads")
+          .select("id, name, project, budget_inr, stage, assigned_to, created_at"),
+        supabase
+          .from("contacts")
+          .select("id, full_name, first_name, last_name, email"),
+        supabase
+          .from("properties")
+          .select("id, title, location_city, price_inr"),
+      ]);
+
+      const rawDeals = (dealsRes.data ?? []) as any[];
+      const opportunities = (opportunitiesRes.data ?? []) as any[];
+      const leads = (leadsRes.data ?? []) as any[];
+      const contacts = (contactsRes.data ?? []) as any[];
+      const properties = (propertiesRes.data ?? []) as any[];
+
+      const leadMap = new Map<string, any>();
+      for (const l of leads) {
+        leadMap.set(l.id, l);
+      }
+
+      const contactMap = new Map<string, string>();
+      for (const c of contacts) {
+        contactMap.set(c.id, c.full_name || `${c.first_name || ""} ${c.last_name || ""}`.trim() || c.email);
+      }
+
+      const propertyMap = new Map<string, string>();
+      for (const p of properties) {
+        propertyMap.set(p.id, p.title || "Sentinel Project");
+      }
+
+      const summaries: DealRoomSummary[] = [];
+
+      // 1. Process preliminary deal opportunities
+      for (const opp of opportunities) {
+        if (isSalesExecutive && opp.assigned_to !== userId) {
+          continue;
+        }
+
+        // Only active negotiation opportunities represent active preliminary deal rooms
+        if (opp.stage !== "negotiation") {
+          continue;
+        }
+
+        const linkedLead = leadMap.get(opp.lead_id);
+        const customerName = linkedLead?.name || "Preliminary Client";
+        const projectName = linkedLead?.project || "Project Inspection";
+        const unitName = opp.unit_interest || "Unit Inquiry";
+        const budget = opp.target_budget_inr ?? linkedLead?.budget_inr ?? null;
+        const valFormatted = budget ? formatBudgetInr(budget) : "Pending Terms";
+
+        summaries.push({
+          id: `DR-${opp.id.slice(0, 4).toUpperCase()}`,
+          dealId: opp.id,
+          leadId: opp.lead_id,
+          customer: customerName,
+          project: projectName,
+          unit: unitName,
+          value: valFormatted,
+          valueInr: budget,
+          stage: "Negotiation",
+          owner: opp.assigned_to === userId ? "You" : "Assigned Sales Executive",
+          health: null,
+          closeProb: null,
+          cancelRisk: null,
+          collectionRisk: null,
+          currencyCode: "INR",
+          createdAt: opp.created_at,
+          briefSummary: opp.notes || "Preliminary opportunity established from site visit. Commercial agreement pending.",
+        });
+      }
+
+      // 2. Process verified formal deals
+      for (const d of rawDeals) {
+        const customerName = contactMap.get(d.customer_id) || "Verified Buyer";
+        const projectName = propertyMap.get(d.project_id) || "Sentinel Residence";
+        const stageRaw = (d.current_status || "negotiating").replace(/_/g, " ");
+        const stage = stageRaw.charAt(0).toUpperCase() + stageRaw.slice(1);
+        const agreedValue = Number(d.agreed_value ?? 0);
+        const valFormatted = formatBudgetInr(agreedValue);
+
+        summaries.push({
+          id: `DR-${d.id.slice(0, 4).toUpperCase()}`,
+          dealId: d.id,
+          customer: customerName,
+          project: projectName,
+          unit: d.unit_number || "Unit Pending",
+          value: valFormatted,
+          valueInr: agreedValue > 0 ? agreedValue : null,
+          stage,
+          owner: "Transaction Team",
+          health: null,
+          closeProb: null,
+          cancelRisk: null,
+          collectionRisk: null,
+          currencyCode: d.currency_code || "INR",
+          createdAt: d.created_at,
+          briefSummary: `Verified transaction workspace active in ${stage} stage.`,
+        });
+      }
+
+      return summaries;
+    } catch (err: any) {
+      console.error("[getWorkspaceDealRooms] Error fetching workspace deal rooms:", err);
+      return [];
+    }
   });
 
 /**

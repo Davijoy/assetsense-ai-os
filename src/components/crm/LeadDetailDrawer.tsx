@@ -41,6 +41,8 @@ import {
   scheduleLeadFollowUp,
   completeLeadFollowUp,
   rescheduleLeadFollowUp,
+  recordSiteVisitOutcome,
+  formatBudgetInr,
   logLeadSMSActivity,
   formatExactTimestamp,
   getWorkspaceTeamMembers,
@@ -99,6 +101,7 @@ interface LeadDetailDrawerProps {
   onClose: () => void;
   onLeadUpdated?: (updated: LiveLead) => void;
   readOnly?: boolean;
+  canManageAssignments?: boolean;
 }
 
 export function LeadDetailDrawer({
@@ -107,6 +110,7 @@ export function LeadDetailDrawer({
   onClose,
   onLeadUpdated,
   readOnly = false,
+  canManageAssignments = true,
 }: LeadDetailDrawerProps) {
   const [currentLead, setCurrentLead] = useState<LiveLead | null>(lead);
   const [timeline, setTimeline] = useState<LeadActivityItem[]>(() =>
@@ -146,6 +150,21 @@ export function LeadDetailDrawer({
   const [followUpReason, setFollowUpReason] = useState("");
   const [savingFollowUp, setSavingFollowUp] = useState(false);
 
+  // Site Visit Outcome State
+  const [siteVisitOutcomeModalOpen, setSiteVisitOutcomeModalOpen] = useState(false);
+  const [outcomeType, setOutcomeType] = useState<"INTERESTED" | "NOT_INTERESTED" | "UNDECIDED">("INTERESTED");
+  const [outcomeNotes, setOutcomeNotes] = useState("");
+  const [outcomeReason, setOutcomeReason] = useState("Price consideration");
+  const [outcomeUnitInterest, setOutcomeUnitInterest] = useState("");
+  const [outcomeBudget, setOutcomeBudget] = useState("");
+  const [outcomeFollowUpDate, setOutcomeFollowUpDate] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 2);
+    return d.toISOString().split("T")[0];
+  });
+  const [outcomeFollowUpTime, setOutcomeFollowUpTime] = useState("11:00");
+  const [savingOutcome, setSavingOutcome] = useState(false);
+
   const fetchTimelineFn = useServerFn(getLeadActivityTimeline);
   const addCommentFn = useServerFn(addLeadComment);
   const assignOwnerFn = useServerFn(assignLeadOwner);
@@ -156,6 +175,7 @@ export function LeadDetailDrawer({
   const scheduleFollowUpFn = useServerFn(scheduleLeadFollowUp);
   const completeFollowUpFn = useServerFn(completeLeadFollowUp);
   const rescheduleFollowUpFn = useServerFn(rescheduleLeadFollowUp);
+  const recordSiteVisitOutcomeFn = useServerFn(recordSiteVisitOutcome);
   const logSmsFn = useServerFn(logLeadSMSActivity);
 
   useEffect(() => {
@@ -669,6 +689,66 @@ export function LeadDetailDrawer({
     }
   };
 
+  const handleRecordOutcome = async () => {
+    if (savingOutcome || !currentLead) return;
+
+    if (outcomeType === "UNDECIDED" && (!outcomeFollowUpDate || !outcomeFollowUpTime)) {
+      toast.error("Please specify both a follow-up date and time for undecided prospects");
+      return;
+    }
+
+    setSavingOutcome(true);
+
+    try {
+      const res = await recordSiteVisitOutcomeFn({
+        data: {
+          leadId: currentLead.id,
+          outcome: outcomeType,
+          notes: outcomeNotes.trim() || undefined,
+          reason: outcomeReason.trim() || undefined,
+          nextFollowUpDate: outcomeType === "UNDECIDED" ? outcomeFollowUpDate : undefined,
+          nextFollowUpTime: outcomeType === "UNDECIDED" ? outcomeFollowUpTime : undefined,
+          unitInterest: outcomeUnitInterest.trim() || undefined,
+          offeredBudgetInr: outcomeBudget ? Number(outcomeBudget) : undefined,
+        },
+      });
+
+      const updated: LiveLead = {
+        ...currentLead,
+        stage: res.stage,
+        budgetInr: outcomeBudget ? Number(outcomeBudget) : currentLead.budgetInr,
+        budget: outcomeBudget ? formatBudgetInr(Number(outcomeBudget)) : currentLead.budget,
+        followUpStatus: outcomeType === "UNDECIDED" ? "pending" : "completed",
+        followUpDate: outcomeType === "UNDECIDED" ? outcomeFollowUpDate : currentLead.followUpDate,
+        followUpTime: outcomeType === "UNDECIDED" ? outcomeFollowUpTime : currentLead.followUpTime,
+        followUpNotes: outcomeNotes.trim() || currentLead.followUpNotes,
+      };
+      setCurrentLead(updated);
+      if (onLeadUpdated) onLeadUpdated(updated);
+
+      if (res.activity) {
+        setTimeline((prev) => [res.activity!, ...(Array.isArray(prev) ? prev : [])]);
+      }
+
+      if (outcomeType === "INTERESTED") {
+        toast.success(`Outcome saved: Prospect Interested. Deal Room ${res.dealId || ""} initiated!`);
+      } else if (outcomeType === "NOT_INTERESTED") {
+        toast.success("Outcome saved: Lead marked Not Interested (Closed)");
+      } else {
+        toast.success("Outcome saved: Follow-up touchpoint scheduled");
+      }
+
+      setSiteVisitOutcomeModalOpen(false);
+      setOutcomeNotes("");
+      setOutcomeUnitInterest("");
+      setOutcomeBudget("");
+    } catch (e: any) {
+      toast.error(e?.message || "Failed to record site visit outcome");
+    } finally {
+      setSavingOutcome(false);
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
       <div
@@ -897,33 +977,40 @@ export function LeadDetailDrawer({
             </div>
 
             {/* Quick Action Buttons */}
-            <div className="flex flex-wrap items-center gap-2">
-              <button
-                type="button"
-                disabled={assigningOwner}
-                onClick={() => setPickerOpen((v) => !v)}
-                className={`flex items-center gap-1.5 rounded-xl border px-3.5 py-2 text-xs font-bold transition-all ${
-                  pickerOpen
-                    ? "border-[#D4AF37] bg-[#241F14] text-[#E5C368]"
-                    : "border-[#2B3346] bg-[#171C28] text-stone-200 hover:bg-[#202738] hover:border-stone-500"
-                }`}
-              >
-                <RefreshCw className="h-3.5 w-3.5" />
-                <span>{isUnassigned ? "Assign Executive…" : "Reassign…"}</span>
-              </button>
-
-              {!isUnassigned && (
+            {canManageAssignments && !readOnly ? (
+              <div className="flex flex-wrap items-center gap-2">
                 <button
                   type="button"
                   disabled={assigningOwner}
-                  onClick={handleUnassign}
-                  className="flex items-center gap-1.5 rounded-xl border border-rose-900/40 bg-rose-950/30 px-3 py-2 text-xs font-medium text-rose-300 hover:bg-rose-900/40 hover:border-rose-700 transition-all ml-auto"
+                  onClick={() => setPickerOpen((v) => !v)}
+                  className={`flex items-center gap-1.5 rounded-xl border px-3.5 py-2 text-xs font-bold transition-all ${
+                    pickerOpen
+                      ? "border-[#D4AF37] bg-[#241F14] text-[#E5C368]"
+                      : "border-[#2B3346] bg-[#171C28] text-stone-200 hover:bg-[#202738] hover:border-stone-500"
+                  }`}
                 >
-                  <UserX className="h-3.5 w-3.5 text-rose-400" />
-                  <span>Unassign</span>
+                  <RefreshCw className="h-3.5 w-3.5" />
+                  <span>{isUnassigned ? "Assign Executive…" : "Reassign…"}</span>
                 </button>
-              )}
-            </div>
+
+                {!isUnassigned && (
+                  <button
+                    type="button"
+                    disabled={assigningOwner}
+                    onClick={handleUnassign}
+                    className="flex items-center gap-1.5 rounded-xl border border-rose-900/40 bg-rose-950/30 px-3 py-2 text-xs font-medium text-rose-300 hover:bg-rose-900/40 hover:border-rose-700 transition-all ml-auto"
+                  >
+                    <UserX className="h-3.5 w-3.5 text-rose-400" />
+                    <span>Unassign</span>
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div className="rounded-xl border border-[#1F2535] bg-[#10141E] p-2.5 text-xs text-stone-400 flex items-center justify-between">
+                <span className="text-[11px]">Assignment managed by Sales Manager</span>
+                <span className="text-[10px] text-stone-500 uppercase font-mono">Protected</span>
+              </div>
+            )}
 
             {/* Searchable Executive Selection Popover/Panel */}
             {pickerOpen && (
@@ -1065,6 +1152,30 @@ export function LeadDetailDrawer({
                   </button>
                 </div>
               ) : null}
+
+              {Boolean(currentLead.siteVisitDate || currentLead.stage.toLowerCase().includes("visit")) && (
+                <div className="col-span-2 mt-2 rounded-xl border border-[#D4AF37]/30 bg-[#D4AF37]/10 p-3 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-[#D4AF37] shrink-0" />
+                    <div>
+                      <span className="text-[10px] uppercase font-bold text-[#D4AF37] block">
+                        Record Visit Outcome
+                      </span>
+                      <span className="text-xs text-stone-300">
+                        Interested (Negotiation & Deal Room), Not Interested, or Undecided.
+                      </span>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    disabled={readOnly}
+                    onClick={() => setSiteVisitOutcomeModalOpen(true)}
+                    className="shrink-0 rounded-lg bg-[#D4AF37] hover:bg-[#C29D26] text-black px-3 py-1.5 text-xs font-bold transition-all shadow-xs"
+                  >
+                    Record Outcome
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
@@ -1552,6 +1663,247 @@ export function LeadDetailDrawer({
               >
                 <Calendar className="h-3.5 w-3.5" />
                 <span>Confirm & Schedule Visit</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Site Visit Outcome Modal */}
+      {siteVisitOutcomeModalOpen && (
+        <div
+          onClick={() => setSiteVisitOutcomeModalOpen(false)}
+          className="fixed inset-0 z-60 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-lg rounded-2xl border border-[#2B3346] bg-[#121622] p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-150 text-stone-200"
+          >
+            <div className="flex items-center justify-between border-b border-[#1F2535] pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="grid h-9 w-9 place-items-center rounded-xl bg-[#D4AF37]/20 text-[#D4AF37]">
+                  <CheckCircle2 className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-white">Record Site Visit Outcome</h3>
+                  <p className="text-[11px] text-stone-400">
+                    {currentLead.name} · {currentLead.project || "Property Walkthrough"}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSiteVisitOutcomeModalOpen(false)}
+                className="rounded-lg p-1 text-stone-400 hover:bg-[#1A2030] hover:text-white"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {/* 3-way Branching Selector */}
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold uppercase tracking-wider text-stone-400 block">
+                Prospect Decision *
+              </label>
+              <div className="grid grid-cols-3 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setOutcomeType("INTERESTED")}
+                  className={`rounded-xl border p-3 text-center transition-all ${
+                    outcomeType === "INTERESTED"
+                      ? "border-emerald-500 bg-emerald-500/20 text-emerald-200 font-bold shadow-sm"
+                      : "border-[#252C3D] bg-[#151A26] text-stone-300 hover:border-emerald-500/50"
+                  }`}
+                >
+                  <div className="text-xs font-bold">Interested</div>
+                  <div className="text-[10px] text-stone-400 mt-0.5">Advance to Negotiation & Deal Room</div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setOutcomeType("NOT_INTERESTED")}
+                  className={`rounded-xl border p-3 text-center transition-all ${
+                    outcomeType === "NOT_INTERESTED"
+                      ? "border-rose-500 bg-rose-500/20 text-rose-200 font-bold shadow-sm"
+                      : "border-[#252C3D] bg-[#151A26] text-stone-300 hover:border-rose-500/50"
+                  }`}
+                >
+                  <div className="text-xs font-bold">Not Interested</div>
+                  <div className="text-[10px] text-stone-400 mt-0.5">Close / Move to Outgoing</div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setOutcomeType("UNDECIDED")}
+                  className={`rounded-xl border p-3 text-center transition-all ${
+                    outcomeType === "UNDECIDED"
+                      ? "border-amber-500 bg-amber-500/20 text-amber-200 font-bold shadow-sm"
+                      : "border-[#252C3D] bg-[#151A26] text-stone-300 hover:border-amber-500/50"
+                  }`}
+                >
+                  <div className="text-xs font-bold">Undecided</div>
+                  <div className="text-[10px] text-stone-400 mt-0.5">Retain in Follow-Up</div>
+                </button>
+              </div>
+            </div>
+
+            {/* Dynamic Form Sections based on outcomeType */}
+            {outcomeType === "INTERESTED" && (
+              <div className="space-y-3 rounded-xl border border-emerald-500/30 bg-emerald-950/20 p-4 text-xs">
+                <div className="text-[11px] font-bold text-emerald-300 flex items-center gap-1.5">
+                  <Sparkles className="h-3.5 w-3.5 text-emerald-400" />
+                  <span>Negotiation & Preliminary Deal Room Initiation</span>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-stone-400 block mb-1">
+                      Unit of Interest
+                    </label>
+                    <input
+                      type="text"
+                      value={outcomeUnitInterest}
+                      onChange={(e) => setOutcomeUnitInterest(e.target.value)}
+                      placeholder="e.g. Tower A - 1204"
+                      className="w-full rounded-lg border border-[#2B3346] bg-[#10141E] p-2 text-xs text-white placeholder-stone-600 outline-none focus:border-emerald-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-stone-400 block mb-1">
+                      Offered / Target Budget (₹)
+                    </label>
+                    <input
+                      type="number"
+                      value={outcomeBudget}
+                      onChange={(e) => setOutcomeBudget(e.target.value)}
+                      placeholder="e.g. 24000000"
+                      className="w-full rounded-lg border border-[#2B3346] bg-[#10141E] p-2 text-xs text-white placeholder-stone-600 outline-none focus:border-emerald-500"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-stone-400 block mb-1">
+                    Walkthrough Notes & Commercial Terms Discussed
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={outcomeNotes}
+                    onChange={(e) => setOutcomeNotes(e.target.value)}
+                    placeholder="Preferred floor, payment plan requested, parking requirements…"
+                    className="w-full rounded-lg border border-[#2B3346] bg-[#10141E] p-2 text-xs text-white placeholder-stone-600 outline-none focus:border-emerald-500"
+                  />
+                </div>
+              </div>
+            )}
+
+            {outcomeType === "NOT_INTERESTED" && (
+              <div className="space-y-3 rounded-xl border border-rose-500/30 bg-rose-950/20 p-4 text-xs">
+                <div className="text-[11px] font-bold text-rose-300 flex items-center gap-1.5">
+                  <UserX className="h-3.5 w-3.5 text-rose-400" />
+                  <span>Closure Reason & Feedback</span>
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-stone-400 block mb-1">
+                    Primary Reason *
+                  </label>
+                  <select
+                    value={outcomeReason}
+                    onChange={(e) => setOutcomeReason(e.target.value)}
+                    className="w-full rounded-lg border border-[#2B3346] bg-[#10141E] p-2 text-xs text-white outline-none focus:border-rose-500"
+                  >
+                    <option value="Price / Budget too high">Price / Budget too high</option>
+                    <option value="Location / Connectivity mismatch">Location / Connectivity mismatch</option>
+                    <option value="Unit layout or carpet area unsuitable">Unit layout or carpet area unsuitable</option>
+                    <option value="Purchased with competitor project">Purchased with competitor project</option>
+                    <option value="Postponed property purchase indefinitely">Postponed property purchase indefinitely</option>
+                    <option value="Possession timeline too distant">Possession timeline too distant</option>
+                    <option value="Other / Client declined">Other / Client declined</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-stone-400 block mb-1">
+                    Specific Objections or Notes
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={outcomeNotes}
+                    onChange={(e) => setOutcomeNotes(e.target.value)}
+                    placeholder="Details about client feedback or objections during visit…"
+                    className="w-full rounded-lg border border-[#2B3346] bg-[#10141E] p-2 text-xs text-white placeholder-stone-600 outline-none focus:border-rose-500"
+                  />
+                </div>
+              </div>
+            )}
+
+            {outcomeType === "UNDECIDED" && (
+              <div className="space-y-3 rounded-xl border border-amber-500/30 bg-amber-950/20 p-4 text-xs">
+                <div className="text-[11px] font-bold text-amber-300 flex items-center gap-1.5">
+                  <CalendarClock className="h-3.5 w-3.5 text-amber-400" />
+                  <span>Follow-Up Appointment Scheduling</span>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-stone-400 block mb-1">
+                      Next Follow-Up Date *
+                    </label>
+                    <input
+                      type="date"
+                      value={outcomeFollowUpDate}
+                      onChange={(e) => setOutcomeFollowUpDate(e.target.value)}
+                      className="w-full rounded-lg border border-[#2B3346] bg-[#10141E] p-2 text-xs text-white outline-none focus:border-amber-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-stone-400 block mb-1">
+                      Follow-Up Time *
+                    </label>
+                    <input
+                      type="time"
+                      value={outcomeFollowUpTime}
+                      onChange={(e) => setOutcomeFollowUpTime(e.target.value)}
+                      className="w-full rounded-lg border border-[#2B3346] bg-[#10141E] p-2 text-xs text-white outline-none focus:border-amber-500"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-stone-400 block mb-1">
+                    Follow-Up Action Items
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={outcomeNotes}
+                    onChange={(e) => setOutcomeNotes(e.target.value)}
+                    placeholder="e.g. Send updated cost sheet, coordinate family walkthrough…"
+                    className="w-full rounded-lg border border-[#2B3346] bg-[#10141E] p-2 text-xs text-white placeholder-stone-600 outline-none focus:border-amber-500"
+                  />
+                </div>
+              </div>
+            )}
+
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#1F2535]">
+              <button
+                type="button"
+                onClick={() => setSiteVisitOutcomeModalOpen(false)}
+                className="rounded-lg border border-[#2B3346] px-3.5 py-1.5 text-xs font-medium text-stone-300 hover:bg-[#1C2230]"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={
+                  savingOutcome ||
+                  (outcomeType === "UNDECIDED" && (!outcomeFollowUpDate || !outcomeFollowUpTime))
+                }
+                onClick={handleRecordOutcome}
+                className={`rounded-lg px-4 py-2 text-xs font-bold shadow-sm flex items-center gap-1.5 text-black disabled:opacity-40 disabled:cursor-not-allowed ${
+                  outcomeType === "INTERESTED"
+                    ? "bg-emerald-400 hover:bg-emerald-300"
+                    : outcomeType === "NOT_INTERESTED"
+                    ? "bg-rose-400 hover:bg-rose-300"
+                    : "bg-amber-400 hover:bg-amber-300"
+                }`}
+              >
+                <CheckCircle className="h-3.5 w-3.5" />
+                <span>{savingOutcome ? "Recording…" : "Save Outcome & Update Workflow"}</span>
               </button>
             </div>
           </div>
