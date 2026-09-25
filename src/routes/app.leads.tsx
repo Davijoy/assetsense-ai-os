@@ -176,9 +176,9 @@ function Leads() {
       if (stageFilter !== "all" && l.stage !== stageFilter) return false;
       if (sourceFilter !== "all" && l.source !== sourceFilter) return false;
       if (ownerFilter === "unassigned") {
-        if (l.owner && l.owner !== "Unassigned" && l.owner !== "none") return false;
+        if (l.assignedToId || (l.owner && l.owner !== "Unassigned" && l.owner !== "none")) return false;
       } else if (ownerFilter === "me") {
-        if (l.owner !== "AM" && l.ownerName !== "Aarav Mehta") return false;
+        if (l.assignedToId !== currentUserId && l.owner !== "AM" && l.ownerName !== "Aarav Mehta" && l.owner !== "You") return false;
       } else if (ownerFilter !== "all") {
         if (l.owner !== ownerFilter && l.ownerName !== ownerFilter) return false;
       }
@@ -243,6 +243,7 @@ function Leads() {
   };
 
   const routeContext = Route.useRouteContext() as any;
+  const currentUserId: string | undefined = routeContext?.user?.id;
   const userRoles: string[] = routeContext?.user?.roles ?? routeContext?.fort?.role?.appRoles ?? [];
   const isViewOnly =
     userRoles.length > 0 &&
@@ -465,8 +466,8 @@ function Leads() {
                 </tr>
               ) : (
                 filteredSorted.map((l) => {
-                  const isUnassigned = !l.owner || l.owner === "Unassigned" || l.owner === "none";
-                  const isMine = l.owner === "AM" || l.ownerName === "Aarav Mehta";
+                  const isUnassigned = !l.assignedToId && (!l.owner || l.owner === "Unassigned" || l.owner === "none");
+                  const isMine = (currentUserId && l.assignedToId === currentUserId) || l.owner === "AM" || l.ownerName === "Aarav Mehta" || l.owner === "You";
 
                   return (
                     <tr

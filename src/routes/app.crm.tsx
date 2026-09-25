@@ -123,6 +123,7 @@ function CRM() {
   }, [leadsData]);
 
   const routeContext = Route.useRouteContext() as any;
+  const currentUserId: string | undefined = routeContext?.user?.id;
   const userRoles: string[] = routeContext?.user?.roles ?? routeContext?.fort?.role?.appRoles ?? [];
   const displayName = String(routeContext?.user?.displayName || "there")
     .trim()
@@ -391,8 +392,8 @@ function CRM() {
                 ) : (
                   stage.leads.map((l) => {
                   const { tel, whatsapp, mailto } = leadContactLinks(l);
-                  const isUnassigned = !l.owner || l.owner === "Unassigned" || l.owner === "none";
-                  const isMine = l.owner === "AM" || l.ownerName === "Aarav Mehta";
+                  const isUnassigned = !l.assignedToId && (!l.owner || l.owner === "Unassigned" || l.owner === "none");
+                  const isMine = (currentUserId && l.assignedToId === currentUserId) || l.owner === "AM" || l.ownerName === "Aarav Mehta" || l.owner === "You";
 
                   return (
                     <article
@@ -424,10 +425,10 @@ function CRM() {
                           </span>
                         ) : (
                           <span
-                            className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-surface-elevated text-[10px] font-bold text-primary"
-                            title={`Assigned to ${l.ownerName || l.owner}`}
+                            className="shrink-0 flex items-center gap-1 rounded-full bg-surface-elevated px-2 py-0.5 text-[10px] font-bold text-primary truncate max-w-[110px]"
+                            title={`Assigned to ${l.ownerName || l.owner || "Sales Executive"}`}
                           >
-                            {l.owner}
+                            {l.ownerName || l.owner || "Sales Executive"}
                           </span>
                         )}
                       </div>

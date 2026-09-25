@@ -271,11 +271,13 @@ export function LeadDetailDrawer({
   const isAssignedToMe =
     currentLead.owner === "AM" ||
     currentLead.ownerName === "Aarav Mehta" ||
-    currentLead.owner === "ME";
+    currentLead.owner === "ME" ||
+    currentLead.owner === "You";
   const isUnassigned =
-    !currentLead.owner ||
-    currentLead.owner === "Unassigned" ||
-    currentLead.owner === "none";
+    !currentLead.assignedToId &&
+    (!currentLead.owner ||
+      currentLead.owner === "Unassigned" ||
+      currentLead.owner === "none");
 
   const safeTeamMembers = Array.isArray(teamMembers) ? teamMembers : [];
   const safeTimeline = Array.isArray(timeline) ? timeline : [];

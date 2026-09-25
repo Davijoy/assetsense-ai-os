@@ -633,11 +633,14 @@ export function mapDatabaseRowsToLiveLeads(
 
     const leadActs = activities.filter((a) => a.related_to_id === r.id);
     const lastAct = leadActs[0];
-    const ownerName = r.assigned_to
-      ? resolvePerformerName(r.assigned_to, profileMap)
-      : r.owner
-        ? resolvePerformerName(r.owner, profileMap)
+    const resolvedOwner = r.assigned_to
+      ? (profileMap.get(r.assigned_to) || "Sales Executive")
+      : r.owner && r.owner !== "Unassigned" && r.owner !== "none"
+        ? (profileMap.get(r.owner) || resolvePerformerName(r.owner, profileMap) || "Sales Executive")
         : "Unassigned";
+
+    const ownerName = resolvedOwner;
+    const owner = resolvedOwner;
 
     const normalizeDbTime = (value: unknown): string | undefined =>
       typeof value === "string" && value.trim()
@@ -710,7 +713,7 @@ export function mapDatabaseRowsToLiveLeads(
       budget: formatBudgetInr(r.budget_inr),
       budgetInr: r.budget_inr,
       project: r.project || "General Inquiry",
-      owner: r.owner || "Unassigned",
+      owner,
       assignedToId: r.assigned_to ?? null,
       ownerName,
       lastActivity: lastAct?.description || "Lead record created in Sentinel Fort.",
@@ -1897,6 +1900,8 @@ export type DealRoomSummary = {
   currencyCode: string;
   createdAt: string;
   briefSummary?: string | null;
+  nextAction?: string | null;
+  docStatus?: string | null;
 };
 
 /**
@@ -1916,7 +1921,7 @@ export const getWorkspaceDealRooms = createServerFn({ method: "GET" })
     try {
       const isSalesExecutive = roles?.includes("agent") && !roles?.includes("admin") && !roles?.includes("manager");
 
-      const [dealsRes, opportunitiesRes, leadsRes, contactsRes, propertiesRes] = await Promise.all([
+      const [dealsRes, opportunitiesRes, leadsRes, contactsRes, propertiesRes, profilesRes] = await Promise.all([
         supabase
           .from("deals")
           .select("id, workspace_id, customer_id, project_id, unit_number, agreed_value, currency_code, agreement_date, current_status, created_at")
@@ -1934,6 +1939,9 @@ export const getWorkspaceDealRooms = createServerFn({ method: "GET" })
         supabase
           .from("properties")
           .select("id, title, location_city, price_inr"),
+        supabase
+          .from("profiles")
+          .select("id, full_name, email"),
       ]);
 
       const rawDeals = (dealsRes.data ?? []) as any[];
@@ -1941,6 +1949,12 @@ export const getWorkspaceDealRooms = createServerFn({ method: "GET" })
       const leads = (leadsRes.data ?? []) as any[];
       const contacts = (contactsRes.data ?? []) as any[];
       const properties = (propertiesRes.data ?? []) as any[];
+      const profiles = (profilesRes.data ?? []) as any[];
+
+      const profileMap = new Map<string, string>();
+      for (const p of profiles) {
+        profileMap.set(p.id, p.full_name || p.email?.split("@")[0] || "Sales Executive");
+      }
 
       const leadMap = new Map<string, any>();
       for (const l of leads) {
@@ -1977,6 +1991,10 @@ export const getWorkspaceDealRooms = createServerFn({ method: "GET" })
         const budget = opp.target_budget_inr ?? linkedLead?.budget_inr ?? null;
         const valFormatted = budget ? formatBudgetInr(budget) : "Pending Terms";
 
+        const assignedExecutiveName = opp.assigned_to
+          ? (profileMap.get(opp.assigned_to) || "Sales Executive")
+          : (linkedLead?.assigned_to ? (profileMap.get(linkedLead.assigned_to) || "Sales Executive") : "Assigned Sales Executive");
+
         summaries.push({
           id: `DR-${opp.id.slice(0, 4).toUpperCase()}`,
           dealId: opp.id,
@@ -1987,7 +2005,7 @@ export const getWorkspaceDealRooms = createServerFn({ method: "GET" })
           value: valFormatted,
           valueInr: budget,
           stage: "Negotiation",
-          owner: opp.assigned_to === userId ? "You" : "Assigned Sales Executive",
+          owner: opp.assigned_to === userId ? "You" : assignedExecutiveName,
           health: null,
           closeProb: null,
           cancelRisk: null,
@@ -1995,6 +2013,8 @@ export const getWorkspaceDealRooms = createServerFn({ method: "GET" })
           currencyCode: "INR",
           createdAt: opp.created_at,
           briefSummary: opp.notes || "Preliminary opportunity established from site visit. Commercial agreement pending.",
+          nextAction: "Generate KYC & Draft Agreement",
+          docStatus: "Pending KYC",
         });
       }
 
@@ -2024,6 +2044,8 @@ export const getWorkspaceDealRooms = createServerFn({ method: "GET" })
           currencyCode: d.currency_code || "INR",
           createdAt: d.created_at,
           briefSummary: `Verified transaction workspace active in ${stage} stage.`,
+          nextAction: "Execute Sale Agreement",
+          docStatus: "Verified",
         });
       }
 

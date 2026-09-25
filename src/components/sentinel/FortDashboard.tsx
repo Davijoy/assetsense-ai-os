@@ -27,13 +27,16 @@ import {
   Lock,
   Mic,
   Clock,
+  Calendar,
   MoreVertical,
   type LucideIcon,
 } from "lucide-react";
+import type { LiveLead } from "@/lib/crm.functions";
 import type { FortDefinition } from "@/sentinel/forts";
-import type { FortModuleGrant } from "@/lib/fort-experience";
+import { defaultPersonaForRoles, type FortModuleGrant } from "@/lib/fort-experience";
 import type { FortWorkspaceContext } from "@/lib/fort-workspace.functions";
 import type { FortShellPreviewsResult } from "@/lib/sentinel.functions";
+import type { SentinelPersona } from "@/sentinel/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -100,9 +103,41 @@ interface FortDashboardProps {
   fort: FortDefinition;
   roles: readonly string[];
   workspace?: FortWorkspaceContext | null;
+  persona?: SentinelPersona | null;
 }
 
-export function FortDashboard({ fort, roles, workspace }: FortDashboardProps) {
+/**
+ * Pure experience discriminator for the Sales Executive Virtual Office.
+ * Uses canonical persona resolution (defaultPersonaForRoles / persona) instead of
+ * raw fort.id === "BROKER" checks.
+ */
+export function isSalesExecutiveExperience(params: {
+  persona?: SentinelPersona | null;
+  roles?: readonly string[];
+  workspace?: FortWorkspaceContext | null;
+}): boolean {
+  const effectiveRoles = params.workspace?.role?.appRoles ?? params.roles ?? [];
+  if (effectiveRoles.includes("admin") || effectiveRoles.includes("manager")) {
+    return false;
+  }
+  const canonicalPersona =
+    params.persona ??
+    (effectiveRoles.length > 0 ? defaultPersonaForRoles(effectiveRoles) : null);
+
+  return canonicalPersona === "SALES_EXECUTIVE";
+}
+
+/**
+ * Pure helper for resolving lead deep-link target and search params.
+ */
+export function getLeadDetailLink(leadId: string): { to: "/app/leads"; search: { leadId: string } } {
+  return {
+    to: "/app/leads",
+    search: { leadId },
+  };
+}
+
+export function FortDashboard({ fort, roles, workspace, persona }: FortDashboardProps) {
   const workspaceResolved = workspace?.status === "ACTIVE";
   const fortClock = useLiveClock();
 
@@ -185,10 +220,287 @@ export function FortDashboard({ fort, roles, workspace }: FortDashboardProps) {
   // a number for it. The panel renders INSUFFICIENT DATA when nothing loaded.
 
 
-  const isSalesExecutive =
-    (fort.id === "BROKER" || roles.includes("agent")) &&
-    !roles.includes("admin") &&
-    !roles.includes("manager");
+  const isSalesExecutive = isSalesExecutiveExperience({
+    persona,
+    roles,
+    workspace,
+  });
+
+  const [assignedLeads, setAssignedLeads] = useState<LiveLead[]>([]);
+  const [assignedLeadsLoading, setAssignedLeadsLoading] = useState(false);
+
+  useEffect(() => {
+    if (!isSalesExecutive) return;
+    let active = true;
+    setAssignedLeadsLoading(true);
+    void import("@/lib/crm.functions")
+      .then((m) => m.getLiveLeads())
+      .then((res) => {
+        if (active) {
+          setAssignedLeads(Array.isArray(res) ? res : []);
+          setAssignedLeadsLoading(false);
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setAssignedLeads([]);
+          setAssignedLeadsLoading(false);
+        }
+      });
+    return () => {
+      active = false;
+    };
+  }, [isSalesExecutive]);
+
+  const appointmentCount = useMemo(() => {
+    return assignedLeads.filter(
+      (l) =>
+        (l.siteVisitDate && l.siteVisitDate.trim()) ||
+        (l.followUpDate && l.followUpDate.trim() && l.followUpStatus !== "completed")
+    ).length;
+  }, [assignedLeads]);
+
+  if (isSalesExecutive) {
+    return (
+      <div className="relative w-full px-3 sm:px-5 py-3 max-w-[1600px] mx-auto space-y-4">
+        {/* ── Top Hero: Sales Executive Virtual Office Banner ── */}
+        <section className="relative overflow-hidden rounded-2xl border border-[#2E2614] bg-gradient-to-r from-[#12151C] via-[#161B26] to-[#12151C] py-3 px-5 shadow-lg">
+          <GoldTerrainBackground />
+
+          <div className="relative z-10 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <SpartanShieldIcon size={40} className="hover:scale-105 transition-transform duration-300 shrink-0" />
+              <div>
+                <div className="flex items-center gap-2">
+                  <h1 className="font-serif text-lg font-bold tracking-[0.2em] text-stone-100 uppercase leading-none">
+                    SENTINEL FORT
+                  </h1>
+                  <span className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#D4AF37]">
+                    MY VIRTUAL OFFICE
+                  </span>
+                </div>
+                <div className="mt-1 flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-[0.2em] text-[#D4AF37]">
+                  <span>INTELLIGENCE</span>
+                  <span className="text-[7px] opacity-60">✦</span>
+                  <span>PIPELINE</span>
+                  <span className="text-[7px] opacity-60">✦</span>
+                  <span>DEALS</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Right: Authenticated Identity & Live Workspace Badges */}
+            {workspace && (
+              <div className="flex flex-wrap items-center gap-2 text-[10px]">
+                <span className="font-bold text-stone-200">
+                  {workspace.workspaceName ?? "Sentinel Fort HQ"}
+                </span>
+                {workspace.workspacePublicId && (
+                  <span className="rounded-full border border-[#2E2614] bg-[#181D2A] px-2.5 py-0.5 font-mono text-[9px] text-[#E5C368] font-bold shadow-2xs">
+                    {workspace.workspacePublicId}
+                  </span>
+                )}
+                <span className="rounded-full bg-[#241F14] border border-[#524422] px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[#E5C368]">
+                  Sales Executive
+                </span>
+                <span className="flex items-center gap-1 text-[9px] font-bold text-emerald-400 bg-emerald-950/60 border border-emerald-800 rounded-full px-2.5 py-0.5">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  {workspace.status}
+                </span>
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* ── 4 PRIMARY VIRTUAL OFFICE CARDS ── */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+          {/* 1. My Leads */}
+          <div className="fort-hub-card rounded-2xl p-4 flex flex-col justify-between border border-[#262D3D] bg-gradient-to-br from-[#12151C] via-[#151923] to-[#12151C] shadow-lg min-h-[160px]">
+            <div>
+              <div className="flex items-start justify-between">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#241F14] border border-[#524422] text-[#E5C368] shadow-2xs">
+                  <Users className="h-5 w-5" />
+                </div>
+                <span className="rounded-full bg-[#181D28] border border-[#2A3142] px-2.5 py-0.5 text-[10px] font-mono font-bold text-stone-300">
+                  {assignedLeadsLoading ? "…" : assignedLeads.length} Leads
+                </span>
+              </div>
+              <div className="mt-3">
+                <h3 className="text-sm font-bold text-stone-100 tracking-tight">MY LEADS</h3>
+                <p className="text-xs text-stone-400 font-medium mt-0.5">Assigned CRM Leads & Pipeline</p>
+              </div>
+            </div>
+            <div className="mt-3 pt-3 border-t border-[#232834]">
+              <Link
+                to="/app/leads"
+                className="fort-btn-gold block w-full py-1.5 rounded-xl text-xs text-center font-bold"
+              >
+                Open My Leads
+              </Link>
+            </div>
+          </div>
+
+          {/* 2. My Appointments */}
+          <div className="fort-hub-card rounded-2xl p-4 flex flex-col justify-between border border-[#262D3D] bg-gradient-to-br from-[#12151C] via-[#151923] to-[#12151C] shadow-lg min-h-[160px]">
+            <div>
+              <div className="flex items-start justify-between">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#241F14] border border-[#524422] text-[#E5C368] shadow-2xs">
+                  <Clock className="h-5 w-5" />
+                </div>
+                <span className="rounded-full bg-[#181D28] border border-[#2A3142] px-2.5 py-0.5 text-[10px] font-mono font-bold text-stone-300">
+                  {assignedLeadsLoading ? "…" : appointmentCount} Active
+                </span>
+              </div>
+              <div className="mt-3">
+                <h3 className="text-sm font-bold text-stone-100 tracking-tight">MY APPOINTMENTS</h3>
+                <p className="text-xs text-stone-400 font-medium mt-0.5">Site visits & scheduled follow-ups</p>
+              </div>
+            </div>
+            <div className="mt-3 pt-3 border-t border-[#232834]">
+              <Link
+                to="/app/crm"
+                className="fort-btn-gold block w-full py-1.5 rounded-xl text-xs text-center font-bold"
+              >
+                Open Schedule
+              </Link>
+            </div>
+          </div>
+
+          {/* 3. Sales Inventory */}
+          <div className="fort-hub-card rounded-2xl p-4 flex flex-col justify-between border border-[#262D3D] bg-gradient-to-br from-[#12151C] via-[#151923] to-[#12151C] shadow-lg min-h-[160px]">
+            <div>
+              <div className="flex items-start justify-between">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#241F14] border border-[#524422] text-[#E5C368] shadow-2xs">
+                  <Building2 className="h-5 w-5" />
+                </div>
+                <span className="rounded-full bg-[#181D28] border border-[#2A3142] px-2.5 py-0.5 text-[10px] font-mono font-bold text-stone-300">
+                  {previewsLoaded && listingCount !== null ? `${listingCount} Units` : "Catalog"}
+                </span>
+              </div>
+              <div className="mt-3">
+                <h3 className="text-sm font-bold text-stone-100 tracking-tight">SALES INVENTORY</h3>
+                <p className="text-xs text-stone-400 font-medium mt-0.5">Active property catalog & unit availability</p>
+              </div>
+            </div>
+            <div className="mt-3 pt-3 border-t border-[#232834]">
+              <Link
+                to="/app/marketplace"
+                className="fort-btn-gold block w-full py-1.5 rounded-xl text-xs text-center font-bold"
+              >
+                View Inventory
+              </Link>
+            </div>
+          </div>
+
+          {/* 4. My Performance */}
+          <div className="fort-hub-card rounded-2xl p-4 flex flex-col justify-between border border-[#262D3D] bg-gradient-to-br from-[#12151C] via-[#151923] to-[#12151C] shadow-lg min-h-[160px]">
+            <div>
+              <div className="flex items-start justify-between">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#241F14] border border-[#524422] text-[#E5C368] shadow-2xs">
+                  <Award className="h-5 w-5" />
+                </div>
+                <span className="rounded-full bg-emerald-950/60 border border-emerald-800 px-2.5 py-0.5 text-[10px] font-bold text-emerald-400 flex items-center gap-1">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" /> Live
+                </span>
+              </div>
+              <div className="mt-3">
+                <h3 className="text-sm font-bold text-stone-100 tracking-tight">MY PERFORMANCE</h3>
+                <p className="text-xs text-stone-400 font-medium mt-0.5">Conversion velocity & closure pipeline</p>
+              </div>
+            </div>
+            <div className="mt-3 pt-3 border-t border-[#232834]">
+              <Link
+                to="/app/crm"
+                className="fort-btn-gold block w-full py-1.5 rounded-xl text-xs text-center font-bold"
+              >
+                View Performance
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        {/* ── MY ASSIGNED LEADS LIVE TABLE ── */}
+        <section className="fort-hub-card rounded-2xl p-4 sm:p-5 border border-[#262D3D] bg-gradient-to-br from-[#12151C] via-[#151923] to-[#12151C] shadow-lg space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-[#232834]">
+            <div className="flex items-center gap-2.5">
+              <span className="h-2 w-2 rounded-full bg-[#D4AF37] animate-pulse" />
+              <h2 className="font-serif text-base font-bold text-stone-100">
+                My Assigned Leads
+              </h2>
+              <span className="rounded-full bg-[#181D28] border border-[#2A3142] px-2.5 py-0.5 text-[10px] font-mono font-bold text-stone-300">
+                {assignedLeadsLoading ? "…" : `${assignedLeads.length} Total`}
+              </span>
+            </div>
+            <Link
+              to="/app/crm"
+              className="inline-flex items-center gap-1 text-xs font-bold text-[#D4AF37] hover:text-[#E5C368] transition-colors"
+            >
+              <span>Go to CRM Pipeline</span>
+              <ChevronRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+
+          {assignedLeadsLoading ? (
+            <div className="p-8 text-center text-sm text-stone-500 animate-pulse">
+              Loading assigned leads from Sentinel Fort…
+            </div>
+          ) : assignedLeads.length === 0 ? (
+            <div className="p-8 text-center space-y-2 rounded-xl border border-[#232834] bg-[#10141E]">
+              <Users className="h-8 w-8 mx-auto text-stone-600" />
+              <p className="text-sm font-medium text-stone-300">No leads currently assigned</p>
+              <p className="text-xs text-stone-500 max-w-sm mx-auto">
+                New prospect inquiries assigned to you by sales management will appear here for consultation and site visits.
+              </p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs text-stone-300">
+                <thead>
+                  <tr className="border-b border-[#232834] text-[10px] uppercase tracking-wider text-stone-400 font-semibold">
+                    <th className="pb-2.5 pr-4">Lead</th>
+                    <th className="pb-2.5 px-4">Stage</th>
+                    <th className="pb-2.5 pl-4 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#1E2330]">
+                  {assignedLeads.map((lead) => (
+                    <tr key={lead.id} className="hover:bg-[#181D28]/60 transition-colors">
+                      <td className="py-3 pr-4">
+                        <div className="font-bold text-stone-100 text-sm">{lead.name}</div>
+                        <div className="text-[11px] text-stone-400 mt-0.5">
+                          {lead.project || "General Inquiry"} · <span className="text-[#D4AF37] font-semibold">{lead.budget}</span> · {lead.source || "Direct"}
+                        </div>
+                      </td>
+                      <td className="py-3 px-4">
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-[#1A2030] border border-[#2E374E] px-2.5 py-1 text-[11px] font-bold text-stone-200">
+                          {lead.stage}
+                        </span>
+                      </td>
+                      <td className="py-3 pl-4 text-right">
+                        <Link
+                          to="/app/leads"
+                          search={{ leadId: lead.id } as any}
+                          className="inline-flex items-center gap-1 rounded-full border border-[#524422] bg-[#241F14] px-3.5 py-1 text-xs font-bold text-[#E5C368] hover:bg-[#332A18] hover:border-[#D4AF37] transition-all shadow-2xs"
+                        >
+                          <span>Open</span>
+                          <ArrowUpRight className="h-3 w-3" />
+                        </Link>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
+
+        {/* ── Footer ── */}
+        <footer className="pt-2 border-t border-[#232834] text-center text-[10px] text-stone-500">
+          <p>SENTINEL FORT · SALES EXECUTIVE VIRTUAL OFFICE · Pipeline, Appointments & Deal Orchestration.</p>
+        </footer>
+      </div>
+    );
+  }
 
   return (
     <div className="relative w-full px-3 sm:px-5 py-3 max-w-[1600px] mx-auto space-y-2.5">

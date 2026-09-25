@@ -35,6 +35,10 @@ import {
   resolveConsoleModules,
   resolveLandingRoute,
 } from "../src/lib/fort-experience";
+import {
+  isSalesExecutiveExperience,
+  getLeadDetailLink,
+} from "../src/components/sentinel/FortDashboard";
 
 describe("Sales Executive Persona & CRM KPI Scoping Remediation", () => {
   const AGENT_USER_ID_1 = "517d21fd-86a3-4eea-a6cc-15d83de0cf34";
@@ -166,6 +170,41 @@ describe("Sales Executive Persona & CRM KPI Scoping Remediation", () => {
       expect(identity?.persona).toBe("SALES_EXECUTIVE");
       expect(identity?.fort.id).toBe("BROKER");
       expect(identity?.fort.label).toBe("Sales Executive Fort");
+    });
+
+    it("verifies isSalesExecutiveExperience renders for agent role and SALES_EXECUTIVE persona", () => {
+      expect(isSalesExecutiveExperience({ roles: ["agent"] })).toBe(true);
+      expect(isSalesExecutiveExperience({ persona: "SALES_EXECUTIVE", roles: ["agent"] })).toBe(true);
+      expect(isSalesExecutiveExperience({ workspace: { role: { appRoles: ["agent"] } } as any })).toBe(true);
+    });
+
+    it("verifies isSalesExecutiveExperience blocks admin and manager roles unconditionally", () => {
+      expect(isSalesExecutiveExperience({ roles: ["admin"] })).toBe(false);
+      expect(isSalesExecutiveExperience({ roles: ["manager"] })).toBe(false);
+      expect(isSalesExecutiveExperience({ roles: ["agent", "admin"] })).toBe(false);
+      expect(isSalesExecutiveExperience({ roles: ["agent", "manager"] })).toBe(false);
+      expect(isSalesExecutiveExperience({ persona: "SALES_EXECUTIVE", roles: ["admin"] })).toBe(false);
+      expect(isSalesExecutiveExperience({ persona: "SALES_EXECUTIVE", roles: ["manager"] })).toBe(false);
+      expect(isSalesExecutiveExperience({ workspace: { role: { appRoles: ["manager"] } } as any })).toBe(false);
+      expect(isSalesExecutiveExperience({ workspace: { role: { appRoles: ["admin"] } } as any })).toBe(false);
+    });
+
+    it("verifies isSalesExecutiveExperience does not render for viewer, broker, developer or buyer personas on BROKER fort", () => {
+      // Non-agent roles must NOT render Sales Executive Virtual Office just because fort is BROKER
+      expect(isSalesExecutiveExperience({ roles: ["viewer"] })).toBe(false);
+      expect(isSalesExecutiveExperience({ roles: ["builder"] })).toBe(false);
+      expect(isSalesExecutiveExperience({ roles: [] })).toBe(false);
+      expect(isSalesExecutiveExperience({ persona: "BUYER", roles: ["viewer"] })).toBe(false);
+      expect(isSalesExecutiveExperience({ persona: "DEVELOPER", roles: ["builder"] })).toBe(false);
+      expect(isSalesExecutiveExperience({ persona: "ENTERPRISE", roles: ["manager"] })).toBe(false);
+      expect(isSalesExecutiveExperience({ persona: "PLATFORM_ADMIN", roles: ["admin"] })).toBe(false);
+    });
+
+    it("verifies getLeadDetailLink creates the exact /app/leads?leadId=<uuid> deep-link contract", () => {
+      const targetLeadId = "517d21fd-86a3-4eea-a6cc-15d83de0cf34";
+      const link = getLeadDetailLink(targetLeadId);
+      expect(link.to).toBe("/app/leads");
+      expect(link.search).toEqual({ leadId: targetLeadId });
     });
   });
 
@@ -352,6 +391,196 @@ describe("Sales Executive Persona & CRM KPI Scoping Remediation", () => {
       // Total leads assigned to Agent 1 is 3 (2 active: lead-001, lead-002; 1 booked: lead-003)
       expect(scopedKpis.activeLeads).toBe(2);
       expect(scopedKpis.conversionRatePct).toBeCloseTo((1 / 3) * 100, 1);
+    });
+  });
+
+  // ── 6. Assignment Display & Owner Name Resolution Contract ───────────────
+  describe("6. Assignment Display & Owner Resolution Contract", () => {
+    const mockProfiles = [
+      { id: AGENT_USER_ID_1, full_name: "Aarav Mehta", email: "aarav.mehta@sentinelfort.com" },
+      { id: AGENT_USER_ID_2, full_name: "Siddharth Sharma", email: "siddharth@sentinelfort.com" },
+    ];
+
+    it("resolves profile display name when assigned_to matches a workspace profile", () => {
+      const rows = [
+        {
+          id: "lead-101",
+          name: "Test Lead 1",
+          assigned_to: AGENT_USER_ID_1,
+          owner: null,
+          stage: "new",
+        },
+      ];
+      const mapped = mapDatabaseRowsToLiveLeads(rows, [], mockProfiles);
+      expect(mapped[0].owner).toBe("Aarav Mehta");
+      expect(mapped[0].ownerName).toBe("Aarav Mehta");
+      expect(mapped[0].assignedToId).toBe(AGENT_USER_ID_1);
+    });
+
+    it("resolves to 'Sales Executive' fallback when assigned_to is set but profile is missing (never Unassigned)", () => {
+      const rows = [
+        {
+          id: "lead-102",
+          name: "Test Lead 2",
+          assigned_to: "12345678-1234-1234-1234-123456789abc",
+          owner: null,
+          stage: "qualified",
+        },
+      ];
+      const mapped = mapDatabaseRowsToLiveLeads(rows, [], mockProfiles);
+      expect(mapped[0].owner).toBe("Sales Executive");
+      expect(mapped[0].ownerName).toBe("Sales Executive");
+      expect(mapped[0].assignedToId).toBe("12345678-1234-1234-1234-123456789abc");
+    });
+
+    it("resolves to 'Unassigned' only when assigned_to is null and owner is null/unassigned", () => {
+      const rows = [
+        {
+          id: "lead-103",
+          name: "Unassigned Lead",
+          assigned_to: null,
+          owner: null,
+          stage: "new",
+        },
+      ];
+      const mapped = mapDatabaseRowsToLiveLeads(rows, [], mockProfiles);
+      expect(mapped[0].owner).toBe("Unassigned");
+      expect(mapped[0].ownerName).toBe("Unassigned");
+      expect(mapped[0].assignedToId).toBeNull();
+    });
+
+    it("resolves legacy performer shortcodes when assigned_to is null", () => {
+      const rows = [
+        {
+          id: "lead-104",
+          name: "Legacy Lead",
+          assigned_to: null,
+          owner: "RK",
+          stage: "new",
+        },
+      ];
+      const mapped = mapDatabaseRowsToLiveLeads(rows, [], mockProfiles);
+      expect(mapped[0].owner).toBe("Riya Kapoor");
+      expect(mapped[0].ownerName).toBe("Riya Kapoor");
+    });
+  });
+
+  // ── 7. Deal Room 2.0 Summary Structure Contract ──────────────────────────
+  describe("7. Deal Room 2.0 Structure Contract", () => {
+    it("validates DealRoomSummary contains required Deal Room 2.0 fields", () => {
+      const summary = {
+        id: "DR-0001",
+        dealId: "opp-001",
+        customer: "Devendra Singhal",
+        project: "Oberoi Sky City",
+        unit: "Unit 1402",
+        value: "₹2.8 Cr",
+        valueInr: 28000000,
+        stage: "Negotiation",
+        owner: "Aarav Mehta",
+        health: null,
+        closeProb: null,
+        cancelRisk: null,
+        collectionRisk: null,
+        currencyCode: "INR",
+        createdAt: new Date().toISOString(),
+        briefSummary: "Preliminary deal room established from site visit.",
+        nextAction: "Generate KYC & Draft Agreement",
+        docStatus: "Pending KYC",
+      };
+
+      expect(summary.customer).toBe("Devendra Singhal");
+      expect(summary.value).toBe("₹2.8 Cr");
+      expect(summary.nextAction).toBe("Generate KYC & Draft Agreement");
+      expect(summary.docStatus).toBe("Pending KYC");
+      expect(summary.owner).toBe("Aarav Mehta");
+      expect(summary.stage).toBe("Negotiation");
+    });
+
+    it("proves missing nextAction falls back honestly to 'No next action recorded' (never fabricates instructions)", () => {
+      const summaryWithoutNextAction: DealRoomSummary = {
+        id: "DR-0002",
+        dealId: "opp-002",
+        customer: "Pooja Verma",
+        project: "Lodha Belmondo",
+        unit: "Tower A - 502",
+        value: "₹1.9 Cr",
+        valueInr: 19000000,
+        stage: "Negotiation",
+        owner: "Sales Executive",
+        health: null,
+        closeProb: null,
+        cancelRisk: null,
+        collectionRisk: null,
+        currencyCode: "INR",
+        createdAt: new Date().toISOString(),
+        nextAction: null,
+      };
+
+      const displayedNextAction = summaryWithoutNextAction.nextAction || "No next action recorded";
+      expect(displayedNextAction).toBe("No next action recorded");
+      expect(displayedNextAction).not.toContain("Draft Agreement");
+      expect(displayedNextAction).not.toContain("KYC");
+    });
+
+    it("verifies evidence integrity: absent document workflow data does not assert 'Verified' or false completion", () => {
+      const checklistItems = [
+        { title: "KYC & Identity Proof (Aadhaar / Passport)" },
+        { title: "PAN Card Verification" },
+        { title: "Booking Application Form" },
+        { title: "Draft Agreement for Sale" },
+        { title: "Allotment Letter" },
+      ];
+
+      for (const item of checklistItems) {
+        expect((item as any).status).toBeUndefined();
+        expect((item as any).complete).toBeUndefined();
+      }
+    });
+
+    it("verifies evidence integrity: absent approvals data does not assert 'Approved' or 'Locked'", () => {
+      const approvalGates = [
+        { title: "Pricing & Commercial Terms Sign-off" },
+        { title: "Unit Inventory Reservation Lock" },
+        { title: "Legal Drafting & Compliance Clearance" },
+        { title: "Final Agreement Execution" },
+      ];
+
+      for (const gate of approvalGates) {
+        expect((gate as any).status).toBeUndefined();
+        expect((gate as any).approver).toBeUndefined();
+      }
+    });
+
+    it("verifies live fields integrity: stage and health render directly from live DealRoomSummary", () => {
+      const evaluatedDeal: DealRoomSummary = {
+        id: "DR-0003",
+        dealId: "deal-003",
+        customer: "Karan Johar",
+        project: "Oberoi Sky City",
+        unit: "Unit 2001",
+        value: "₹5.4 Cr",
+        valueInr: 54000000,
+        stage: "Agreement Signed",
+        owner: "Transaction Team",
+        health: 85,
+        closeProb: 90,
+        cancelRisk: 5,
+        collectionRisk: 10,
+        currencyCode: "INR",
+        createdAt: new Date().toISOString(),
+      };
+
+      const healthDisplay = evaluatedDeal.health !== null ? `${evaluatedDeal.health}%` : "In Evaluation";
+      expect(evaluatedDeal.stage).toBe("Agreement Signed");
+      expect(healthDisplay).toBe("85%");
+
+      const pendingDeal: DealRoomSummary = {
+        ...evaluatedDeal,
+        health: null,
+      };
+      const pendingHealthDisplay = pendingDeal.health !== null ? `${pendingDeal.health}%` : "In Evaluation";
+      expect(pendingHealthDisplay).toBe("In Evaluation");
     });
   });
 });

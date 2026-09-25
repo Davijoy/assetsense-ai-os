@@ -155,6 +155,7 @@ function FortWelcome() {
       fort={fort}
       roles={user.roles}
       workspace={workspace}
+      persona={persona}
     />
   );
 }
