@@ -57,15 +57,16 @@ describe("Admin Role Assignment & System A/B Synchronization", () => {
       expect(welcome.route).toBe("/fort/broker");
     });
 
-    it("grants ACTIVE access to /app/crm, /app/leads, /app/voice, and /app/marketing", () => {
+    it("grants ACTIVE access to /app/crm, /app/leads, /app/marketplace, /app/dealrooms, and /app/voice (locks /app/marketing)", () => {
       const grants = resolveConsoleModules(["agent"]);
       const granted = activeConsoleRouteSet(grants);
 
       expect(granted.has("/app/crm")).toBe(true);
       expect(granted.has("/app/leads")).toBe(true);
-      expect(granted.has("/app/voice")).toBe(true);
-      expect(granted.has("/app/marketing")).toBe(true);
       expect(granted.has("/app/marketplace")).toBe(true);
+      expect(granted.has("/app/dealrooms")).toBe(true);
+      expect(granted.has("/app/voice")).toBe(true);
+      expect(granted.has("/app/marketing")).toBe(false);
     });
 
     it("resolves /app/crm as primary landing route for Sales Executive", () => {
@@ -143,7 +144,7 @@ describe("Admin Role Assignment & System A/B Synchronization", () => {
 
     it("disables marketing route when marketing flag is OFF", () => {
       const featureFlags = { marketing: false };
-      expect(isRouteAuthorized(["admin", "agent"], "/app/marketing", featureFlags)).toBe(false);
+      expect(isRouteAuthorized(["admin", "manager"], "/app/marketing", featureFlags)).toBe(false);
     });
 
     it("evaluates active module grants dynamically based on feature flags", () => {

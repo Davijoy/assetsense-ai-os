@@ -50,9 +50,9 @@ export const FORTS: Record<SentinelFort, FortDefinition> = {
       "/app/market",
       "/app/messages",
       "/app/voice",
-      "/app/marketing",
-      "/app/supreme-intelligence",
       "/app/dealrooms",
+      "/app/documents",
+      "/app/supreme-intelligence",
     ],
     capabilities: [
       "customer.getContext",

@@ -1,4 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
+import { isRouteAuthorized } from "@/lib/route-roles";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRef, useState } from "react";
@@ -25,6 +26,12 @@ import {
 
 export const Route = createFileRoute("/app/docchat")({
   head: () => ({ meta: [{ title: "Document Chat — Sentinel KIE" }] }),
+  beforeLoad: async ({ context, location }) => {
+    const roles = (context as any)?.user?.roles ?? (context as any)?.fort?.role?.appRoles ?? [];
+    if (roles.length > 0 && !isRouteAuthorized(roles, location.pathname)) {
+      throw redirect({ to: "/fort" });
+    }
+  },
   component: DocChat,
 });
 

@@ -56,14 +56,14 @@ describe("Role-Based Navigation Matrix & Central Access Authority", () => {
   describe("Sales Executive (Agent) Access Matrix", () => {
     const roles = ["agent"];
 
-    it("grants OPERATIONAL access to CRM, Leads, Voice, Marketing, and Messages", () => {
+    it("grants OPERATIONAL access to CRM, Leads, Voice, Messages, Deal Rooms, and Documents", () => {
       const operationalRoutes = [
         "/app/crm",
         "/app/leads",
         "/app/voice",
-        "/app/marketing",
         "/app/messages",
         "/app/dealrooms",
+        "/app/documents",
       ];
 
       for (const route of operationalRoutes) {
@@ -74,9 +74,13 @@ describe("Role-Based Navigation Matrix & Central Access Authority", () => {
       }
     });
 
-    it("locks Inventory, Branding, Governance, Users, and Risk for agent", () => {
+    it("locks Inventory, Marketing, Sales Intel, Copilot, DocChat, Branding, Governance, Users, and Risk for agent", () => {
       const lockedRoutes = [
         "/app/inventory",
+        "/app/marketing",
+        "/app/salesintel",
+        "/app/copilot",
+        "/app/docchat",
         "/app/users",
         "/app/settings/branding",
         "/app/settings/integrations",
@@ -179,7 +183,7 @@ describe("Role-Based Navigation Matrix & Central Access Authority", () => {
 
     it("locks marketing module when marketing feature flag is false", () => {
       const context = {
-        roles: ["admin", "agent"],
+        roles: ["admin", "manager"],
         featureFlags: { marketing: false },
       };
 

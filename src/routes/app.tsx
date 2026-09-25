@@ -18,6 +18,7 @@ import {
 } from "@/components/sentinel/FortWorkspaceState";
 import {
   activeConsoleRouteSet,
+  formatCanonicalRoles,
   fortFallbackContext,
   type FortWorkspaceContext,
 } from "@/lib/fort-experience";
@@ -227,10 +228,9 @@ function AppShell() {
 
   const displayName = user.displayName;
   /**
-   * The server-verified role set, verbatim. There is no "viewer" default: when
-   * the server granted no role we say so instead of inventing one.
+   * The server-verified role set, rendered with canonical user-facing persona naming.
    */
-  const roleLabel = user.roles.length ? user.roles.join(" · ") : "access pending";
+  const roleLabel = formatCanonicalRoles(user.roles);
 
   /**
    * The server's decision for the route being viewed, read out of the resolved
@@ -653,9 +653,9 @@ function AppHeader({ fort }: { fort: FortWorkspaceContext }) {
           </span>
           <span className={`h-1.5 w-1.5 rounded-full ${fort.status === "ACTIVE" ? "bg-emerald-500 animate-pulse" : "bg-amber-500"}`} />
         </div>
-        <span className="mt-0.5 text-[10px] capitalize text-muted-foreground font-medium">
+        <span className="mt-0.5 text-[10px] text-muted-foreground font-medium">
           {fort.role.appRoles.length
-            ? fort.role.appRoles.join(" · ")
+            ? formatCanonicalRoles(fort.role.appRoles)
             : (fort.status === "ACTIVE" ? "Member" : "Access Pending")}
         </span>
       </span>

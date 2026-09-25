@@ -34,7 +34,11 @@ import {
   resolveFortModules,
   resolveConsoleModules,
   resolveLandingRoute,
+  formatCanonicalRoleLabel,
+  formatCanonicalRoles,
+  activeConsoleRouteSet,
 } from "../src/lib/fort-experience";
+import { getModuleAccess } from "../src/lib/fort-modules";
 import {
   isSalesExecutiveExperience,
   isSalesManagerExperience,
@@ -934,4 +938,191 @@ describe("Sales Executive Persona & CRM KPI Scoping Remediation", () => {
       expect(formatPipelineBudgetInr(50000)).toBe("₹50,000");
     });
   });
+
+  // ── 10. Sales Executive Full Shell Visual Theme & Isolation ───────────────
+  describe("10. Sales Executive Full Shell Visual Theme & Persona Isolation", () => {
+    it("proves Sales Executive resolves pearl/cream shell tokens and Manager/Admin retain dark shell", () => {
+      // Helper function mirroring src/routes/fort.tsx theme logic
+      const resolveShellTheme = (roles: string[], persona?: string | null) => {
+        const isSalesExec = isSalesExecutiveExperience({ roles, persona });
+        return {
+          isSalesExec,
+          outerBg: isSalesExec ? "bg-[#FAF7F2]" : "bg-[#0C0E14]",
+          sidebarBg: isSalesExec ? "bg-[#FAF7F2]" : "bg-[#10121A]",
+          sidebarBorder: isSalesExec ? "border-[#EADBCA]" : "border-[#232834]",
+          topBarBg: isSalesExec ? "bg-[#FAF7F2]/90" : "bg-[#0C0E14]/90",
+          topBarBorder: isSalesExec ? "border-[#EADBCA]" : "border-[#232834]",
+          textColor: isSalesExec ? "text-[#141720]" : "text-stone-100",
+          navActiveBg: isSalesExec ? "bg-[#EDE4D0]" : "bg-[#1E2536]",
+        };
+      };
+
+      // 1. Sales Executive (role = agent) -> Light Pearl/Cream/Ivory theme
+      const agentTheme = resolveShellTheme(["agent"]);
+      expect(agentTheme.isSalesExec).toBe(true);
+      expect(agentTheme.outerBg).toBe("bg-[#FAF7F2]");
+      expect(agentTheme.sidebarBg).toBe("bg-[#FAF7F2]");
+      expect(agentTheme.sidebarBorder).toBe("border-[#EADBCA]");
+      expect(agentTheme.topBarBg).toBe("bg-[#FAF7F2]/90");
+      expect(agentTheme.topBarBorder).toBe("border-[#EADBCA]");
+      expect(agentTheme.textColor).toBe("text-[#141720]");
+      expect(agentTheme.navActiveBg).toBe("bg-[#EDE4D0]");
+
+      // 2. Sales Manager (role = manager) -> Dark Obsidian Sentinel theme
+      const managerTheme = resolveShellTheme(["manager"]);
+      expect(managerTheme.isSalesExec).toBe(false);
+      expect(managerTheme.outerBg).toBe("bg-[#0C0E14]");
+      expect(managerTheme.sidebarBg).toBe("bg-[#10121A]");
+      expect(managerTheme.sidebarBorder).toBe("border-[#232834]");
+      expect(managerTheme.topBarBg).toBe("bg-[#0C0E14]/90");
+      expect(managerTheme.topBarBorder).toBe("border-[#232834]");
+      expect(managerTheme.textColor).toBe("text-stone-100");
+      expect(managerTheme.navActiveBg).toBe("bg-[#1E2536]");
+
+      // 3. Platform Admin (role = admin) -> Dark Obsidian Sentinel theme
+      const adminTheme = resolveShellTheme(["admin"]);
+      expect(adminTheme.isSalesExec).toBe(false);
+      expect(adminTheme.outerBg).toBe("bg-[#0C0E14]");
+      expect(adminTheme.sidebarBg).toBe("bg-[#10121A]");
+
+      // 4. Builder / Developer (role = builder) -> Dark Obsidian Sentinel theme
+      const builderTheme = resolveShellTheme(["builder"]);
+      expect(builderTheme.isSalesExec).toBe(false);
+      expect(builderTheme.outerBg).toBe("bg-[#0C0E14]");
+      expect(builderTheme.sidebarBg).toBe("bg-[#10121A]");
+    });
+  });
+
+  // ── 11. Sales Executive Navigation Entitlement Hardening & Canonical Role Labels ──
+  describe("11. Sales Executive Navigation Entitlement Hardening & Canonical Role Labels", () => {
+    const AGENT_ROLES = ["agent"];
+    const MANAGER_ROLES = ["manager"];
+    const ADMIN_ROLES = ["admin"];
+
+    it("1. Pure agent / Sales Executive does NOT have access to Sales Intelligence (/app/salesintel)", () => {
+      expect(isRouteAuthorized(AGENT_ROLES, "/app/salesintel")).toBe(false);
+      const access = getModuleAccess({ roles: AGENT_ROLES }, "/app/salesintel");
+      expect(access.state).toBe("LOCKED");
+      expect(access.accessMode).toBe("LOCKED");
+    });
+
+    it("2. Pure agent / Sales Executive does NOT have access to Marketing (/app/marketing)", () => {
+      expect(isRouteAuthorized(AGENT_ROLES, "/app/marketing")).toBe(false);
+      const access = getModuleAccess({ roles: AGENT_ROLES }, "/app/marketing");
+      expect(access.state).toBe("LOCKED");
+      expect(access.accessMode).toBe("LOCKED");
+    });
+
+    it("3. Pure agent / Sales Executive does NOT have access to broad AI Copilot (/app/copilot)", () => {
+      expect(isRouteAuthorized(AGENT_ROLES, "/app/copilot")).toBe(false);
+      const access = getModuleAccess({ roles: AGENT_ROLES }, "/app/copilot");
+      expect(access.state).toBe("LOCKED");
+      expect(access.accessMode).toBe("LOCKED");
+    });
+
+    it("4. Pure agent / Sales Executive does NOT have access to broad Document Chat (/app/docchat)", () => {
+      expect(isRouteAuthorized(AGENT_ROLES, "/app/docchat")).toBe(false);
+      const access = getModuleAccess({ roles: AGENT_ROLES }, "/app/docchat");
+      expect(access.state).toBe("LOCKED");
+      expect(access.accessMode).toBe("LOCKED");
+    });
+
+    it("5. Sales Executive retains access to CRM (/app/crm)", () => {
+      expect(isRouteAuthorized(AGENT_ROLES, "/app/crm")).toBe(true);
+      const access = getModuleAccess({ roles: AGENT_ROLES }, "/app/crm");
+      expect(access.state).toBe("ACTIVE");
+      expect(access.accessMode).toBe("OPERATIONAL");
+    });
+
+    it("6. Sales Executive retains access to Leads (/app/leads)", () => {
+      expect(isRouteAuthorized(AGENT_ROLES, "/app/leads")).toBe(true);
+      const access = getModuleAccess({ roles: AGENT_ROLES }, "/app/leads");
+      expect(access.state).toBe("ACTIVE");
+      expect(access.accessMode).toBe("OPERATIONAL");
+    });
+
+    it("7. Sales Executive retains access to Marketplace inventory reference (/app/marketplace)", () => {
+      expect(isRouteAuthorized(AGENT_ROLES, "/app/marketplace")).toBe(true);
+      const access = getModuleAccess({ roles: AGENT_ROLES }, "/app/marketplace");
+      expect(access.state).toBe("ACTIVE");
+      expect(access.accessMode).toBe("OPERATIONAL");
+      // Read-only inventory hardening verification
+      expect(canManageMarketplaceInventory(AGENT_ROLES)).toBe(false);
+      expect(canManageMarketplaceInventory(MANAGER_ROLES)).toBe(true);
+      expect(canManageMarketplaceInventory(ADMIN_ROLES)).toBe(true);
+    });
+
+    it("8. Sales Executive retains access to Deal Rooms (/app/dealrooms)", () => {
+      expect(isRouteAuthorized(AGENT_ROLES, "/app/dealrooms")).toBe(true);
+      const access = getModuleAccess({ roles: AGENT_ROLES }, "/app/dealrooms");
+      expect(access.state).toBe("ACTIVE");
+      expect(access.accessMode).toBe("OPERATIONAL");
+    });
+
+    it("9. Manager retains access to Sales Intelligence (/app/salesintel)", () => {
+      expect(isRouteAuthorized(MANAGER_ROLES, "/app/salesintel")).toBe(true);
+      const access = getModuleAccess({ roles: MANAGER_ROLES }, "/app/salesintel");
+      expect(access.state).toBe("ACTIVE");
+      expect(access.accessMode).toBe("ADMINISTRATIVE");
+    });
+
+    it("10. Admin retains access to Sales Intelligence (/app/salesintel)", () => {
+      expect(isRouteAuthorized(ADMIN_ROLES, "/app/salesintel")).toBe(true);
+      const access = getModuleAccess({ roles: ADMIN_ROLES }, "/app/salesintel");
+      expect(access.state).toBe("ACTIVE");
+      expect(access.accessMode).toBe("ADMINISTRATIVE");
+    });
+
+    it("11. formatCanonicalRoleLabel and formatCanonicalRoles translate 'agent' to 'Sales Executive' and never raw 'Agent'", () => {
+      expect(formatCanonicalRoleLabel("agent")).toBe("Sales Executive");
+      expect(formatCanonicalRoleLabel("manager")).toBe("Sales Manager");
+      expect(formatCanonicalRoleLabel("admin")).toBe("Platform Admin");
+      expect(formatCanonicalRoleLabel("platform_admin")).toBe("Platform Admin");
+      expect(formatCanonicalRoleLabel("builder")).toBe("Developer / Builder");
+      expect(formatCanonicalRoleLabel("developer")).toBe("Developer / Builder");
+      expect(formatCanonicalRoleLabel("viewer")).toBe("Investor");
+      expect(formatCanonicalRoleLabel("unknown_role")).toBe("Unknown_role");
+
+      expect(formatCanonicalRoles(["agent"])).toBe("Sales Executive");
+      expect(formatCanonicalRoles(["manager"])).toBe("Sales Manager");
+      expect(formatCanonicalRoles(["admin"])).toBe("Platform Admin");
+      expect(formatCanonicalRoles(["agent", "manager"])).toBe("Sales Executive · Sales Manager");
+      expect(formatCanonicalRoles(null)).toBe("access pending");
+      expect(formatCanonicalRoles([])).toBe("access pending");
+    });
+
+    it("12. Console route set correctly isolates Sales Executive from managerial intelligence modules", () => {
+      const agentGrantedRoutes = activeConsoleRouteSet(resolveConsoleModules(AGENT_ROLES));
+      
+      // Kept visible for Sales Executive
+      expect(agentGrantedRoutes.has("/app/crm")).toBe(true);
+      expect(agentGrantedRoutes.has("/app/leads")).toBe(true);
+      expect(agentGrantedRoutes.has("/app/marketplace")).toBe(true);
+      expect(agentGrantedRoutes.has("/app/dealrooms")).toBe(true);
+      expect(agentGrantedRoutes.has("/app/messages")).toBe(true);
+      expect(agentGrantedRoutes.has("/app/documents")).toBe(true);
+
+      // Kept hidden for pure Sales Executive
+      expect(agentGrantedRoutes.has("/app/salesintel")).toBe(false);
+      expect(agentGrantedRoutes.has("/app/marketing")).toBe(false);
+      expect(agentGrantedRoutes.has("/app/copilot")).toBe(false);
+      expect(agentGrantedRoutes.has("/app/docchat")).toBe(false);
+      expect(agentGrantedRoutes.has("/app/bi")).toBe(false);
+      expect(agentGrantedRoutes.has("/app/users")).toBe(false);
+      expect(agentGrantedRoutes.has("/app/governance")).toBe(false);
+      expect(agentGrantedRoutes.has("/app/command")).toBe(false);
+      expect(agentGrantedRoutes.has("/app/risk")).toBe(false);
+
+      // Manager has access to managerial modules
+      const managerGrantedRoutes = activeConsoleRouteSet(resolveConsoleModules(MANAGER_ROLES));
+      expect(managerGrantedRoutes.has("/app/salesintel")).toBe(true);
+      expect(managerGrantedRoutes.has("/app/marketing")).toBe(true);
+      expect(managerGrantedRoutes.has("/app/copilot")).toBe(true);
+      expect(managerGrantedRoutes.has("/app/docchat")).toBe(true);
+      expect(managerGrantedRoutes.has("/app/bi")).toBe(true);
+      expect(managerGrantedRoutes.has("/app/users")).toBe(true);
+      expect(managerGrantedRoutes.has("/app/governance")).toBe(true);
+    });
+  });
 });
+

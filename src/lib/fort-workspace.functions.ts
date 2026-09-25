@@ -50,6 +50,8 @@ import {
 import {
   checkRoleSynchronization,
   defaultPersonaForRoles,
+  formatCanonicalRoleLabel,
+  formatCanonicalRoles,
   formatFortUserId,
   formatFortWorkspacePublicId,
   fortFallbackContext,
@@ -79,6 +81,8 @@ const FORT_ROUTES: string[] = Array.from(
 */
 export {
   defaultPersonaForRoles,
+  formatCanonicalRoleLabel,
+  formatCanonicalRoles,
   fortFallbackContext,
   type FortIdentity,
   type FortMembershipContext,

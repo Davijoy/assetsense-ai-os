@@ -52,6 +52,27 @@ export function defaultPersonaForRoles(roles: readonly string[]): SentinelPerson
   return "BUYER";
 }
 
+/**
+ * Human-facing canonical role display label.
+ * Guarantees that internal "agent" is rendered as "Sales Executive".
+ */
+export function formatCanonicalRoleLabel(role: string): string {
+  if (role === "agent") return "Sales Executive";
+  if (role === "manager") return "Sales Manager";
+  if (role === "admin" || role === "platform_admin") return "Platform Admin";
+  if (role === "builder" || role === "developer") return "Developer / Builder";
+  if (role === "viewer") return "Investor";
+  return role.charAt(0).toUpperCase() + role.slice(1);
+}
+
+/**
+ * Formats a list of roles into a canonical human-facing display string.
+ */
+export function formatCanonicalRoles(roles: readonly string[] | null | undefined): string {
+  if (!roles || roles.length === 0) return "access pending";
+  return roles.map(formatCanonicalRoleLabel).join(" · ");
+}
+
 // =============================================================
 // WORKSPACE STATUS
 // =============================================================
@@ -177,10 +198,11 @@ export interface FortModuleGrant {
 export function resolveFortModules(
   fortModules: readonly string[],
   roles: readonly string[],
+  featureFlags?: Record<string, boolean> | null,
 ): FortModuleGrant[] {
   return fortModules.map((route) => {
     const capabilityId = MODULE_CAPABILITY[route] ?? null;
-    const access = getModuleAccess({ roles }, route);
+    const access = getModuleAccess({ roles, featureFlags }, route);
     return {
       route,
       state: access.state,
@@ -498,10 +520,13 @@ export function consoleModuleState(route: string, roles: readonly string[]): Mod
 }
 
 /** Project every console route onto verified roles. Same shape as Fort grants. */
-export function resolveConsoleModules(roles: readonly string[]): FortModuleGrant[] {
+export function resolveConsoleModules(
+  roles: readonly string[],
+  featureFlags?: Record<string, boolean> | null,
+): FortModuleGrant[] {
   return CONSOLE_ROUTES.map((route) => {
     const capabilityId = MODULE_CAPABILITY[route] ?? null;
-    const access = getModuleAccess({ roles }, route);
+    const access = getModuleAccess({ roles, featureFlags }, route);
     return {
       route,
       state: access.state,

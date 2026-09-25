@@ -129,14 +129,14 @@ describe("Email Signup -> Workspace Provisioning -> CRM Access Chain", () => {
   });
 
   describe("4. Module Access Resolution for Sales Executive (agent role)", () => {
-    it("grants ACTIVE access to both /app/crm and /app/leads for agent role", () => {
+    it("grants ACTIVE access to /app/crm, /app/leads, and /app/voice (locks /app/marketing) for agent role", () => {
       const grants = resolveConsoleModules(["agent"]);
       const grantedSet = activeConsoleRouteSet(grants);
 
       expect(grantedSet.has("/app/crm")).toBe(true);
       expect(grantedSet.has("/app/leads")).toBe(true);
       expect(grantedSet.has("/app/voice")).toBe(true);
-      expect(grantedSet.has("/app/marketing")).toBe(true);
+      expect(grantedSet.has("/app/marketing")).toBe(false);
     });
 
     it("reports /app/leads and /app/crm as ACTIVE for viewer role with VIEW_ONLY mode for leads", () => {
