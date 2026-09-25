@@ -60,6 +60,7 @@ import {
   GoldTerrainBackground,
 } from "@/components/sentinel/FortEmblem";
 import { openSupremeVoice } from "@/lib/sentinel-voice";
+import { useOptionalAuth } from "@/hooks/use-auth";
 
 /**
  * Honest metric display. Never fabricates a number:
@@ -126,6 +127,29 @@ interface FortDashboardProps {
   roles: readonly string[];
   workspace?: FortWorkspaceContext | null;
   persona?: SentinelPersona | null;
+  userName?: string | null;
+}
+
+/**
+ * Pure canonical user display name resolver with safe fallback.
+ */
+export function formatUserDisplayName(
+  user?: { email?: string | null; user_metadata?: { full_name?: string; name?: string } | null } | null,
+  overrideName?: string | null,
+  fallback = "Sales Executive"
+): string {
+  if (overrideName && overrideName.trim()) return overrideName.trim();
+  const metaName = user?.user_metadata?.full_name || user?.user_metadata?.name;
+  if (metaName && metaName.trim()) return metaName.trim();
+  if (user?.email && user.email.includes("@")) {
+    const prefix = user.email
+      .split("@")[0]
+      .replace(/[\._]/g, " ")
+      .replace(/\b\w/g, (c) => c.toUpperCase())
+      .trim();
+    if (prefix) return prefix;
+  }
+  return fallback;
 }
 
 /**
@@ -182,7 +206,13 @@ export function getLeadDetailLink(leadId: string): { to: "/app/leads"; search: {
   };
 }
 
-export function FortDashboard({ fort, roles, workspace, persona }: FortDashboardProps) {
+export function FortDashboard({ fort, roles, workspace, persona, userName: propUserName }: FortDashboardProps) {
+  const auth = useOptionalAuth();
+  const authUser = auth?.user ?? null;
+  const userName = useMemo(() => {
+    return formatUserDisplayName(authUser, propUserName, "Sales Executive");
+  }, [authUser, propUserName]);
+
   const workspaceResolved = workspace?.status === "ACTIVE";
   const fortClock = useLiveClock();
 

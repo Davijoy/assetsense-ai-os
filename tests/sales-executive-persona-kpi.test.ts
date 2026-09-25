@@ -44,6 +44,7 @@ import {
   isSalesManagerExperience,
   getLeadDetailLink,
   formatPipelineBudgetInr,
+  formatUserDisplayName,
 } from "../src/components/sentinel/FortDashboard";
 import { canManageMarketplaceInventory } from "../src/routes/app.marketplace";
 import { isRouteAuthorized, ROUTE_ROLES } from "../src/lib/route-roles";
@@ -1189,6 +1190,29 @@ describe("Sales Executive Persona & CRM KPI Scoping Remediation", () => {
       expect(canManageMarketplaceInventory(["builder"])).toBe(true);
       expect(canManageMarketplaceInventory(["developer"])).toBe(true);
       expect(canManageMarketplaceInventory(["viewer"])).toBe(false);
+    });
+
+    it("verifies formatUserDisplayName resolves canonical name with truthful fallback", () => {
+      // 1. Explicit override
+      expect(formatUserDisplayName(null, "Aryan Sharma")).toBe("Aryan Sharma");
+      expect(formatUserDisplayName({ email: "test@example.com" }, "Aditya")).toBe("Aditya");
+
+      // 2. User metadata full_name or name
+      expect(formatUserDisplayName({ user_metadata: { full_name: "Vikram Malhotra" } })).toBe("Vikram Malhotra");
+      expect(formatUserDisplayName({ user_metadata: { name: "Ananya Roy" } })).toBe("Ananya Roy");
+
+      // 3. Email formatting (Capital Case)
+      expect(formatUserDisplayName({ email: "rajesh.kumar@assetsense.ai" })).toBe("Rajesh Kumar");
+      expect(formatUserDisplayName({ email: "priya_patel@domain.com" })).toBe("Priya Patel");
+      expect(formatUserDisplayName({ email: "kavita@domain.com" })).toBe("Kavita");
+
+      // 4. Safe fallback to 'Sales Executive'
+      expect(formatUserDisplayName(null)).toBe("Sales Executive");
+      expect(formatUserDisplayName(undefined)).toBe("Sales Executive");
+      expect(formatUserDisplayName({ email: "" })).toBe("Sales Executive");
+      expect(formatUserDisplayName({ email: null })).toBe("Sales Executive");
+      expect(formatUserDisplayName({ user_metadata: {} })).toBe("Sales Executive");
+      expect(formatUserDisplayName(null, null, "Custom Fallback")).toBe("Custom Fallback");
     });
   });
 });
