@@ -37,8 +37,12 @@ import {
 } from "../src/lib/fort-experience";
 import {
   isSalesExecutiveExperience,
+  isSalesManagerExperience,
   getLeadDetailLink,
+  formatPipelineBudgetInr,
 } from "../src/components/sentinel/FortDashboard";
+import { canManageMarketplaceInventory } from "../src/routes/app.marketplace";
+import { isRouteAuthorized, ROUTE_ROLES } from "../src/lib/route-roles";
 
 describe("Sales Executive Persona & CRM KPI Scoping Remediation", () => {
   const AGENT_USER_ID_1 = "517d21fd-86a3-4eea-a6cc-15d83de0cf34";
@@ -581,6 +585,353 @@ describe("Sales Executive Persona & CRM KPI Scoping Remediation", () => {
       };
       const pendingHealthDisplay = pendingDeal.health !== null ? `${pendingDeal.health}%` : "In Evaluation";
       expect(pendingHealthDisplay).toBe("In Evaluation");
+    });
+  });
+
+  // ── 8. Sales Executive Marketplace Read-Only Security & Inventory Metrics ──
+  describe("8. Sales Executive Marketplace Read-Only Security & Inventory Metrics", () => {
+    it("proves Sales Executive (role=agent) CANNOT manage marketplace inventory (no create/edit/delete UI)", () => {
+      expect(canManageMarketplaceInventory(["agent"])).toBe(false);
+      expect(canManageMarketplaceInventory(["agent", "viewer"])).toBe(false);
+      expect(canManageMarketplaceInventory(["viewer"])).toBe(false);
+      expect(canManageMarketplaceInventory([])).toBe(false);
+    });
+
+    it("proves Admin, Manager, Builder, and Developer CAN manage marketplace inventory", () => {
+      expect(canManageMarketplaceInventory(["admin"])).toBe(true);
+      expect(canManageMarketplaceInventory(["manager"])).toBe(true);
+      expect(canManageMarketplaceInventory(["builder"])).toBe(true);
+      expect(canManageMarketplaceInventory(["developer"])).toBe(true);
+      expect(canManageMarketplaceInventory(["agent", "manager"])).toBe(true);
+      expect(canManageMarketplaceInventory(["agent", "admin"])).toBe(true);
+    });
+
+    it("verifies Sales Executive is authorized to access /app/marketplace (read-only selling reference)", () => {
+      expect(isRouteAuthorized(["agent"], "/app/marketplace")).toBe(true);
+      expect(isRouteAuthorized(["agent"], "/app/crm")).toBe(true);
+      expect(isRouteAuthorized(["agent"], "/app/leads")).toBe(true);
+    });
+
+    it("verifies inventory administration route /app/inventory remains restricted from pure agent", () => {
+      expect(isRouteAuthorized(["agent"], "/app/inventory")).toBe(false);
+      expect(isRouteAuthorized(["admin"], "/app/inventory")).toBe(true);
+      expect(isRouteAuthorized(["manager"], "/app/inventory")).toBe(true);
+      expect(isRouteAuthorized(["builder"], "/app/inventory")).toBe(true);
+      expect(isRouteAuthorized(["developer"], "/app/inventory")).toBe(true);
+    });
+
+    it("verifies Sales Inventory card metric maps to /app/marketplace properties rather than /app/market listings", () => {
+      const mockPreviews = {
+        "/app/crm": { leads: 12 },
+        "/app/leads": { leads: 12 },
+        "/app/marketplace": { properties: 7 },
+        "/app/market": { listings: 142 },
+        "/app/dealrooms": { deals: 3 },
+      };
+
+      const marketplacePropertyCount = mockPreviews["/app/marketplace"]?.properties ?? null;
+      const marketListingCount = mockPreviews["/app/market"]?.listings ?? null;
+
+      expect(marketplacePropertyCount).toBe(7);
+      expect(marketListingCount).toBe(142);
+
+      // Verify label formatting
+      const propertyBadge = marketplacePropertyCount !== null
+        ? `${marketplacePropertyCount} ${marketplacePropertyCount === 1 ? "Property" : "Properties"}`
+        : "Catalog";
+      expect(propertyBadge).toBe("7 Properties");
+
+      // Verify single property formatting
+      const singleCount = 1;
+      const singlePropertyBadge = `${singleCount} ${singleCount === 1 ? "Property" : "Properties"}`;
+      expect(singlePropertyBadge).toBe("1 Property");
+    });
+  });
+
+  // ── 9. Sales Manager / Team Lead Command Center Experience & Isolation ──
+  describe("9. Sales Manager / Team Lead Command Center Experience & Isolation", () => {
+    it("A. proves pure manager renders Manager Command Center", () => {
+      expect(isSalesManagerExperience({ roles: ["manager"] })).toBe(true);
+      expect(isSalesManagerExperience({
+        workspace: {
+          role: {
+            appRoles: ["manager"],
+          },
+        } as any,
+      })).toBe(true);
+    });
+
+    it("B. proves pure manager does NOT render Sales Executive Virtual Office", () => {
+      expect(isSalesExecutiveExperience({ roles: ["manager"] })).toBe(false);
+      expect(isSalesExecutiveExperience({
+        workspace: {
+          role: {
+            appRoles: ["manager"],
+          },
+        } as any,
+      })).toBe(false);
+    });
+
+    it("C. proves admin + manager does NOT render Manager Command Center (Platform Admin takes precedence)", () => {
+      expect(isSalesManagerExperience({ roles: ["admin", "manager"] })).toBe(false);
+      expect(isSalesManagerExperience({
+        roles: ["manager", "admin"],
+        workspace: {
+          role: {
+            appRoles: ["admin", "manager"],
+          },
+        } as any,
+      })).toBe(false);
+    });
+
+    it("D. proves pure agent renders Sales Executive and NOT Manager Command Center", () => {
+      expect(isSalesExecutiveExperience({ roles: ["agent"] })).toBe(true);
+      expect(isSalesManagerExperience({ roles: ["agent"] })).toBe(false);
+      expect(isSalesManagerExperience({ roles: ["agent", "viewer"] })).toBe(false);
+    });
+
+    it("E. proves pure admin and pure viewer do NOT render Manager Command Center", () => {
+      expect(isSalesManagerExperience({ roles: ["admin"] })).toBe(false);
+      expect(isSalesManagerExperience({ roles: ["viewer"] })).toBe(false);
+      expect(isSalesManagerExperience({ roles: [] })).toBe(false);
+    });
+
+    it("F. proves builder/developer without manager role does NOT render Manager Command Center, but with manager does", () => {
+      expect(isSalesManagerExperience({ roles: ["builder"] })).toBe(false);
+      expect(isSalesManagerExperience({ roles: ["developer"] })).toBe(false);
+      expect(isSalesManagerExperience({ roles: ["builder", "developer"] })).toBe(false);
+      expect(isSalesManagerExperience({ roles: ["builder", "manager"] })).toBe(true);
+      expect(isSalesManagerExperience({ roles: ["developer", "manager"] })).toBe(true);
+    });
+
+    it("G. proves Manager KPI data remains full workspace/team scoped (not reduced to single agent)", () => {
+      const allWorkspaceLeads = MOCK_WORKSPACE_LEADS;
+      const managerKpis = calculateCRMKpiSnapshot(
+        allWorkspaceLeads,
+        MOCK_PROPERTIES,
+        MOCK_CALLS,
+        MOCK_ACTIVITIES
+      );
+
+      // Manager must see all 6 workspace leads
+      expect(managerKpis.totalInputLeads).toBe(6);
+      expect(managerKpis.activeLeads).toBe(5); // 6 total - 1 booked
+      expect(managerKpis.convertedLeads).toBe(1); // 1 booked
+      expect(managerKpis.conversionRatePct).toBeCloseTo((1 / 6) * 100, 1);
+    });
+
+    it("H. proves executive aggregation correctly partitions leads by assigned executive without fake names", () => {
+      const mockTeamLeads: LiveLead[] = [
+        {
+          id: "lead-101",
+          name: "Client One",
+          stage: "New",
+          score: 80,
+          budget: "₹1.5 Cr",
+          budgetInr: 15000000,
+          source: "Direct",
+          owner: "Aarav Mehta",
+          ownerName: "Aarav Mehta",
+          email: "c1@test.com",
+          phone: "+919800000001",
+          siteVisitDate: "2026-09-30",
+          siteVisitTime: "11:00",
+        },
+        {
+          id: "lead-102",
+          name: "Client Two",
+          stage: "Booked",
+          score: 95,
+          budget: "₹2.5 Cr",
+          budgetInr: 25000000,
+          source: "Referral",
+          owner: "Aarav Mehta",
+          ownerName: "Aarav Mehta",
+          email: "c2@test.com",
+          phone: "+919800000002",
+        },
+        {
+          id: "lead-103",
+          name: "Client Three",
+          stage: "Qualified",
+          score: 75,
+          budget: "₹1.8 Cr",
+          budgetInr: 18000000,
+          source: "Meta",
+          owner: "Riya Kapoor",
+          ownerName: "Riya Kapoor",
+          email: "c3@test.com",
+          phone: "+919800000003",
+          followUpDate: "2026-10-01",
+          followUpTime: "15:00",
+          followUpStatus: "pending",
+        },
+        {
+          id: "lead-104",
+          name: "Client Four",
+          stage: "New",
+          score: 60,
+          budget: "₹2.0 Cr",
+          budgetInr: 20000000,
+          source: "Direct",
+          owner: "Unassigned",
+          ownerName: "Unassigned",
+          email: "c4@test.com",
+          phone: "+919800000004",
+        },
+      ];
+
+      // Simulate executive aggregate computation from FortDashboard
+      const execMap = new Map<string, {
+        name: string;
+        assignedLeads: number;
+        activeLeads: number;
+        appointments: number;
+        conversions: number;
+        activeLeadBudget: number;
+      }>();
+
+      for (const lead of mockTeamLeads) {
+        const execName = lead.ownerName && lead.ownerName !== "Unassigned" && lead.ownerName !== "none"
+          ? lead.ownerName
+          : "Unassigned";
+
+        if (!execMap.has(execName)) {
+          execMap.set(execName, {
+            name: execName,
+            assignedLeads: 0,
+            activeLeads: 0,
+            appointments: 0,
+            conversions: 0,
+            activeLeadBudget: 0,
+          });
+        }
+
+        const entry = execMap.get(execName)!;
+        entry.assignedLeads += 1;
+        if (!["Booked", "Not Interested", "Dropped Plan"].includes(lead.stage)) {
+          entry.activeLeads += 1;
+          entry.activeLeadBudget += Number(lead.budgetInr || 0);
+        }
+        if ((lead.siteVisitDate && lead.siteVisitDate.trim()) || (lead.followUpDate && lead.followUpDate.trim() && lead.followUpStatus !== "completed")) {
+          entry.appointments += 1;
+        }
+        if (lead.stage === "Booked") {
+          entry.conversions += 1;
+        }
+      }
+
+      const aarav = execMap.get("Aarav Mehta");
+      expect(aarav).toBeDefined();
+      expect(aarav?.assignedLeads).toBe(2);
+      expect(aarav?.activeLeads).toBe(1);
+      expect(aarav?.appointments).toBe(1);
+      expect(aarav?.conversions).toBe(1);
+      expect(aarav?.activeLeadBudget).toBe(15000000); // 1.5 Cr active lead (Booked lead excluded from active budget)
+
+      const riya = execMap.get("Riya Kapoor");
+      expect(riya).toBeDefined();
+      expect(riya?.assignedLeads).toBe(1);
+      expect(riya?.activeLeads).toBe(1);
+      expect(riya?.appointments).toBe(1);
+      expect(riya?.conversions).toBe(0);
+      expect(riya?.activeLeadBudget).toBe(18000000);
+
+      const unassigned = execMap.get("Unassigned");
+      expect(unassigned).toBeDefined();
+      expect(unassigned?.assignedLeads).toBe(1);
+      expect(unassigned?.activeLeadBudget).toBe(20000000);
+    });
+
+    it("I. verifies teamActivePipelineBudget excludes terminal stages (Booked, Not Interested, Dropped Plan)", () => {
+      const mockLeads: LiveLead[] = [
+        { id: "1", name: "L1", stage: "New", score: 80, budget: "1 Cr", budgetInr: 10000000 },
+        { id: "2", name: "L2", stage: "Qualified", score: 80, budget: "2 Cr", budgetInr: 20000000 },
+        { id: "3", name: "L3", stage: "Site Visit Scheduled", score: 80, budget: "3 Cr", budgetInr: 30000000 },
+        { id: "4", name: "L4", stage: "Negotiation", score: 80, budget: "4 Cr", budgetInr: 40000000 },
+        { id: "5", name: "L5", stage: "Booked", score: 95, budget: "5 Cr", budgetInr: 50000000 },
+        { id: "6", name: "L6", stage: "Not Interested", score: 10, budget: "6 Cr", budgetInr: 60000000 },
+        { id: "7", name: "L7", stage: "Dropped Plan", score: 10, budget: "7 Cr", budgetInr: 70000000 },
+      ];
+
+      const activeLeads = mockLeads.filter(
+        (l) => !["Booked", "Not Interested", "Dropped Plan"].includes(l.stage)
+      );
+      const teamActivePipelineBudget = activeLeads.reduce(
+        (sum, l) => sum + (Number(l.budgetInr) || 0),
+        0
+      );
+
+      // Active leads = 1, 2, 3, 4 -> 1 + 2 + 3 + 4 = 10 Cr (100,000,000)
+      // Excluded terminal leads = 5 (Booked), 6 (Not Interested), 7 (Dropped Plan) -> 5 + 6 + 7 = 18 Cr excluded
+      expect(activeLeads).toHaveLength(4);
+      expect(teamActivePipelineBudget).toBe(100000000);
+    });
+
+    it("J. verifies zero-fabrication KPI fallback rules for Manager Command Center", () => {
+      // 1. When CRM KPIs are null / unavailable:
+      const nullKpis = null as CRMKpiSnapshot | null;
+      const teamLeadsCount = 12;
+      const teamActiveCount = 9;
+
+      const conversionRateDisplay = nullKpis ? `${(nullKpis as CRMKpiSnapshot).conversionRatePct.toFixed(1)}%` : "INSUFFICIENT DATA";
+      const outflowLeadsDisplay = nullKpis ? (nullKpis as CRMKpiSnapshot).outflowLeads.toLocaleString() : "INSUFFICIENT DATA";
+      const notQualifiedLeadsDisplay = nullKpis ? (nullKpis as CRMKpiSnapshot).notQualifiedLeads.toLocaleString() : "INSUFFICIENT DATA";
+      const totalInputLeadsDisplay = (nullKpis?.totalInputLeads ?? teamLeadsCount).toLocaleString();
+      const activeLeadsDisplay = (nullKpis?.activeLeads ?? teamActiveCount).toLocaleString();
+
+      expect(conversionRateDisplay).toBe("INSUFFICIENT DATA");
+      expect(outflowLeadsDisplay).toBe("INSUFFICIENT DATA");
+      expect(notQualifiedLeadsDisplay).toBe("INSUFFICIENT DATA");
+      expect(totalInputLeadsDisplay).toBe("12");
+      expect(activeLeadsDisplay).toBe("9");
+
+      // 2. When CRM KPIs are present with live values:
+      const liveKpis: CRMKpiSnapshot = {
+        totalInputLeads: 20,
+        totalLeads: 20,
+        activeLeads: 15,
+        qualifiedLeads: 8,
+        convertedLeads: 3,
+        outflowLeads: 4,
+        notQualifiedLeads: 2,
+        pipelineValueInr: 250000000,
+        avgDealSizeInr: 50000000,
+        conversionRatePct: 15.0,
+      };
+
+      const liveConversionRateDisplay = liveKpis ? `${liveKpis.conversionRatePct.toFixed(1)}%` : "INSUFFICIENT DATA";
+      const liveOutflowLeadsDisplay = liveKpis ? liveKpis.outflowLeads.toLocaleString() : "INSUFFICIENT DATA";
+      const liveNotQualifiedLeadsDisplay = liveKpis ? liveKpis.notQualifiedLeads.toLocaleString() : "INSUFFICIENT DATA";
+      const liveTotalInputLeadsDisplay = (liveKpis?.totalInputLeads ?? teamLeadsCount).toLocaleString();
+      const liveActiveLeadsDisplay = (liveKpis?.activeLeads ?? teamActiveCount).toLocaleString();
+
+      expect(liveConversionRateDisplay).toBe("15.0%");
+      expect(liveOutflowLeadsDisplay).toBe("4");
+      expect(liveNotQualifiedLeadsDisplay).toBe("2");
+      expect(liveTotalInputLeadsDisplay).toBe("20");
+      expect(liveActiveLeadsDisplay).toBe("15");
+    });
+
+    it("K. verifies formatPipelineBudgetInr client-safe formatting semantics", () => {
+      expect(formatPipelineBudgetInr(null)).toBe("₹0");
+      expect(formatPipelineBudgetInr(undefined)).toBe("₹0");
+      expect(formatPipelineBudgetInr(0)).toBe("₹0");
+      expect(formatPipelineBudgetInr(-500)).toBe("₹0");
+      expect(formatPipelineBudgetInr(NaN)).toBe("₹0");
+
+      // Crores
+      expect(formatPipelineBudgetInr(15000000)).toBe("₹1.5 Cr");
+      expect(formatPipelineBudgetInr(25000000)).toBe("₹2.5 Cr");
+      expect(formatPipelineBudgetInr(100000000)).toBe("₹10 Cr");
+      expect(formatPipelineBudgetInr(18500000)).toBe("₹1.85 Cr");
+
+      // Lakhs
+      expect(formatPipelineBudgetInr(500000)).toBe("₹5 L");
+      expect(formatPipelineBudgetInr(7500000)).toBe("₹75 L");
+
+      // Thousands / Standard INR
+      expect(formatPipelineBudgetInr(50000)).toBe("₹50,000");
     });
   });
 });

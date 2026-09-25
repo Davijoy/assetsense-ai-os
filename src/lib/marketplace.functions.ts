@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
+import { requireRoles } from "@/integrations/supabase/role-middleware";
 
 export type ServerProperty = {
   id: string;
@@ -407,6 +408,7 @@ export const getMarketplaceInventoryServer = createServerFn({ method: "GET" }).h
  * Save or update a property across the entire server cluster so both localhost and remote users see it immediately.
  */
 export const saveMarketplacePropertyServer = createServerFn({ method: "POST" })
+  .middleware([requireRoles(["admin", "manager", "builder", "developer"])])
   .validator(
     z.object({
       id: z.string().optional(),
@@ -516,6 +518,7 @@ export const saveMarketplacePropertyServer = createServerFn({ method: "POST" })
  * Delete a property from the shared server inventory.
  */
 export const deleteMarketplacePropertyServer = createServerFn({ method: "POST" })
+  .middleware([requireRoles(["admin", "manager", "builder", "developer"])])
   .validator(z.object({ propertyId: z.string() }))
   .handler(async ({ data }): Promise<{ success: boolean }> => {
     const { propertyId } = data;

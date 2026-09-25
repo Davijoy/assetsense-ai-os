@@ -65,6 +65,12 @@ export const Route = createFileRoute("/app/marketplace")({
   component: Marketplace,
 });
 
+export function canManageMarketplaceInventory(roles: readonly string[]): boolean {
+  return roles.some((role) =>
+    ["admin", "manager", "builder", "developer"].includes(role),
+  );
+}
+
 export type Property = {
   id: string;
   name: string;
@@ -192,6 +198,7 @@ function PropertyDetailModal({
   filteredProperties,
   handleOpenBrochure,
   handleDownloadBrochure,
+  canManage = false,
 }: {
   property: Property;
   onClose: () => void;
@@ -203,6 +210,7 @@ function PropertyDetailModal({
   filteredProperties: Property[];
   handleOpenBrochure: (pdfUrl?: string | null, propName?: string) => void;
   handleDownloadBrochure: (pdfUrl?: string | null, propName?: string) => void;
+  canManage?: boolean;
 }) {
   const photos = useMemo(() => {
     const list: string[] = [];
@@ -337,20 +345,24 @@ function PropertyDetailModal({
               })()}
             </div>
             <div className="flex items-center gap-1.5 border-l border-border/60 pl-3">
-              <button
-                type="button"
-                onClick={() => onOpenEdit(property)}
-                className="flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-medium text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all shadow-sm cursor-pointer"
-              >
-                <Edit3 className="h-3.5 w-3.5" /> Edit
-              </button>
-              <button
-                type="button"
-                onClick={() => onOpenDelete(property)}
-                className="flex items-center gap-1.5 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-1.5 text-xs font-medium text-destructive hover:bg-destructive hover:text-destructive-foreground transition-all shadow-sm cursor-pointer"
-              >
-                <Trash2 className="h-3.5 w-3.5" /> Delete
-              </button>
+              {canManage && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => onOpenEdit(property)}
+                    className="flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-medium text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all shadow-sm cursor-pointer"
+                  >
+                    <Edit3 className="h-3.5 w-3.5" /> Edit
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onOpenDelete(property)}
+                    className="flex items-center gap-1.5 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-1.5 text-xs font-medium text-destructive hover:bg-destructive hover:text-destructive-foreground transition-all shadow-sm cursor-pointer"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" /> Delete
+                  </button>
+                </>
+              )}
               <button
                 type="button"
                 onClick={onClose}
@@ -748,6 +760,9 @@ function PropertyDetailModal({
 function Marketplace() {
   const queryClient = useQueryClient();
   const searchParams = Route.useSearch();
+  const routeContext = Route.useRouteContext();
+  const userRoles = (routeContext as any)?.user?.roles ?? (routeContext as any)?.fort?.role?.appRoles ?? [];
+  const canManageInventory = canManageMarketplaceInventory(userRoles);
   const [q, setQ] = useState(searchParams.q || "");
   const [city, setCity] = useState("All");
 
@@ -1147,12 +1162,14 @@ function getLocalSavedProperties(): Property[] {
           <div className="flex items-center gap-2 text-xs text-muted-foreground mr-2">
             <span className="h-2 w-2 rounded-full bg-primary animate-pulse" /> Synced from live inventory
           </div>
-          <Button
-            onClick={handleAddProperty}
-            className="gap-2 bg-primary text-primary-foreground shadow-glow hover:bg-primary/90"
-          >
-            <Plus className="h-4 w-4" /> Add Property
-          </Button>
+          {canManageInventory && (
+            <Button
+              onClick={handleAddProperty}
+              className="gap-2 bg-primary text-primary-foreground shadow-glow hover:bg-primary/90"
+            >
+              <Plus className="h-4 w-4" /> Add Property
+            </Button>
+          )}
         </div>
       </div>
 
@@ -1283,30 +1300,32 @@ function getLocalSavedProperties(): Property[] {
                 </div>
 
                 {/* Edit & Delete Actions */}
-                <div className="absolute right-3 top-3 flex items-center gap-1.5 z-10">
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleOpenEdit(p);
-                    }}
-                    className="grid h-8 w-8 place-items-center rounded-full bg-background/80 text-foreground backdrop-blur hover:bg-primary hover:text-primary-foreground transition-colors shadow-sm"
-                    title="Edit Property"
-                  >
-                    <Edit3 className="h-3.5 w-3.5" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleOpenDelete(p);
-                    }}
-                    className="grid h-8 w-8 place-items-center rounded-full bg-background/80 text-destructive backdrop-blur hover:bg-destructive hover:text-destructive-foreground transition-colors shadow-sm"
-                    title="Delete Property"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </button>
-                </div>
+                {canManageInventory && (
+                  <div className="absolute right-3 top-3 flex items-center gap-1.5 z-10">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleOpenEdit(p);
+                      }}
+                      className="grid h-8 w-8 place-items-center rounded-full bg-background/80 text-foreground backdrop-blur hover:bg-primary hover:text-primary-foreground transition-colors shadow-sm"
+                      title="Edit Property"
+                    >
+                      <Edit3 className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleOpenDelete(p);
+                      }}
+                      className="grid h-8 w-8 place-items-center rounded-full bg-background/80 text-destructive backdrop-blur hover:bg-destructive hover:text-destructive-foreground transition-colors shadow-sm"
+                      title="Delete Property"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                )}
 
                 {/* AI Score Badge */}
                 <div className="absolute bottom-3 right-3 flex items-center gap-1.5 rounded-full bg-background/85 px-3 py-1 text-xs backdrop-blur font-medium text-foreground shadow-sm z-10">
@@ -1387,47 +1406,52 @@ function getLocalSavedProperties(): Property[] {
           filteredProperties={filtered}
           handleOpenBrochure={handleOpenBrochure}
           handleDownloadBrochure={handleDownloadBrochure}
+          canManage={canManageInventory}
         />
       )}
 
       {/* Property Create/Edit Wizard */}
-      <PropertyWizard
-        open={wizardOpen}
-        onOpenChange={setWizardOpen}
-        editProperty={editingProperty}
-      />
+      {canManageInventory && (
+        <PropertyWizard
+          open={wizardOpen}
+          onOpenChange={setWizardOpen}
+          editProperty={editingProperty}
+        />
+      )}
 
       {/* Delete Property Confirmation Dialog */}
-      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent className="max-w-md bg-card border-border">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-destructive">
-              <AlertTriangle className="h-5 w-5" /> Delete Property
-            </DialogTitle>
-            <DialogDescription className="text-muted-foreground pt-2">
-              Are you sure you want to delete <strong className="text-foreground">{propertyToDelete?.name}</strong>? This property listing will be permanently removed from the marketplace.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="mt-4 flex justify-end gap-2">
-            <Button
-              variant="ghost"
-              onClick={() => setDeleteDialogOpen(false)}
-              disabled={isDeleting}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleConfirmDelete}
-              disabled={isDeleting}
-              className="gap-2"
-            >
-              {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
-              Delete Property
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {canManageInventory && (
+        <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <DialogContent className="max-w-md bg-card border-border">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-destructive">
+                <AlertTriangle className="h-5 w-5" /> Delete Property
+              </DialogTitle>
+              <DialogDescription className="text-muted-foreground pt-2">
+                Are you sure you want to delete <strong className="text-foreground">{propertyToDelete?.name}</strong>? This property listing will be permanently removed from the marketplace.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter className="mt-4 flex justify-end gap-2">
+              <Button
+                variant="ghost"
+                onClick={() => setDeleteDialogOpen(false)}
+                disabled={isDeleting}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleConfirmDelete}
+                disabled={isDeleting}
+                className="gap-2"
+              >
+                {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                Delete Property
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }

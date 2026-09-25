@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, lazy, Suspense } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
@@ -8,9 +8,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { PropertyWizard } from "./PropertyWizard";
 
-export const NewPropertyDialog = PropertyWizard;
+const LazyPropertyWizard = lazy(() => import("./PropertyWizard").then((m) => ({ default: m.PropertyWizard })));
+
+export function NewPropertyDialog(props: { open: boolean; onOpenChange: (o: boolean) => void; editProperty?: any }) {
+  if (!props.open) return null;
+  return (
+    <Suspense fallback={null}>
+      <LazyPropertyWizard {...props} />
+    </Suspense>
+  );
+}
 
 export function NewLeadDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
   const qc = useQueryClient();
