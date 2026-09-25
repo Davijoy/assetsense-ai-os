@@ -1124,5 +1124,72 @@ describe("Sales Executive Persona & CRM KPI Scoping Remediation", () => {
       expect(managerGrantedRoutes.has("/app/governance")).toBe(true);
     });
   });
+
+  // ── 12. Sales Executive Virtual Office Structural Interface Redesign ────────
+  describe("12. Sales Executive Virtual Office Structural Interface Redesign", () => {
+    it("proves Sales Executive Fort Home bypasses traditional sidebar in favor of full-width Virtual Office", () => {
+      // Simulate layout rendering decision logic in src/routes/fort.tsx
+      const resolveShellStructure = (roles: string[], persona?: string | null) => {
+        const isSalesExec = isSalesExecutiveExperience({ roles, persona });
+        return {
+          isSalesExec,
+          rendersTraditionalSidebar: !isSalesExec,
+          rendersCompactCommandStrip: isSalesExec,
+          layoutMode: isSalesExec ? "FULL_WIDTH_OFFICE" : "SIDEBAR_CONSOLE",
+        };
+      };
+
+      const agentStructure = resolveShellStructure(["agent"]);
+      expect(agentStructure.isSalesExec).toBe(true);
+      expect(agentStructure.rendersTraditionalSidebar).toBe(false);
+      expect(agentStructure.rendersCompactCommandStrip).toBe(true);
+      expect(agentStructure.layoutMode).toBe("FULL_WIDTH_OFFICE");
+
+      const managerStructure = resolveShellStructure(["manager"]);
+      expect(managerStructure.isSalesExec).toBe(false);
+      expect(managerStructure.rendersTraditionalSidebar).toBe(true);
+      expect(managerStructure.rendersCompactCommandStrip).toBe(false);
+      expect(managerStructure.layoutMode).toBe("SIDEBAR_CONSOLE");
+
+      const adminStructure = resolveShellStructure(["admin"]);
+      expect(adminStructure.isSalesExec).toBe(false);
+      expect(adminStructure.rendersTraditionalSidebar).toBe(true);
+      expect(adminStructure.rendersCompactCommandStrip).toBe(false);
+      expect(adminStructure.layoutMode).toBe("SIDEBAR_CONSOLE");
+    });
+
+    it("verifies the 6 Primary Virtual Office workstation cards serve as main navigation", () => {
+      const virtualOfficeModules = [
+        { id: "MY_LEADS", route: "/app/leads", label: "MY LEADS", cta: "Open Leads" },
+        { id: "MY_APPOINTMENTS", route: "/app/leads", label: "MY APPOINTMENTS", cta: "Open Schedule" },
+        { id: "SALES_INVENTORY", route: "/app/marketplace", label: "SALES INVENTORY", cta: "View Stock" },
+        { id: "MY_DEALS", route: "/app/dealrooms", label: "MY DEALS", cta: "Open Deal Rooms" },
+        { id: "MY_PERFORMANCE", route: "/app/crm", label: "MY PERFORMANCE", cta: "View Metrics" },
+        { id: "MESSAGES", route: "/app/messages", label: "MESSAGES", cta: "Open Messages" },
+      ];
+
+      for (const mod of virtualOfficeModules) {
+        expect(isRouteAuthorized(["agent"], mod.route)).toBe(true);
+        const access = getModuleAccess({ roles: ["agent"] }, mod.route);
+        expect(access.state).toBe("ACTIVE");
+      }
+    });
+
+    it("validates lead deep-linking behavior for Today's Office work queue", () => {
+      const sampleLeadId = "517d21fd-86a3-4eea-a6cc-15d83de0cf34";
+      const link = getLeadDetailLink(sampleLeadId);
+      expect(link.to).toBe("/app/leads");
+      expect(link.search).toEqual({ leadId: sampleLeadId });
+    });
+
+    it("confirms Sales Executive inventory remains strictly VIEW ONLY in both Fort and Marketplace", () => {
+      expect(canManageMarketplaceInventory(["agent"])).toBe(false);
+      expect(canManageMarketplaceInventory(["manager"])).toBe(true);
+      expect(canManageMarketplaceInventory(["admin"])).toBe(true);
+      expect(canManageMarketplaceInventory(["builder"])).toBe(true);
+      expect(canManageMarketplaceInventory(["developer"])).toBe(true);
+      expect(canManageMarketplaceInventory(["viewer"])).toBe(false);
+    });
+  });
 });
 

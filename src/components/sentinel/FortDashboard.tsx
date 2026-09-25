@@ -29,12 +29,15 @@ import {
   Clock,
   Calendar,
   MoreVertical,
+  Handshake,
+  Mail,
   type LucideIcon,
 } from "lucide-react";
 import type {
   CRMKpiSnapshot,
   LiveLead,
 } from "@/lib/crm.functions";
+import type { ServerProperty } from "@/lib/marketplace.functions";
 import type { FortDefinition } from "@/sentinel/forts";
 import { defaultPersonaForRoles, type FortModuleGrant } from "@/lib/fort-experience";
 import type { FortWorkspaceContext } from "@/lib/fort-workspace.functions";
@@ -271,11 +274,16 @@ export function FortDashboard({ fort, roles, workspace, persona }: FortDashboard
 
   const [assignedLeads, setAssignedLeads] = useState<LiveLead[]>([]);
   const [assignedLeadsLoading, setAssignedLeadsLoading] = useState(false);
+  const [properties, setProperties] = useState<ServerProperty[]>([]);
+  const [propertiesLoading, setPropertiesLoading] = useState(false);
+  const [queueTab, setQueueTab] = useState<"all" | "followups" | "sitevisits" | "negotiations">("all");
 
   useEffect(() => {
     if (!isSalesExecutive) return;
     let active = true;
     setAssignedLeadsLoading(true);
+    setPropertiesLoading(true);
+
     void import("@/lib/crm.functions")
       .then((m) => m.getLiveLeads())
       .then((res) => {
@@ -290,18 +298,63 @@ export function FortDashboard({ fort, roles, workspace, persona }: FortDashboard
           setAssignedLeadsLoading(false);
         }
       });
+
+    void import("@/lib/marketplace.functions")
+      .then((m) => m.getMarketplaceProperties())
+      .then((res) => {
+        if (active) {
+          setProperties(Array.isArray(res) ? res : []);
+          setPropertiesLoading(false);
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setProperties([]);
+          setPropertiesLoading(false);
+        }
+      });
+
     return () => {
       active = false;
     };
   }, [isSalesExecutive]);
 
-  const appointmentCount = useMemo(() => {
+  // Derived sets for Sales Executive Today's Office work queue
+  const activeAssignedLeads = useMemo(() => {
     return assignedLeads.filter(
-      (l) =>
-        (l.siteVisitDate && l.siteVisitDate.trim()) ||
-        (l.followUpDate && l.followUpDate.trim() && l.followUpStatus !== "completed")
-    ).length;
+      (l) => !["Booked", "Not Interested", "Dropped Plan"].includes(l.stage)
+    );
   }, [assignedLeads]);
+
+  const followUpsDue = useMemo(() => {
+    return assignedLeads.filter(
+      (l) => Boolean(l.followUpDate && l.followUpDate.trim() && l.followUpStatus !== "completed")
+    );
+  }, [assignedLeads]);
+
+  const siteVisitsScheduled = useMemo(() => {
+    return assignedLeads.filter(
+      (l) => Boolean(l.siteVisitDate && l.siteVisitDate.trim())
+    );
+  }, [assignedLeads]);
+
+  const activeNegotiations = useMemo(() => {
+    return assignedLeads.filter((l) =>
+      ["Negotiation", "Under Negotiation", "Offer Made"].includes(l.stage)
+    );
+  }, [assignedLeads]);
+
+  const bookedLeads = useMemo(() => {
+    return assignedLeads.filter((l) => l.stage === "Booked");
+  }, [assignedLeads]);
+
+  const totalActivePipelineBudget = useMemo(() => {
+    return activeAssignedLeads.reduce((sum, l) => sum + (Number(l.budgetInr) || 0), 0);
+  }, [activeAssignedLeads]);
+
+  const appointmentCount = useMemo(() => {
+    return siteVisitsScheduled.length + followUpsDue.length;
+  }, [siteVisitsScheduled, followUpsDue]);
 
   const isSalesManager = isSalesManagerExperience({
     persona,
@@ -428,262 +481,459 @@ export function FortDashboard({ fort, roles, workspace, persona }: FortDashboard
   }, [teamLeads]);
 
   if (isSalesExecutive) {
+    const queueItems =
+      queueTab === "followups"
+        ? followUpsDue
+        : queueTab === "sitevisits"
+          ? siteVisitsScheduled
+          : queueTab === "negotiations"
+            ? activeNegotiations
+            : assignedLeads;
+
     return (
-      <div className="relative w-full max-w-[1600px] mx-auto space-y-4 font-sans antialiased text-[#181B22] bg-[#FAF7F2] p-3 sm:p-5 rounded-3xl border border-[#EADBCA] shadow-inner">
-        {/* ── Top Hero: Sales Executive Virtual Office Executive Header ── */}
-        <section className="relative overflow-hidden rounded-2xl border border-[#D8C7A5] bg-gradient-to-r from-[#0C0E12] via-[#141720] to-[#0C0E12] py-3.5 px-5 shadow-xl text-stone-100">
+      <div className="relative w-full max-w-[1600px] mx-auto space-y-6 font-sans antialiased text-[#181B22]">
+        {/* ── 1. WELCOME & DAILY COMMAND STRIP ── */}
+        <section className="relative overflow-hidden rounded-3xl border border-[#D8C7A5] bg-gradient-to-r from-[#0C0E12] via-[#141720] to-[#0C0E12] p-5 sm:p-6 shadow-xl text-stone-100">
           <GoldTerrainBackground />
 
-          <div className="relative z-10 flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-3.5">
-              <SpartanShieldIcon size={42} className="hover:scale-105 transition-transform duration-300 shrink-0" />
-              <div>
-                <div className="flex flex-wrap items-center gap-2.5">
-                  <h1 className="font-serif text-lg font-bold tracking-[0.22em] text-white uppercase leading-none">
-                    SENTINEL FORT
-                  </h1>
-                  <span className="inline-flex items-center gap-1 rounded-full bg-[#FF7722]/15 border border-[#FF7722]/40 px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.2em] text-[#FF8833] shadow-xs">
-                    <Sparkles className="h-2.5 w-2.5" /> MY VIRTUAL OFFICE
+          <div className="relative z-10 flex flex-col gap-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-3.5">
+                <SpartanShieldIcon size={44} className="hover:scale-105 transition-transform duration-300 shrink-0" />
+                <div>
+                  <div className="flex flex-wrap items-center gap-2.5">
+                    <h1 className="font-serif text-lg sm:text-xl font-bold tracking-[0.18em] text-white uppercase leading-none">
+                      Good Morning, {userName}
+                    </h1>
+                    <span className="inline-flex items-center gap-1 rounded-full bg-[#FF7722]/15 border border-[#FF7722]/40 px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.2em] text-[#FF8833] shadow-xs">
+                      <Sparkles className="h-2.5 w-2.5" /> PERSONAL SALES SUITE
+                    </span>
+                  </div>
+                  <p className="mt-1 text-xs text-[#E5C368] font-medium">
+                    Sales Executive Virtual Office · Client Consultation, Pipeline Velocity & Transaction Orchestration
+                  </p>
+                </div>
+              </div>
+
+              {/* Status and Workspace Badge */}
+              {workspace && (
+                <div className="flex flex-wrap items-center gap-2 text-[10px]">
+                  <span className="font-semibold text-stone-300">
+                    {workspace.workspaceName ?? "Sentinel Fort HQ"}
+                  </span>
+                  {workspace.workspacePublicId && (
+                    <span className="rounded-full border border-[#483B1C] bg-[#161B26] px-2.5 py-0.5 font-mono text-[9px] text-[#E5C368] font-bold shadow-2xs">
+                      {workspace.workspacePublicId}
+                    </span>
+                  )}
+                  <span className="flex items-center gap-1 text-[9px] font-bold text-emerald-400 bg-emerald-950/70 border border-emerald-700/80 rounded-full px-2.5 py-0.5">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    {workspace.status}
                   </span>
                 </div>
-                <div className="mt-1 flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-[0.2em] text-[#D4AF37]">
-                  <span>INTELLIGENCE</span>
-                  <span className="text-[7px] text-[#FF7722]">✦</span>
-                  <span>PIPELINE</span>
-                  <span className="text-[7px] text-[#FF7722]">✦</span>
-                  <span>DEALS</span>
+              )}
+            </div>
+
+            {/* Daily Operational Metrics Strip (Truthful Live Data Only) */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 pt-3 border-t border-[#332A18]/80 text-xs">
+              <div className="rounded-xl border border-[#2B2315] bg-[#151922]/80 p-2.5">
+                <span className="text-[10px] uppercase font-bold text-[#8C8477]">Assigned Leads</span>
+                <div className="text-base font-bold font-mono text-white mt-0.5">
+                  {assignedLeadsLoading ? "…" : assignedLeads.length.toLocaleString()}
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-[#2B2315] bg-[#151922]/80 p-2.5">
+                <span className="text-[10px] uppercase font-bold text-[#8C8477]">Active Pipeline</span>
+                <div className="text-base font-bold font-mono text-[#E5C368] mt-0.5">
+                  {assignedLeadsLoading ? "…" : activeAssignedLeads.length.toLocaleString()}
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-[#2B2315] bg-[#151922]/80 p-2.5">
+                <span className="text-[10px] uppercase font-bold text-[#8C8477]">Follow-ups Due</span>
+                <div className="text-base font-bold font-mono text-[#FF8833] mt-0.5">
+                  {assignedLeadsLoading ? "…" : followUpsDue.length.toLocaleString()}
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-[#2B2315] bg-[#151922]/80 p-2.5">
+                <span className="text-[10px] uppercase font-bold text-[#8C8477]">Site Visits</span>
+                <div className="text-base font-bold font-mono text-[#38BDF8] mt-0.5">
+                  {assignedLeadsLoading ? "…" : siteVisitsScheduled.length.toLocaleString()}
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-[#2B2315] bg-[#151922]/80 p-2.5">
+                <span className="text-[10px] uppercase font-bold text-[#8C8477]">Active Deals</span>
+                <div className="text-base font-bold font-mono text-emerald-400 mt-0.5">
+                  {previewsLoaded && dealCount !== null ? dealCount.toLocaleString() : "…"}
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-[#2B2315] bg-[#151922]/80 p-2.5">
+                <span className="text-[10px] uppercase font-bold text-[#8C8477]">Pipeline Budget</span>
+                <div className="text-base font-bold font-mono text-[#D4AF37] mt-0.5 truncate">
+                  {assignedLeadsLoading ? "…" : formatPipelineBudgetInr(totalActivePipelineBudget)}
                 </div>
               </div>
             </div>
-
-            {/* Right: Authenticated Identity & Live Workspace Badges */}
-            {workspace && (
-              <div className="flex flex-wrap items-center gap-2 text-[10px]">
-                <span className="font-semibold text-stone-300">
-                  {workspace.workspaceName ?? "Sentinel Fort HQ"}
-                </span>
-                {workspace.workspacePublicId && (
-                  <span className="rounded-full border border-[#483B1C] bg-[#161B26] px-2.5 py-0.5 font-mono text-[9px] text-[#E5C368] font-bold shadow-2xs">
-                    {workspace.workspacePublicId}
-                  </span>
-                )}
-                <span className="rounded-full bg-[#241F14] border border-[#7A642B] px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[#F3D78A]">
-                  Sales Executive
-                </span>
-                <span className="flex items-center gap-1 text-[9px] font-bold text-emerald-400 bg-emerald-950/70 border border-emerald-700/80 rounded-full px-2.5 py-0.5">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                  {workspace.status}
-                </span>
-              </div>
-            )}
           </div>
         </section>
 
-        {/* ── 4 PRIMARY VIRTUAL OFFICE WORKSTATION CARDS (Pearl / Warm Cream + Black + Gold + Saffron) ── */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-          {/* 1. My Leads */}
-          <div className="group rounded-2xl p-4 flex flex-col justify-between border border-[#EADBCA] bg-gradient-to-br from-[#FFFFFF] via-[#FAF7F2] to-[#F5EFE6] shadow-sm hover:shadow-md hover:border-[#D4AF37] transition-all duration-200 min-h-[165px]">
-            <div>
-              <div className="flex items-start justify-between">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#12141A] border border-[#C5A059]/40 text-[#D4AF37] shadow-xs group-hover:scale-105 transition-transform">
-                  <Users className="h-5 w-5" />
-                </div>
-                <span className="rounded-full bg-[#FFF2EA] border border-[#FFD8C2] px-2.5 py-0.5 text-[10px] font-mono font-bold text-[#C85A0D]">
-                  {assignedLeadsLoading ? "…" : `${assignedLeads.length} Leads`}
-                </span>
-              </div>
-              <div className="mt-3">
-                <div className="flex items-center gap-1.5">
-                  <h3 className="text-sm font-bold text-[#141720] tracking-tight font-sans">MY LEADS</h3>
-                  <span className="h-1.5 w-1.5 rounded-full bg-[#E06A1A]" />
-                </div>
-                <p className="text-xs text-[#6B655B] font-medium mt-0.5">Assigned CRM prospects & active pipeline</p>
-              </div>
-            </div>
-            <div className="mt-3 pt-3 border-t border-[#EADBCA]/80">
-              <Link
-                to="/app/leads"
-                className="block w-full py-1.5 rounded-xl text-xs text-center font-bold bg-[#12141A] text-[#E5C368] hover:bg-[#1C202B] hover:text-[#FFF] hover:border-[#D4AF37] border border-[#2B313F] transition-all shadow-xs"
-              >
-                Open My Leads
-              </Link>
-            </div>
+        {/* ── 2. PRIMARY OFFICE MODULES (The 6 Main Navigation Workstations) ── */}
+        <section className="space-y-3">
+          <div className="flex items-center justify-between px-1">
+            <h2 className="font-serif text-base font-bold tracking-wide text-[#141720] uppercase">
+              Office Workstations & Navigation
+            </h2>
+            <span className="text-xs text-[#8C8477] font-medium hidden sm:inline">
+              Personal Virtual Office Surfaces
+            </span>
           </div>
 
-          {/* 2. My Appointments */}
-          <div className="group rounded-2xl p-4 flex flex-col justify-between border border-[#EADBCA] bg-gradient-to-br from-[#FFFFFF] via-[#FAF7F2] to-[#F5EFE6] shadow-sm hover:shadow-md hover:border-[#D4AF37] transition-all duration-200 min-h-[165px]">
-            <div>
-              <div className="flex items-start justify-between">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#12141A] border border-[#C5A059]/40 text-[#D4AF37] shadow-xs group-hover:scale-105 transition-transform">
-                  <Clock className="h-5 w-5" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4.5">
+            {/* 1. MY LEADS */}
+            <div className="group rounded-2xl p-4.5 flex flex-col justify-between border border-[#EADBCA] bg-gradient-to-br from-[#FFFFFF] via-[#FAF7F2] to-[#F5EFE6] shadow-sm hover:shadow-md hover:border-[#D4AF37] transition-all duration-200 min-h-[190px]">
+              <div>
+                <div className="flex items-start justify-between">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#12141A] border border-[#C5A059]/40 text-[#D4AF37] shadow-xs group-hover:scale-105 transition-transform">
+                    <Users className="h-5 w-5" />
+                  </div>
+                  <span className="rounded-full bg-[#FFF2EA] border border-[#FFD8C2] px-2.5 py-0.5 text-[10px] font-mono font-bold text-[#C85A0D]">
+                    {assignedLeadsLoading ? "…" : `${assignedLeads.length} Assigned`}
+                  </span>
                 </div>
-                <span className="rounded-full bg-[#FFF8EB] border border-[#FDE6B8] px-2.5 py-0.5 text-[10px] font-mono font-bold text-[#B87A14]">
-                  {assignedLeadsLoading ? "…" : `${appointmentCount} Active`}
-                </span>
+                <div className="mt-3.5">
+                  <div className="flex items-center gap-1.5">
+                    <h3 className="text-sm font-bold text-[#141720] tracking-tight">MY LEADS</h3>
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#E06A1A]" />
+                  </div>
+                  <p className="text-xs text-[#6B655B] font-medium mt-0.5 leading-relaxed">
+                    Capture, qualify and manage assigned prospect consultations and stage velocity.
+                  </p>
+                  <div className="mt-2 text-[11px] font-semibold text-[#8C8477]">
+                    {assignedLeadsLoading ? "…" : `${activeAssignedLeads.length} active opportunities in pipeline`}
+                  </div>
+                </div>
               </div>
-              <div className="mt-3">
-                <div className="flex items-center gap-1.5">
-                  <h3 className="text-sm font-bold text-[#141720] tracking-tight font-sans">MY APPOINTMENTS</h3>
-                  <span className="h-1.5 w-1.5 rounded-full bg-[#D4AF37]" />
-                </div>
-                <p className="text-xs text-[#6B655B] font-medium mt-0.5">Site visits & scheduled follow-up agenda</p>
+              <div className="mt-4 pt-3 border-t border-[#EADBCA]/80">
+                <Link
+                  to="/app/leads"
+                  className="block w-full py-2 rounded-xl text-xs text-center font-bold bg-[#12141A] text-[#E5C368] hover:bg-[#1C202B] hover:text-[#FFF] hover:border-[#D4AF37] border border-[#2B313F] transition-all shadow-xs"
+                >
+                  Open Leads
+                </Link>
               </div>
             </div>
-            <div className="mt-3 pt-3 border-t border-[#EADBCA]/80">
-              <Link
-                to="/app/crm"
-                className="block w-full py-1.5 rounded-xl text-xs text-center font-bold bg-[#12141A] text-[#E5C368] hover:bg-[#1C202B] hover:text-[#FFF] hover:border-[#D4AF37] border border-[#2B313F] transition-all shadow-xs"
-              >
-                Open Schedule
-              </Link>
-            </div>
-          </div>
 
-          {/* 3. Sales Inventory (Read-Only Information Surface) */}
-          <div className="group rounded-2xl p-4 flex flex-col justify-between border border-[#EADBCA] bg-gradient-to-br from-[#FFFFFF] via-[#FAF7F2] to-[#F5EFE6] shadow-sm hover:shadow-md hover:border-[#D4AF37] transition-all duration-200 min-h-[165px]">
-            <div>
-              <div className="flex items-start justify-between">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#12141A] border border-[#C5A059]/40 text-[#D4AF37] shadow-xs group-hover:scale-105 transition-transform">
-                  <Building2 className="h-5 w-5" />
+            {/* 2. MY APPOINTMENTS */}
+            <div className="group rounded-2xl p-4.5 flex flex-col justify-between border border-[#EADBCA] bg-gradient-to-br from-[#FFFFFF] via-[#FAF7F2] to-[#F5EFE6] shadow-sm hover:shadow-md hover:border-[#D4AF37] transition-all duration-200 min-h-[190px]">
+              <div>
+                <div className="flex items-start justify-between">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#12141A] border border-[#C5A059]/40 text-[#D4AF37] shadow-xs group-hover:scale-105 transition-transform">
+                    <Calendar className="h-5 w-5" />
+                  </div>
+                  <span className="rounded-full bg-[#FFF8EB] border border-[#FDE6B8] px-2.5 py-0.5 text-[10px] font-mono font-bold text-[#B87A14]">
+                    {assignedLeadsLoading ? "…" : `${siteVisitsScheduled.length + followUpsDue.length} Agenda`}
+                  </span>
                 </div>
-                <span className="rounded-full bg-[#F3EFE6] border border-[#DDD5C5] px-2.5 py-0.5 text-[10px] font-mono font-bold text-[#4A453A]">
-                  {previewsLoaded && marketplacePropertyCount !== null
-                    ? `${marketplacePropertyCount} ${marketplacePropertyCount === 1 ? "Property" : "Properties"}`
-                    : "Catalog"}
-                </span>
+                <div className="mt-3.5">
+                  <div className="flex items-center gap-1.5">
+                    <h3 className="text-sm font-bold text-[#141720] tracking-tight">MY APPOINTMENTS</h3>
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#D4AF37]" />
+                  </div>
+                  <p className="text-xs text-[#6B655B] font-medium mt-0.5 leading-relaxed">
+                    Scheduled on-site property walkthroughs and client consultation calls.
+                  </p>
+                  <div className="mt-2 text-[11px] font-semibold text-[#8C8477]">
+                    {assignedLeadsLoading ? "…" : `${siteVisitsScheduled.length} site visits · ${followUpsDue.length} follow-ups scheduled`}
+                  </div>
+                </div>
               </div>
-              <div className="mt-3">
-                <div className="flex items-center gap-1.5">
-                  <h3 className="text-sm font-bold text-[#141720] tracking-tight font-sans">PROJECT SALES INVENTORY</h3>
-                  <span className="rounded bg-[#FFF4EB] border border-[#FFD8C2] px-1.5 py-0.2 text-[8px] font-bold text-[#C85A0D] uppercase tracking-wider">
+              <div className="mt-4 pt-3 border-t border-[#EADBCA]/80">
+                <Link
+                  to="/app/leads"
+                  className="block w-full py-2 rounded-xl text-xs text-center font-bold bg-[#12141A] text-[#E5C368] hover:bg-[#1C202B] hover:text-[#FFF] hover:border-[#D4AF37] border border-[#2B313F] transition-all shadow-xs"
+                >
+                  Open Schedule
+                </Link>
+              </div>
+            </div>
+
+            {/* 3. SALES INVENTORY */}
+            <div className="group rounded-2xl p-4.5 flex flex-col justify-between border border-[#EADBCA] bg-gradient-to-br from-[#FFFFFF] via-[#FAF7F2] to-[#F5EFE6] shadow-sm hover:shadow-md hover:border-[#D4AF37] transition-all duration-200 min-h-[190px]">
+              <div>
+                <div className="flex items-start justify-between">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#12141A] border border-[#C5A059]/40 text-[#D4AF37] shadow-xs group-hover:scale-105 transition-transform">
+                    <Building2 className="h-5 w-5" />
+                  </div>
+                  <span className="rounded bg-[#FFF4EB] border border-[#FFD8C2] px-2 py-0.5 text-[9px] font-bold text-[#C85A0D] uppercase tracking-wider">
                     VIEW ONLY
                   </span>
                 </div>
-                <p className="text-xs text-[#6B655B] font-medium mt-0.5">Property catalog available for sales reference</p>
-              </div>
-            </div>
-            <div className="mt-3 pt-3 border-t border-[#EADBCA]/80">
-              <Link
-                to="/app/marketplace"
-                className="block w-full py-1.5 rounded-xl text-xs text-center font-bold bg-[#12141A] text-[#E5C368] hover:bg-[#1C202B] hover:text-[#FFF] hover:border-[#D4AF37] border border-[#2B313F] transition-all shadow-xs"
-              >
-                View Stock
-              </Link>
-            </div>
-          </div>
-
-          {/* 4. My Performance */}
-          <div className="group rounded-2xl p-4 flex flex-col justify-between border border-[#EADBCA] bg-gradient-to-br from-[#FFFFFF] via-[#FAF7F2] to-[#F5EFE6] shadow-sm hover:shadow-md hover:border-[#D4AF37] transition-all duration-200 min-h-[165px]">
-            <div>
-              <div className="flex items-start justify-between">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#12141A] border border-[#C5A059]/40 text-[#D4AF37] shadow-xs group-hover:scale-105 transition-transform">
-                  <Award className="h-5 w-5" />
+                <div className="mt-3.5">
+                  <div className="flex items-center gap-1.5">
+                    <h3 className="text-sm font-bold text-[#141720] tracking-tight">SALES INVENTORY</h3>
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#D4AF37]" />
+                  </div>
+                  <p className="text-xs text-[#6B655B] font-medium mt-0.5 leading-relaxed">
+                    Authorized project and property catalog available for sales consultation reference.
+                  </p>
+                  <div className="mt-2 text-[11px] font-semibold text-[#8C8477]">
+                    {propertiesLoading ? "…" : `${properties.length > 0 ? properties.length : (marketplacePropertyCount ?? 'Live')} verified project portfolios`}
+                  </div>
                 </div>
-                <span className="rounded-full bg-emerald-50 border border-emerald-300 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700 flex items-center gap-1">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-600 animate-pulse" /> Live
-                </span>
               </div>
-              <div className="mt-3">
-                <div className="flex items-center gap-1.5">
-                  <h3 className="text-sm font-bold text-[#141720] tracking-tight font-sans">MY PERFORMANCE</h3>
-                  <span className="h-1.5 w-1.5 rounded-full bg-[#059669]" />
+              <div className="mt-4 pt-3 border-t border-[#EADBCA]/80">
+                <Link
+                  to="/app/marketplace"
+                  className="block w-full py-2 rounded-xl text-xs text-center font-bold bg-[#12141A] text-[#E5C368] hover:bg-[#1C202B] hover:text-[#FFF] hover:border-[#D4AF37] border border-[#2B313F] transition-all shadow-xs"
+                >
+                  View Stock
+                </Link>
+              </div>
+            </div>
+
+            {/* 4. MY DEALS */}
+            <div className="group rounded-2xl p-4.5 flex flex-col justify-between border border-[#EADBCA] bg-gradient-to-br from-[#FFFFFF] via-[#FAF7F2] to-[#F5EFE6] shadow-sm hover:shadow-md hover:border-[#D4AF37] transition-all duration-200 min-h-[190px]">
+              <div>
+                <div className="flex items-start justify-between">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#12141A] border border-[#C5A059]/40 text-[#D4AF37] shadow-xs group-hover:scale-105 transition-transform">
+                    <Handshake className="h-5 w-5" />
+                  </div>
+                  <span className="rounded-full bg-emerald-50 border border-emerald-300 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700">
+                    {previewsLoaded && dealCount !== null ? `${dealCount} Active` : "Deal Room 2.0"}
+                  </span>
                 </div>
-                <p className="text-xs text-[#6B655B] font-medium mt-0.5">Conversion velocity & personal closure metrics</p>
+                <div className="mt-3.5">
+                  <div className="flex items-center gap-1.5">
+                    <h3 className="text-sm font-bold text-[#141720] tracking-tight">MY DEALS</h3>
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-600" />
+                  </div>
+                  <p className="text-xs text-[#6B655B] font-medium mt-0.5 leading-relaxed">
+                    Active digital closing rooms, client negotiations, and transaction progress.
+                  </p>
+                  <div className="mt-2 text-[11px] font-semibold text-[#8C8477]">
+                    Assignment-scoped deal rooms & closing milestones
+                  </div>
+                </div>
+              </div>
+              <div className="mt-4 pt-3 border-t border-[#EADBCA]/80">
+                <Link
+                  to="/app/dealrooms"
+                  className="block w-full py-2 rounded-xl text-xs text-center font-bold bg-[#12141A] text-[#E5C368] hover:bg-[#1C202B] hover:text-[#FFF] hover:border-[#D4AF37] border border-[#2B313F] transition-all shadow-xs"
+                >
+                  Open Deal Rooms
+                </Link>
               </div>
             </div>
-            <div className="mt-3 pt-3 border-t border-[#EADBCA]/80">
-              <Link
-                to="/app/crm"
-                className="block w-full py-1.5 rounded-xl text-xs text-center font-bold bg-[#12141A] text-[#E5C368] hover:bg-[#1C202B] hover:text-[#FFF] hover:border-[#D4AF37] border border-[#2B313F] transition-all shadow-xs"
-              >
-                View Metrics
-              </Link>
+
+            {/* 5. MY PERFORMANCE */}
+            <div className="group rounded-2xl p-4.5 flex flex-col justify-between border border-[#EADBCA] bg-gradient-to-br from-[#FFFFFF] via-[#FAF7F2] to-[#F5EFE6] shadow-sm hover:shadow-md hover:border-[#D4AF37] transition-all duration-200 min-h-[190px]">
+              <div>
+                <div className="flex items-start justify-between">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#12141A] border border-[#C5A059]/40 text-[#D4AF37] shadow-xs group-hover:scale-105 transition-transform">
+                    <TrendingUp className="h-5 w-5" />
+                  </div>
+                  <span className="rounded-full bg-emerald-50 border border-emerald-300 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700 flex items-center gap-1">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-600 animate-pulse" /> Live Scoped
+                  </span>
+                </div>
+                <div className="mt-3.5">
+                  <div className="flex items-center gap-1.5">
+                    <h3 className="text-sm font-bold text-[#141720] tracking-tight">MY PERFORMANCE</h3>
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#059669]" />
+                  </div>
+                  <p className="text-xs text-[#6B655B] font-medium mt-0.5 leading-relaxed">
+                    Personal conversion velocity, consultation response time, and closure metrics.
+                  </p>
+                  <div className="mt-2 text-[11px] font-semibold text-[#8C8477]">
+                    {assignedLeadsLoading ? "…" : `${bookedLeads.length} booked conversions · Isolated from team BI`}
+                  </div>
+                </div>
+              </div>
+              <div className="mt-4 pt-3 border-t border-[#EADBCA]/80">
+                <Link
+                  to="/app/crm"
+                  className="block w-full py-2 rounded-xl text-xs text-center font-bold bg-[#12141A] text-[#E5C368] hover:bg-[#1C202B] hover:text-[#FFF] hover:border-[#D4AF37] border border-[#2B313F] transition-all shadow-xs"
+                >
+                  View Metrics
+                </Link>
+              </div>
+            </div>
+
+            {/* 6. MESSAGES */}
+            <div className="group rounded-2xl p-4.5 flex flex-col justify-between border border-[#EADBCA] bg-gradient-to-br from-[#FFFFFF] via-[#FAF7F2] to-[#F5EFE6] shadow-sm hover:shadow-md hover:border-[#D4AF37] transition-all duration-200 min-h-[190px]">
+              <div>
+                <div className="flex items-start justify-between">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#12141A] border border-[#C5A059]/40 text-[#D4AF37] shadow-xs group-hover:scale-105 transition-transform">
+                    <Mail className="h-5 w-5" />
+                  </div>
+                  <span className="rounded-full bg-[#F3EFE6] border border-[#DDD5C5] px-2.5 py-0.5 text-[10px] font-mono font-bold text-[#4A453A]">
+                    Direct Channel
+                  </span>
+                </div>
+                <div className="mt-3.5">
+                  <div className="flex items-center gap-1.5">
+                    <h3 className="text-sm font-bold text-[#141720] tracking-tight">MESSAGES</h3>
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#3B82F6]" />
+                  </div>
+                  <p className="text-xs text-[#6B655B] font-medium mt-0.5 leading-relaxed">
+                    Internal communications, management directives, and workspace updates.
+                  </p>
+                  <div className="mt-2 text-[11px] font-semibold text-[#8C8477]">
+                    Direct collaboration with sales manager and project leads
+                  </div>
+                </div>
+              </div>
+              <div className="mt-4 pt-3 border-t border-[#EADBCA]/80">
+                <Link
+                  to="/app/messages"
+                  className="block w-full py-2 rounded-xl text-xs text-center font-bold bg-[#12141A] text-[#E5C368] hover:bg-[#1C202B] hover:text-[#FFF] hover:border-[#D4AF37] border border-[#2B313F] transition-all shadow-xs"
+                >
+                  Open Messages
+                </Link>
+              </div>
             </div>
           </div>
-        </div>
+        </section>
 
-        {/* ── Visual Inventory Future-Ready Scope (Read-Only Status Overview) ── */}
-        <div className="rounded-2xl border border-[#EADBCA] bg-gradient-to-r from-[#FFFFFF] via-[#FAF8F5] to-[#F7F2EA] p-3.5 shadow-xs flex flex-wrap items-center justify-between gap-3 text-xs">
-          <div className="flex items-center gap-2.5">
-            <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-[#12141A] text-[#D4AF37] text-[10px] font-bold">
-              ✦
-            </span>
-            <div>
-              <span className="font-bold text-[#141720]">Project Inventory Legend: </span>
-              <span className="text-[#6B655B]">Future visual layout will display unit availability using these statuses.</span>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 text-[11px] font-medium">
-            <span className="inline-flex items-center gap-1 text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-600" /> Available
-            </span>
-            <span className="inline-flex items-center gap-1 text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
-              <span className="h-1.5 w-1.5 rounded-full bg-amber-500" /> Under Offer
-            </span>
-            <span className="inline-flex items-center gap-1 text-stone-600 bg-stone-100 px-2 py-0.5 rounded-full border border-stone-200">
-              <span className="h-1.5 w-1.5 rounded-full bg-stone-400" /> Booked
-            </span>
-          </div>
-        </div>
-
-        {/* ── MY ASSIGNED LEADS LIVE TABLE (Pearl / Cream + Black + Gold + Saffron) ── */}
-        <section className="rounded-2xl p-4 sm:p-5 border border-[#EADBCA] bg-gradient-to-b from-[#FFFFFF] via-[#FAF8F4] to-[#F5EFE6] shadow-md space-y-4">
-          <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-[#E8DFC8]">
+        {/* ── 3. TODAY'S OFFICE / WORK QUEUE ── */}
+        <section className="rounded-3xl p-5 sm:p-6 border border-[#EADBCA] bg-gradient-to-b from-[#FFFFFF] via-[#FAF8F4] to-[#F5EFE6] shadow-md space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[#E8DFC8]">
             <div className="flex items-center gap-2.5">
               <span className="h-2.5 w-2.5 rounded-full bg-[#E06A1A] animate-pulse" />
-              <h2 className="font-serif text-base font-bold text-[#141720]">
-                My Assigned Leads
-              </h2>
-              <span className="rounded-full bg-[#FFF2EA] border border-[#FFD8C2] px-2.5 py-0.5 text-[10px] font-mono font-bold text-[#C85A0D]">
-                {assignedLeadsLoading ? "…" : `${assignedLeads.length} Total`}
-              </span>
+              <div>
+                <h2 className="font-serif text-base sm:text-lg font-bold text-[#141720]">
+                  TODAY'S OFFICE · WORK QUEUE
+                </h2>
+                <p className="text-xs text-[#6B655B] font-medium">
+                  Active consultation priorities, follow-ups due, and scheduled site visits
+                </p>
+              </div>
             </div>
-            <Link
-              to="/app/crm"
-              className="inline-flex items-center gap-1 text-xs font-bold text-[#C85A0D] hover:text-[#9A4205] transition-colors"
-            >
-              <span>Go to CRM Pipeline</span>
-              <ChevronRight className="h-3.5 w-3.5" />
-            </Link>
+
+            {/* Filter Tabs */}
+            <div className="flex flex-wrap items-center gap-1.5 bg-[#EFE8DC] p-1 rounded-xl border border-[#DDD5C5]">
+              <button
+                type="button"
+                onClick={() => setQueueTab("all")}
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                  queueTab === "all"
+                    ? "bg-[#12141A] text-[#E5C368] shadow-xs"
+                    : "text-[#6B655B] hover:text-[#141720]"
+                }`}
+              >
+                All Assigned ({assignedLeads.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setQueueTab("followups")}
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                  queueTab === "followups"
+                    ? "bg-[#12141A] text-[#E5C368] shadow-xs"
+                    : "text-[#6B655B] hover:text-[#141720]"
+                }`}
+              >
+                Follow-ups Due ({followUpsDue.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setQueueTab("sitevisits")}
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                  queueTab === "sitevisits"
+                    ? "bg-[#12141A] text-[#E5C368] shadow-xs"
+                    : "text-[#6B655B] hover:text-[#141720]"
+                }`}
+              >
+                Site Visits ({siteVisitsScheduled.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setQueueTab("negotiations")}
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                  queueTab === "negotiations"
+                    ? "bg-[#12141A] text-[#E5C368] shadow-xs"
+                    : "text-[#6B655B] hover:text-[#141720]"
+                }`}
+              >
+                Negotiations ({activeNegotiations.length})
+              </button>
+            </div>
           </div>
 
+          {/* Queue Content */}
           {assignedLeadsLoading ? (
-            <div className="p-8 text-center text-sm text-[#8C8477] animate-pulse">
-              Loading assigned leads from Sentinel Fort…
+            <div className="p-10 text-center text-sm text-[#8C8477] animate-pulse">
+              Loading daily work queue from Sentinel Fort…
             </div>
-          ) : assignedLeads.length === 0 ? (
-            <div className="p-8 text-center space-y-2 rounded-xl border border-[#E5DBCA] bg-[#FFFFFF]">
-              <Users className="h-8 w-8 mx-auto text-[#B5ABA0]" />
-              <p className="text-sm font-bold text-[#2A2E39]">No leads currently assigned</p>
+          ) : queueItems.length === 0 ? (
+            <div className="p-10 text-center space-y-2 rounded-2xl border border-[#E5DBCA] bg-white">
+              <Users className="h-9 w-9 mx-auto text-[#B5ABA0]" />
+              <p className="text-sm font-bold text-[#2A2E39]">
+                {queueTab === "followups"
+                  ? "No follow-ups due today"
+                  : queueTab === "sitevisits"
+                    ? "No site visits currently scheduled"
+                    : queueTab === "negotiations"
+                      ? "No deals currently in active negotiation"
+                      : "No leads currently assigned"}
+              </p>
               <p className="text-xs text-[#7A7366] max-w-sm mx-auto">
-                New prospect inquiries assigned to you by sales management will appear here for consultation and site visits.
+                {queueTab === "all"
+                  ? "New prospect inquiries assigned to you by sales management will appear here for client consultation."
+                  : "Prospects matching this work queue filter will appear here when scheduled or updated."}
               </p>
             </div>
           ) : (
-            <div className="overflow-x-auto rounded-xl border border-[#E8DFC8] bg-white shadow-2xs">
+            <div className="overflow-x-auto rounded-2xl border border-[#E8DFC8] bg-white shadow-2xs">
               <table className="w-full text-left text-xs text-[#2A2E39]">
                 <thead>
                   <tr className="border-b border-[#E8DFC8] bg-[#F7F2EA] text-[10px] uppercase tracking-wider text-[#6B655B] font-bold">
-                    <th className="py-2.5 px-4">Lead</th>
-                    <th className="py-2.5 px-4">Stage</th>
-                    <th className="py-2.5 px-4 text-right">Actions</th>
+                    <th className="py-3 px-4">Prospect / Client</th>
+                    <th className="py-3 px-4">Stage</th>
+                    <th className="py-3 px-4">Project & Budget</th>
+                    <th className="py-3 px-4">Scheduled Agenda</th>
+                    <th className="py-3 px-4 text-right">Action</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#EFE8DC]">
-                  {assignedLeads.map((lead) => (
+                  {queueItems.map((lead) => (
                     <tr key={lead.id} className="hover:bg-[#FAF7F2] transition-colors">
-                      <td className="py-3 px-4">
+                      <td className="py-3.5 px-4">
                         <div className="font-bold text-[#141720] text-sm">{lead.name}</div>
-                        <div className="text-[11px] text-[#6B655B] mt-0.5">
-                          {lead.project || "General Inquiry"} · <span className="text-[#A07015] font-semibold">{lead.budget}</span> · {lead.source || "Direct"}
+                        <div className="text-[11px] text-[#8C8477] mt-0.5">
+                          {lead.phone || lead.email || "Contact details on record"} · {lead.source || "Direct Inquiry"}
                         </div>
                       </td>
-                      <td className="py-3 px-4">
+                      <td className="py-3.5 px-4">
                         <span className="inline-flex items-center gap-1.5 rounded-full bg-[#F5EFE6] border border-[#DDD5C5] px-2.5 py-0.5 text-[11px] font-bold text-[#3A352C]">
                           {lead.stage}
                         </span>
                       </td>
-                      <td className="py-3 px-4 text-right">
+                      <td className="py-3.5 px-4">
+                        <div className="font-semibold text-[#141720]">{lead.project || "General Inquiry"}</div>
+                        <div className="text-[11px] text-[#C85A0D] font-mono font-bold mt-0.5">
+                          {lead.budgetInr ? formatPipelineBudgetInr(lead.budgetInr) : lead.budget || "Budget flexible"}
+                        </div>
+                      </td>
+                      <td className="py-3.5 px-4">
+                        {lead.siteVisitDate ? (
+                          <div className="inline-flex items-center gap-1 text-[11px] font-semibold text-sky-700 bg-sky-50 border border-sky-200 px-2 py-0.5 rounded-md">
+                            <Calendar className="h-3 w-3" />
+                            <span>Visit: {lead.siteVisitDate}</span>
+                          </div>
+                        ) : lead.followUpDate ? (
+                          <div className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md">
+                            <Clock className="h-3 w-3" />
+                            <span>Follow-up: {lead.followUpDate}</span>
+                          </div>
+                        ) : (
+                          <span className="text-[11px] text-[#8C8477]">No agenda date set</span>
+                        )}
+                      </td>
+                      <td className="py-3.5 px-4 text-right">
                         <Link
                           to="/app/leads"
                           search={{ leadId: lead.id } as any}
@@ -701,9 +951,133 @@ export function FortDashboard({ fort, roles, workspace, persona }: FortDashboard
           )}
         </section>
 
-        {/* ── Footer ── */}
-        <footer className="pt-2 border-t border-[#E8DFC8] text-center text-[10px] text-[#8C8477]">
-          <p>SENTINEL FORT · SALES EXECUTIVE VIRTUAL OFFICE · Pipeline, Appointments & Deal Orchestration.</p>
+        {/* ── 4. PROJECT SALES INVENTORY PREVIEW (View Only) ── */}
+        <section className="rounded-3xl p-5 sm:p-6 border border-[#EADBCA] bg-gradient-to-b from-[#FFFFFF] via-[#FAF8F4] to-[#F5EFE6] shadow-md space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[#E8DFC8]">
+            <div className="flex items-center gap-2.5">
+              <span className="h-2.5 w-2.5 rounded-full bg-[#D4AF37]" />
+              <div>
+                <div className="flex items-center gap-2">
+                  <h2 className="font-serif text-base sm:text-lg font-bold text-[#141720]">
+                    PROJECT SALES INVENTORY
+                  </h2>
+                  <span className="rounded bg-[#FFF4EB] border border-[#FFD8C2] px-2 py-0.5 text-[9px] font-bold text-[#C85A0D] uppercase tracking-wider">
+                    VIEW ONLY CATALOG
+                  </span>
+                </div>
+                <p className="text-xs text-[#6B655B] font-medium">
+                  Verified project portfolios available for client presentation & sales reference
+                </p>
+              </div>
+            </div>
+
+            <Link
+              to="/app/marketplace"
+              className="inline-flex items-center gap-1 rounded-xl border border-[#C5A059]/70 bg-[#12141A] px-3.5 py-1.5 text-xs font-bold text-[#E5C368] hover:bg-[#1E232E] hover:text-[#FFF] hover:border-[#D4AF37] transition-all shadow-xs"
+            >
+              <span>Explore Marketplace</span>
+              <ArrowUpRight className="h-3.5 w-3.5 text-[#FF7722]" />
+            </Link>
+          </div>
+
+          {/* Property Cards Grid */}
+          {propertiesLoading ? (
+            <div className="p-8 text-center text-sm text-[#8C8477] animate-pulse">
+              Loading inventory catalog from Sentinel Fort…
+            </div>
+          ) : properties.length === 0 ? (
+            <div className="p-8 text-center space-y-2 rounded-2xl border border-[#E5DBCA] bg-white">
+              <Building2 className="h-8 w-8 mx-auto text-[#B5ABA0]" />
+              <p className="text-sm font-bold text-[#2A2E39]">Inventory catalog available in Marketplace</p>
+              <p className="text-xs text-[#7A7366] max-w-sm mx-auto">
+                Explore the complete verified project listings in the Marketplace console.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {properties.slice(0, 4).map((prop) => (
+                <div
+                  key={prop.id}
+                  className="group rounded-2xl overflow-hidden border border-[#EADBCA] bg-white shadow-xs hover:shadow-md hover:border-[#D4AF37] transition-all duration-200 flex flex-col justify-between"
+                >
+                  <div className="relative h-32 w-full overflow-hidden bg-stone-100">
+                    <img
+                      src={prop.image || "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=600&q=80"}
+                      alt={prop.name}
+                      className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      loading="lazy"
+                    />
+                    {prop.tag && (
+                      <span className="absolute top-2 left-2 rounded-md bg-[#12141A]/90 backdrop-blur-xs border border-[#D4AF37]/50 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[#E5C368]">
+                        {prop.tag}
+                      </span>
+                    )}
+                    <span className="absolute top-2 right-2 rounded-md bg-[#FAF7F2]/95 border border-[#EADBCA] px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[#C85A0D]">
+                      VIEW ONLY
+                    </span>
+                  </div>
+
+                  <div className="p-3.5 space-y-2 flex-1 flex flex-col justify-between">
+                    <div>
+                      <div className="font-serif font-bold text-sm text-[#141720] group-hover:text-[#B8860B] transition-colors truncate">
+                        {prop.name}
+                      </div>
+                      <div className="text-[11px] text-[#6B655B] font-medium truncate mt-0.5">
+                        {prop.builder} · {prop.city}
+                      </div>
+                      <div className="flex items-center gap-1.5 text-[10px] text-[#8C8477] font-semibold mt-1">
+                        <span>{prop.config}</span>
+                        <span>•</span>
+                        <span>{prop.size}</span>
+                      </div>
+                    </div>
+
+                    <div className="pt-2.5 border-t border-[#EFE8DC] flex items-center justify-between">
+                      <div className="font-mono text-xs font-bold text-[#C85A0D]">
+                        {prop.priceLabel || (prop.price_inr ? formatPipelineBudgetInr(prop.price_inr) : "Price on Request")}
+                      </div>
+                      <Link
+                        to="/app/marketplace"
+                        className="inline-flex items-center gap-1 text-[11px] font-bold text-[#141720] hover:text-[#B8860B] transition-colors"
+                      >
+                        <span>Details</span>
+                        <ChevronRight className="h-3 w-3" />
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Visual Inventory Future-Ready Scope / Status Legend */}
+          <div className="rounded-2xl border border-[#EADBCA] bg-gradient-to-r from-[#FFFFFF] via-[#FAF8F5] to-[#F7F2EA] p-3.5 shadow-2xs flex flex-wrap items-center justify-between gap-3 text-xs">
+            <div className="flex items-center gap-2.5">
+              <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-[#12141A] text-[#D4AF37] text-[10px] font-bold">
+                ✦
+              </span>
+              <div>
+                <span className="font-bold text-[#141720]">Unit Availability Visualization: </span>
+                <span className="text-[#6B655B]">Future visual master plan layout will display plot/unit status using these indicators.</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 text-[11px] font-medium">
+              <span className="inline-flex items-center gap-1 text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-600" /> Available
+              </span>
+              <span className="inline-flex items-center gap-1 text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
+                <span className="h-1.5 w-1.5 rounded-full bg-amber-500" /> Under Offer
+              </span>
+              <span className="inline-flex items-center gap-1 text-stone-600 bg-stone-100 px-2.5 py-0.5 rounded-full border border-stone-200">
+                <span className="h-1.5 w-1.5 rounded-full bg-stone-400" /> Booked
+              </span>
+            </div>
+          </div>
+        </section>
+
+        {/* ── 5. FOOTER ── */}
+        <footer className="pt-3 border-t border-[#E8DFC8] text-center text-[10px] text-[#8C8477]">
+          <p>SENTINEL FORT · SALES EXECUTIVE VIRTUAL OFFICE · Personal Sales Suite, Client Consultation & Deal Orchestration.</p>
         </footer>
       </div>
     );
