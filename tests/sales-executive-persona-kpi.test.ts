@@ -1215,5 +1215,45 @@ describe("Sales Executive Persona & CRM KPI Scoping Remediation", () => {
       expect(formatUserDisplayName(null, null, "Custom Fallback")).toBe("Custom Fallback");
     });
   });
+
+  // ── 13. Sales Executive Voice Module Entitlement & Feature Flag Authority ──
+  describe("13. Sales Executive Voice Module Entitlement & Feature Flag Authority", () => {
+    it("hides /app/voice from Sales Executive sidebar when voice feature flag is false", () => {
+      const consoleModules = resolveConsoleModules(["agent"], { voice: false });
+      const visibleRoutes = activeConsoleRouteSet(consoleModules);
+
+      expect(visibleRoutes.has("/app/voice")).toBe(false);
+      expect(visibleRoutes.has("/app/leads")).toBe(true);
+      expect(visibleRoutes.has("/app/crm")).toBe(true);
+      expect(visibleRoutes.has("/app/marketplace")).toBe(true);
+      expect(visibleRoutes.has("/app/dealrooms")).toBe(true);
+
+      const voiceGrant = consoleModules.find((m) => m.route === "/app/voice");
+      expect(voiceGrant?.state).toBe("LOCKED");
+      expect(voiceGrant?.accessMode).toBe("LOCKED");
+    });
+
+    it("displays and activates /app/voice for Sales Executive when voice feature flag is true", () => {
+      const consoleModules = resolveConsoleModules(["agent"], { voice: true });
+      const visibleRoutes = activeConsoleRouteSet(consoleModules);
+
+      expect(visibleRoutes.has("/app/voice")).toBe(true);
+
+      const voiceGrant = consoleModules.find((m) => m.route === "/app/voice");
+      expect(voiceGrant?.state).toBe("ACTIVE");
+      expect(voiceGrant?.accessMode).toBe("OPERATIONAL");
+    });
+
+    it("denies route authorization when voice feature flag is false", () => {
+      expect(isRouteAuthorized(["agent"], "/app/voice", { voice: false })).toBe(false);
+      expect(isRouteAuthorized(["manager"], "/app/voice", { voice: false })).toBe(false);
+      expect(isRouteAuthorized(["admin"], "/app/voice", { voice: false })).toBe(false);
+
+      expect(isRouteAuthorized(["agent"], "/app/voice", { voice: true })).toBe(true);
+      expect(isRouteAuthorized(["manager"], "/app/voice", { voice: true })).toBe(true);
+      expect(isRouteAuthorized(["admin"], "/app/voice", { voice: true })).toBe(true);
+    });
+  });
 });
+
 

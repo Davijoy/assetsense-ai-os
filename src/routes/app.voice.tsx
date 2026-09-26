@@ -22,13 +22,25 @@ import { useState } from "react";
 export const Route = createFileRoute("/app/voice")({
   head: () => ({ meta: [{ title: "AI Voice — Sentinel Fort Group" }] }),
   beforeLoad: async ({ context, location }) => {
-    const roles = (context as any)?.user?.roles ?? (context as any)?.fort?.role?.appRoles ?? [];
-    if (roles.length > 0 && !isRouteAuthorized(roles, location.pathname)) {
+    const fort = (context as any)?.fort;
+    const roles = (context as any)?.user?.roles ?? fort?.role?.appRoles ?? [];
+    const featureFlags = fort?.featureFlags;
+
+    const voiceGrant =
+      fort?.consoleModules?.find((m: any) => m.route === "/app/voice") ??
+      fort?.modules?.find((m: any) => m.route === "/app/voice");
+
+    if (voiceGrant && voiceGrant.state !== "ACTIVE") {
+      throw redirect({ to: "/fort" });
+    }
+
+    if (roles.length > 0 && !isRouteAuthorized(roles, location.pathname, featureFlags)) {
       throw redirect({ to: "/fort" });
     }
   },
   component: VoiceDashboard,
 });
+
 
 const kpis = [
   { label: "Calls Today", value: "1,847", delta: "+24%", icon: PhoneCall },

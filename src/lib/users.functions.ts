@@ -263,21 +263,7 @@ const UpdateFeatureFlagInput = z.object({
   enabled: z.boolean(),
 });
 
-// In-memory feature flag cache with all primary Sentinel Fort modules
-const FEATURE_FLAGS_STORE: Record<string, boolean> = {
-  crm: true,
-  leads: true,
-  inventory: true,
-  marketplace: true,
-  marketing: true,
-  intelligence: true,
-  messages: true,
-  branding: true,
-  chat: true,
-  supreme_intelligence: true,
-  voice: true,
-  collections: true,
-};
+import { FEATURE_FLAGS_STORE } from "@/lib/services/feature-flags.service";
 
 export const listWorkspaceFeatureFlags = createServerFn({ method: "GET" })
   .middleware([requireAdmin])
@@ -299,6 +285,21 @@ export const updateWorkspaceFeatureFlag = createServerFn({ method: "POST" })
 
     const previousValue = FEATURE_FLAGS_STORE[flagKey] ?? true;
     FEATURE_FLAGS_STORE[flagKey] = enabled;
+
+    try {
+      await db
+        .from("feature_flags")
+        .upsert(
+          {
+            workspace_id: targetWorkspaceId,
+            flag_key: flagKey,
+            enabled,
+          },
+          { onConflict: "workspace_id,flag_key" },
+        );
+    } catch (ffErr) {
+      console.warn("[updateWorkspaceFeatureFlag] feature_flags upsert note:", ffErr);
+    }
 
     try {
       await db.from("audit_logs").insert({

@@ -48,6 +48,10 @@ import {
   provisionFortWorkspace,
 } from "@/lib/services/workspace.service";
 import {
+  getEffectiveFeatureFlags,
+  FEATURE_FLAGS_STORE,
+} from "@/lib/services/feature-flags.service";
+import {
   checkRoleSynchronization,
   defaultPersonaForRoles,
   formatCanonicalRoleLabel,
@@ -320,9 +324,19 @@ export const resolveFortWorkspace = createServerFn({ method: "GET" })
     // When status is not ACTIVE (e.g. role mismatch or unverified), data access fails closed.
     workspaceId = grantsVisible ? workspaceId : null;
 
-    // The console projection. Same verified roles, same vocabularies — so the
+    // --- feature flags resolution ---------------------------------------
+    let featureFlags: Record<string, boolean> = { ...FEATURE_FLAGS_STORE };
+    if (workspaceId) {
+      try {
+        featureFlags = await getEffectiveFeatureFlags(supabase, workspaceId);
+      } catch (fErr) {
+        console.warn("[fort] feature flags resolution warning:", fErr);
+      }
+    }
+
+    // The console projection. Same verified roles, same featureFlags, same vocabularies — so the
     // /app sidebar and the FORT surface can never disagree about access.
-    const consoleModules = grantsVisible ? resolveConsoleModules(appRoles) : [];
+    const consoleModules = grantsVisible ? resolveConsoleModules(appRoles, featureFlags) : [];
 
     // Where "Enter Workspace" opens. The user's own Fort persona preferred landing
     // is prioritized, then the Fort module order, then the first granted console route.
@@ -353,7 +367,7 @@ export const resolveFortWorkspace = createServerFn({ method: "GET" })
         : null,
       role: { appRoles: grantsVisible ? appRoles : [] },
       capabilities: grantsVisible ? resolveFortCapabilities(appRoles) : [],
-      modules: grantsVisible ? resolveFortModules(FORT_ROUTES, appRoles) : [],
+      modules: grantsVisible ? resolveFortModules(FORT_ROUTES, appRoles, featureFlags) : [],
       fort,
       consoleModules,
       landingRoute,
@@ -361,6 +375,7 @@ export const resolveFortWorkspace = createServerFn({ method: "GET" })
         workspaceId,
         workspaceIds: active.map((m) => m.workspaceId),
       },
+      featureFlags,
     };
   });
 

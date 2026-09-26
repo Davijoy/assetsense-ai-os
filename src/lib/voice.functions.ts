@@ -14,6 +14,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireRoles, type AppRole } from "@/integrations/supabase/role-middleware";
 import { getCurrentWorkspaceId } from "@/lib/services/workspace.service";
+import { isFlagEnabled } from "@/lib/services/feature-flags.service";
 import { z } from "zod";
 import {
   transcribeAudio,
@@ -64,7 +65,15 @@ export const getVoiceStatus = createServerFn({ method: "GET" })
  */
 export const getEphemeralVoiceToken = createServerFn({ method: "POST" })
   .middleware([requireRoles(ALL_ROLES)])
-  .handler(async (): Promise<EphemeralTokenResponse> => {
+  .handler(async ({ context }): Promise<EphemeralTokenResponse> => {
+    const { supabase, userId } = context as { supabase: any; userId: string };
+    const workspaceId = await getCurrentWorkspaceId(supabase, userId);
+    if (workspaceId) {
+      const voiceEnabled = await isFlagEnabled(supabase, workspaceId, "voice");
+      if (!voiceEnabled) {
+        throw new Error("VOICE_FEATURE_DISABLED: Voice capabilities are disabled by Platform Administration.");
+      }
+    }
     return createEphemeralToken(60);
   });
 
@@ -133,6 +142,15 @@ export const processVoiceTurn = createServerFn({ method: "POST" })
       throw new Error("VOICE_INFRASTRUCTURE_UNAVAILABLE: Deepgram voice layer is not configured.");
     }
 
+    // Resolve workspace
+    const workspaceId = data.workspaceId || (await getCurrentWorkspaceId(supabase, userId));
+    if (workspaceId) {
+      const voiceEnabled = await isFlagEnabled(supabase, workspaceId, "voice");
+      if (!voiceEnabled) {
+        throw new Error("VOICE_FEATURE_DISABLED: Voice capabilities are disabled by Platform Administration.");
+      }
+    }
+
     // 1. STT: Audio -> Text
     const audioBuffer = Buffer.from(data.audioBase64, "base64");
     const sttResult = await transcribeAudio(audioBuffer, data.mimeType);
@@ -141,9 +159,6 @@ export const processVoiceTurn = createServerFn({ method: "POST" })
     if (!transcript || transcript.trim().length === 0) {
       throw new Error("VOICE_NO_SPEECH_DETECTED: No intelligible speech recognized.");
     }
-
-    // Resolve workspace
-    const workspaceId = data.workspaceId || (await getCurrentWorkspaceId(supabase));
 
     // Lazy load processor at request time to preserve client bundling boundaries
     const { processAgentRequest } = await import("./supreme-agent-processor");

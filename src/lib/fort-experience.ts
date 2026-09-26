@@ -455,6 +455,8 @@ export interface FortWorkspaceContext {
    * set a workspace switch may ever select from.
    */
   scope: { workspaceId: string | null; workspaceIds: string[] };
+  /** Effective feature flags resolved for the workspace/user context. */
+  featureFlags?: Record<string, boolean>;
 }
 
 /**
@@ -484,6 +486,7 @@ export function fortFallbackContext(
     consoleModules: [],
     landingRoute: null,
     scope: { workspaceId: null, workspaceIds: [] },
+    featureFlags: {},
   };
 }
 

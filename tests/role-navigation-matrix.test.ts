@@ -219,5 +219,28 @@ describe("Role-Based Navigation Matrix & Central Access Authority", () => {
       const brandingGrant = grants.find((g) => g.route === "/app/settings/branding");
       expect(brandingGrant?.state).toBe("LOCKED");
     });
+
+    it("resolveConsoleModules and resolveFortModules hide /app/voice when voice flag is disabled", () => {
+      // Voice Disabled
+      const disabledConsole = resolveConsoleModules(["agent"], { voice: false });
+      const voiceConsoleGrant = disabledConsole.find((g) => g.route === "/app/voice");
+      expect(voiceConsoleGrant?.state).toBe("LOCKED");
+      expect(voiceConsoleGrant?.accessMode).toBe("LOCKED");
+
+      const disabledFort = resolveFortModules(["/app/voice", "/app/crm"], ["agent"], { voice: false });
+      const voiceFortGrant = disabledFort.find((g) => g.route === "/app/voice");
+      expect(voiceFortGrant?.state).toBe("LOCKED");
+      expect(voiceFortGrant?.accessMode).toBe("LOCKED");
+
+      const crmFortGrant = disabledFort.find((g) => g.route === "/app/crm");
+      expect(crmFortGrant?.state).toBe("ACTIVE");
+
+      // Voice Enabled
+      const enabledConsole = resolveConsoleModules(["agent"], { voice: true });
+      const voiceEnabledGrant = enabledConsole.find((g) => g.route === "/app/voice");
+      expect(voiceEnabledGrant?.state).toBe("ACTIVE");
+      expect(voiceEnabledGrant?.accessMode).toBe("OPERATIONAL");
+    });
   });
 });
+
