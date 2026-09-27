@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireRoles } from "@/integrations/supabase/role-middleware";
+import { supabaseAdmin, isServiceRoleAvailable } from "@/integrations/supabase/client.server";
 
 export type CRMKpiSnapshot = {
   totalInputLeads: number;
@@ -1299,7 +1300,9 @@ export const assignLeadToExecutive = createServerFn({ method: "POST" })
       throw new Error("ASSIGNEE_NOT_ELIGIBLE: User is not an active workspace member.");
     }
 
-    const { data: targetRoleRows, error: targetRoleError } = await supabase
+    const db = isServiceRoleAvailable() ? supabaseAdmin : supabase;
+
+    const { data: targetRoleRows, error: targetRoleError } = await db
       .from("user_roles")
       .select("role")
       .eq("user_id", targetExecutiveId);
@@ -1312,9 +1315,9 @@ export const assignLeadToExecutive = createServerFn({ method: "POST" })
       (targetRoleRows ?? []).map((row: any) => row.role)
     );
 
-    if (!targetRoles.has("agent") && !targetRoles.has("manager")) {
+    if (!targetRoles.has("agent")) {
       throw new Error(
-        "ASSIGNEE_NOT_ELIGIBLE: User must be a Sales Executive or Sales Manager."
+        "ASSIGNEE_NOT_ELIGIBLE: Assignee must hold the Sales Executive ('agent') role."
       );
     }
 
@@ -2825,11 +2828,13 @@ export const getWorkspaceTeamMembers = createServerFn({ method: "GET" })
       return [];
     }
 
+    const db = isServiceRoleAvailable() ? supabaseAdmin : supabase;
+
     const [
       { data: appRoleRows, error: appRoleError },
       { data: profileRows, error: profileError },
     ] = await Promise.all([
-      supabase
+      db
         .from("user_roles")
         .select("user_id, role")
         .in("user_id", memberUserIds),
@@ -2875,7 +2880,7 @@ export const getWorkspaceTeamMembers = createServerFn({ method: "GET" })
         return Boolean(
           profile &&
           appRoles &&
-          (appRoles.has("agent") || appRoles.has("manager"))
+          appRoles.has("agent")
         );
       })
       .map((m: any): TeamMember => {
@@ -2884,7 +2889,7 @@ export const getWorkspaceTeamMembers = createServerFn({ method: "GET" })
         const name =
           profile?.full_name ||
           profile?.email?.split("@")[0] ||
-          "Team Member";
+          "Sales Executive";
 
         const initials =
           name
@@ -2893,18 +2898,13 @@ export const getWorkspaceTeamMembers = createServerFn({ method: "GET" })
             .map((n: string) => n[0])
             .join("")
             .slice(0, 2)
-            .toUpperCase() || "TM";
-
-        const appRoles = rolesByUser.get(m.user_id);
-        const displayRole = appRoles?.has("manager")
-          ? "Sales Manager"
-          : "Sales Executive";
+            .toUpperCase() || "SE";
 
         return {
           id: m.user_id,
           name,
           initials,
-          role: displayRole,
+          role: "Sales Executive",
           email: profile?.email,
           status: m.status,
           avatarUrl: profile?.avatar_url,

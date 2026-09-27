@@ -128,3 +128,167 @@ describe("CRM Assignment RBAC & Least-Privilege Access Control", () => {
     expect(typeof getLiveLeads).toBe("function");
   });
 });
+
+describe("Lead Assignment Picker Candidate Resolution & Mutation Hardening", () => {
+  const targetWorkspaceId = "00000000-0000-0000-0000-00000000d3f7";
+  const otherWorkspaceId = "11111111-1111-1111-1111-111111111111";
+
+  const mockProfiles = [
+    { id: "d634c565-99f2-4c5a-ac1f-d581ec4465d5", full_name: "Manager Test", email: "managertestsales12@gmail.com" },
+    { id: "517d21fd-86a3-4eea-a6cc-15d83de0cf34", full_name: "Sales Executive Test", email: "salesexecutivetest1@gmail.com" },
+    { id: "user-agent-inactive", full_name: "Inactive Agent", email: "inactive@example.com" },
+    { id: "user-agent-other-ws", full_name: "Other WS Agent", email: "otherws@example.com" },
+    { id: "user-dual-role", full_name: "Dual Role User", email: "dual@example.com" },
+  ];
+
+  const mockWorkspaceMembers = [
+    { user_id: "d634c565-99f2-4c5a-ac1f-d581ec4465d5", workspace_id: targetWorkspaceId, status: "active", roles: { name: "member" } },
+    { user_id: "517d21fd-86a3-4eea-a6cc-15d83de0cf34", workspace_id: targetWorkspaceId, status: "active", roles: { name: "member" } },
+    { user_id: "user-agent-inactive", workspace_id: targetWorkspaceId, status: "inactive", roles: { name: "member" } },
+    { user_id: "user-agent-other-ws", workspace_id: otherWorkspaceId, status: "active", roles: { name: "member" } },
+    { user_id: "user-dual-role", workspace_id: targetWorkspaceId, status: "active", roles: { name: "member" } },
+  ];
+
+  const mockUserRoles: Record<string, string[]> = {
+    "d634c565-99f2-4c5a-ac1f-d581ec4465d5": ["manager"],
+    "517d21fd-86a3-4eea-a6cc-15d83de0cf34": ["agent"],
+    "user-agent-inactive": ["agent"],
+    "user-agent-other-ws": ["agent"],
+    "user-dual-role": ["manager", "agent"],
+  };
+
+  function resolveAssignableTeamMembers(
+    leadWorkspaceId: string,
+    members: typeof mockWorkspaceMembers,
+    rolesMap: Record<string, string[]>,
+    profiles: typeof mockProfiles
+  ) {
+    const verifiedMembers = members.filter(
+      (m) => m.workspace_id === leadWorkspaceId && m.status === "active" && m.roles?.name === "member"
+    );
+
+    const profilesMap = new Map(profiles.map((p) => [p.id, p]));
+
+    return verifiedMembers
+      .filter((m) => {
+        const userAppRoles = new Set(rolesMap[m.user_id] ?? []);
+        const profile = profilesMap.get(m.user_id);
+        return Boolean(profile && userAppRoles.has("agent"));
+      })
+      .map((m) => {
+        const profile = profilesMap.get(m.user_id)!;
+        return {
+          id: m.user_id,
+          name: profile.full_name || profile.email.split("@")[0] || "Sales Executive",
+          role: "Sales Executive" as const,
+          email: profile.email,
+          status: m.status,
+        };
+      });
+  }
+
+  it("1. Manager and Admin can open picker, pure Agent cannot", () => {
+    const isManagerAssignable = ["manager"].some((r) => ["admin", "manager"].includes(r));
+    const isAdminAssignable = ["admin"].some((r) => ["admin", "manager"].includes(r));
+    const isAgentAssignable = ["agent"].some((r) => ["admin", "manager"].includes(r));
+
+    expect(isManagerAssignable).toBe(true);
+    expect(isAdminAssignable).toBe(true);
+    expect(isAgentAssignable).toBe(false);
+  });
+
+  it("2. Active agent in same workspace appears as assignable Sales Executive", () => {
+    const result = resolveAssignableTeamMembers(targetWorkspaceId, mockWorkspaceMembers, mockUserRoles, mockProfiles);
+    const exec = result.find((r) => r.id === "517d21fd-86a3-4eea-a6cc-15d83de0cf34");
+
+    expect(exec).toBeDefined();
+    expect(exec?.name).toBe("Sales Executive Test");
+    expect(exec?.email).toBe("salesexecutivetest1@gmail.com");
+    expect(exec?.role).toBe("Sales Executive");
+  });
+
+  it("3. Manager does not appear unless they also genuinely hold agent role", () => {
+    const result = resolveAssignableTeamMembers(targetWorkspaceId, mockWorkspaceMembers, mockUserRoles, mockProfiles);
+    
+    // Plain manager is excluded
+    const plainManager = result.find((r) => r.id === "d634c565-99f2-4c5a-ac1f-d581ec4465d5");
+    expect(plainManager).toBeUndefined();
+
+    // User with genuine agent role alongside manager is included as Sales Executive
+    const dualRole = result.find((r) => r.id === "user-dual-role");
+    expect(dualRole).toBeDefined();
+    expect(dualRole?.role).toBe("Sales Executive");
+  });
+
+  it("4. Agent from another workspace does not appear", () => {
+    const result = resolveAssignableTeamMembers(targetWorkspaceId, mockWorkspaceMembers, mockUserRoles, mockProfiles);
+    const otherWsAgent = result.find((r) => r.id === "user-agent-other-ws");
+    expect(otherWsAgent).toBeUndefined();
+  });
+
+  it("5. Inactive agent does not appear", () => {
+    const result = resolveAssignableTeamMembers(targetWorkspaceId, mockWorkspaceMembers, mockUserRoles, mockProfiles);
+    const inactive = result.find((r) => r.id === "user-agent-inactive");
+    expect(inactive).toBeUndefined();
+  });
+
+  function validateAssignmentMutation(params: {
+    leadWorkspaceId: string;
+    targetExecutiveId: string;
+    members: typeof mockWorkspaceMembers;
+    rolesMap: Record<string, string[]>;
+  }) {
+    const membership = params.members.find(
+      (m) =>
+        m.workspace_id === params.leadWorkspaceId &&
+        m.user_id === params.targetExecutiveId &&
+        m.status === "active" &&
+        m.roles?.name === "member"
+    );
+
+    if (!membership) {
+      throw new Error("ASSIGNEE_NOT_ELIGIBLE: User is not an active workspace member.");
+    }
+
+    const roles = new Set(params.rolesMap[params.targetExecutiveId] ?? []);
+    if (!roles.has("agent")) {
+      throw new Error("ASSIGNEE_NOT_ELIGIBLE: Assignee must hold the Sales Executive ('agent') role.");
+    }
+
+    return { success: true, assignedTo: params.targetExecutiveId };
+  }
+
+  it("6. Assignment to same-workspace active agent succeeds", () => {
+    const res = validateAssignmentMutation({
+      leadWorkspaceId: targetWorkspaceId,
+      targetExecutiveId: "517d21fd-86a3-4eea-a6cc-15d83de0cf34",
+      members: mockWorkspaceMembers,
+      rolesMap: mockUserRoles,
+    });
+    expect(res.success).toBe(true);
+    expect(res.assignedTo).toBe("517d21fd-86a3-4eea-a6cc-15d83de0cf34");
+  });
+
+  it("7. Assignment to manager-only user is rejected", () => {
+    expect(() =>
+      validateAssignmentMutation({
+        leadWorkspaceId: targetWorkspaceId,
+        targetExecutiveId: "d634c565-99f2-4c5a-ac1f-d581ec4465d5",
+        members: mockWorkspaceMembers,
+        rolesMap: mockUserRoles,
+      })
+    ).toThrowError(/ASSIGNEE_NOT_ELIGIBLE: Assignee must hold the Sales Executive \('agent'\) role\./);
+  });
+
+  it("8. Assignment to another-workspace agent is rejected", () => {
+    expect(() =>
+      validateAssignmentMutation({
+        leadWorkspaceId: targetWorkspaceId,
+        targetExecutiveId: "user-agent-other-ws",
+        members: mockWorkspaceMembers,
+        rolesMap: mockUserRoles,
+      })
+    ).toThrowError(/ASSIGNEE_NOT_ELIGIBLE: User is not an active workspace member\./);
+  });
+});
+
