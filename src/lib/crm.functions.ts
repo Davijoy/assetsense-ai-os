@@ -1321,7 +1321,7 @@ export const assignLeadToExecutive = createServerFn({ method: "POST" })
       );
     }
 
-    const { data: targetProfile, error: targetProfileError } = await supabase
+    const { data: targetProfile, error: targetProfileError } = await db
       .from("profiles")
       .select("full_name, email")
       .eq("id", targetExecutiveId)
@@ -2838,7 +2838,7 @@ export const getWorkspaceTeamMembers = createServerFn({ method: "GET" })
         .from("user_roles")
         .select("user_id, role")
         .in("user_id", memberUserIds),
-      supabase
+      db
         .from("profiles")
         .select("id, full_name, email, avatar_url")
         .in("id", memberUserIds),

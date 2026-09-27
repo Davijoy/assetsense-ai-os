@@ -290,5 +290,52 @@ describe("Lead Assignment Picker Candidate Resolution & Mutation Hardening", () 
       })
     ).toThrowError(/ASSIGNEE_NOT_ELIGIBLE: User is not an active workspace member\./);
   });
+
+  it("9. Manager authenticated client cannot read peer profiles under RLS, but service-role scoped lookup resolves Sales Executive profile", () => {
+    const managerUserId = "d634c565-99f2-4c5a-ac1f-d581ec4465d5";
+    const agentUserId = "517d21fd-86a3-4eea-a6cc-15d83de0cf34";
+
+    // Simulating Manager authenticated client under public.profiles RLS (auth.uid() = id)
+    const simulateManagerClientProfileQuery = (ids: string[]) => {
+      return mockProfiles.filter((p) => ids.includes(p.id) && p.id === managerUserId);
+    };
+
+    // Simulating service role scoped lookup (db.from("profiles").in("id", verifiedMemberUserIds))
+    const simulateServiceRoleProfileQuery = (ids: string[]) => {
+      return mockProfiles.filter((p) => ids.includes(p.id));
+    };
+
+    const verifiedMemberUserIds = [managerUserId, agentUserId];
+
+    // Authenticated manager client gets ONLY own profile; agent profile is hidden/empty
+    const managerVisibleProfiles = simulateManagerClientProfileQuery(verifiedMemberUserIds);
+    expect(managerVisibleProfiles).toHaveLength(1);
+    expect(managerVisibleProfiles[0].id).toBe(managerUserId);
+
+    // If candidate resolution used manager client profiles, agent candidate would be dropped
+    const unprivilegedResult = resolveAssignableTeamMembers(
+      targetWorkspaceId,
+      mockWorkspaceMembers,
+      mockUserRoles,
+      managerVisibleProfiles
+    );
+    expect(unprivilegedResult).toHaveLength(0); // Agent dropped due to missing profile
+
+    // With service-role scoped profiles query, agent profile is resolved
+    const serviceRoleProfiles = simulateServiceRoleProfileQuery(verifiedMemberUserIds);
+    expect(serviceRoleProfiles).toHaveLength(2);
+
+    const privilegedResult = resolveAssignableTeamMembers(
+      targetWorkspaceId,
+      mockWorkspaceMembers,
+      mockUserRoles,
+      serviceRoleProfiles
+    );
+    expect(privilegedResult).toHaveLength(1);
+    expect(privilegedResult[0].id).toBe(agentUserId);
+    expect(privilegedResult[0].name).toBe("Sales Executive Test");
+    expect(privilegedResult[0].role).toBe("Sales Executive");
+  });
 });
+
 
