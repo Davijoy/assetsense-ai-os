@@ -20,6 +20,7 @@ export type Lead = {
 };
 
 export type CreateLeadInput = {
+  id?: string;
   name: string;
   email?: string | null;
   phone?: string | null;
@@ -125,21 +126,27 @@ export async function createLead(
   workspaceId: string,
   input: CreateLeadInput
 ): Promise<Lead> {
+  const insertPayload: any = {
+    name: input.name,
+    email: input.email ?? null,
+    phone: input.phone ?? null,
+    source: input.source,
+    stage: input.stage ?? "new",
+    score: input.score ?? 0,
+    budget_inr: input.budgetInr,
+    project: input.project ?? null,
+    owner: input.owner ?? null,
+    city: input.city ?? null,
+    workspace_id: workspaceId,
+  };
+
+  if (input.id) {
+    insertPayload.id = input.id;
+  }
+
   const { data, error } = await (supabase as any)
     .from("leads")
-    .insert({
-      name: input.name,
-      email: input.email ?? null,
-      phone: input.phone ?? null,
-      source: input.source,
-      stage: input.stage ?? "new",
-      score: input.score ?? 0,
-      budget_inr: input.budgetInr,
-      project: input.project ?? null,
-      owner: input.owner ?? null,
-      city: input.city ?? null,
-      workspace_id: workspaceId,
-    })
+    .insert(insertPayload)
     .select()
     .single();
 
