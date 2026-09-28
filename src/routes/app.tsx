@@ -23,6 +23,7 @@ import {
   type FortWorkspaceContext,
 } from "@/lib/fort-experience";
 import { useAuth } from "@/hooks/use-auth";
+import { isRouteAuthorized } from "@/lib/route-roles";
 import { toast } from "sonner";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { NewLeadDialog, NewPropertyDialog } from "@/components/app/QuickCreateDialogs";
@@ -592,15 +593,21 @@ function AppHeader({ fort }: { fort: FortWorkspaceContext }) {
     }).slice(0, 3);
   }, [q]);
 
+  const appRoles = fort?.role?.appRoles ?? [];
+  const featureFlags = fort?.featureFlags;
+
   // 3. Modules matching
   const moduleResults = useMemo(() => {
     const term = q.trim().toLowerCase();
     if (!term) return [];
     return CONSOLE_MODULES.filter((m) => {
+      if (appRoles.length > 0 && !isRouteAuthorized(appRoles, m.to, featureFlags)) {
+        return false;
+      }
       const hay = `${m.title} ${m.description} ${(m.keywords || []).join(" ")}`.toLowerCase();
       return hay.includes(term);
     }).slice(0, 3);
-  }, [q]);
+  }, [q, appRoles, featureFlags]);
 
   const totalResults = leadResults.length + propResults.length + moduleResults.length;
 
@@ -618,20 +625,20 @@ function AppHeader({ fort }: { fort: FortWorkspaceContext }) {
   };
 
   type QuickAction = { label: string; to?: string; onSelect?: () => void };
-  const quickCreate: QuickAction[] = [
+  const quickCreate: QuickAction[] = useMemo(() => [
     { label: "New Lead", onSelect: () => setLeadOpen(true) },
     { label: "New Deal Room", to: "/app/dealrooms" },
     { label: "New Property", onSelect: () => setPropOpen(true) },
     { label: "New Voice Campaign", to: "/app/voice" },
     { label: "New Document", to: "/app/documents" },
     { label: "New Recommendation", to: "/app/recommendations" },
-  ];
+  ].filter((qc) => !qc.to || (appRoles.length === 0 || isRouteAuthorized(appRoles, qc.to, featureFlags))), [appRoles, featureFlags]);
 
-  const notifications = [
+  const notifications = useMemo(() => [
     { title: "3 new high-intent leads", body: "Assigned to your CRM inbox.", to: "/app/leads", time: "just now" },
     { title: "Deal room 'Skyline Towers' updated", body: "Health score moved to 82.", to: "/app/dealrooms", time: "12m" },
     { title: "Forecast confidence rose to 91%", body: "Executive Command refreshed.", to: "/app/command", time: "1h" },
-  ];
+  ].filter((n) => !n.to || (appRoles.length === 0 || isRouteAuthorized(appRoles, n.to, featureFlags))), [appRoles, featureFlags]);
 
   return (
     <header className="relative flex h-16 shrink-0 items-center gap-4 border-b border-border/60 bg-background/70 px-6 backdrop-blur-xl">

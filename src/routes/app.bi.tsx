@@ -1,6 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { getBISnapshot } from "@/lib/bi.functions";
+import { isRouteAuthorized } from "@/lib/route-roles";
 import {
   TrendingUp,
   TrendingDown,
@@ -41,6 +42,14 @@ const biQueryOptions = queryOptions({
 
 export const Route = createFileRoute("/app/bi")({
   head: () => ({ meta: [{ title: "Intelligence — Sentinel Fort Group" }] }),
+  beforeLoad: async ({ context, location }) => {
+    const fort = (context as any)?.fort;
+    const roles = (context as any)?.user?.roles ?? fort?.role?.appRoles ?? [];
+    const featureFlags = fort?.featureFlags;
+    if (roles.length > 0 && !isRouteAuthorized(roles, location.pathname, featureFlags)) {
+      throw redirect({ to: "/fort" });
+    }
+  },
   loader: ({ context }) => context.queryClient.ensureQueryData(biQueryOptions),
   errorComponent: ({ error }) => (
     <div className="rounded-2xl border border-destructive/40 bg-destructive/10 p-6 text-sm">

@@ -24,6 +24,7 @@ import { useAuth, type AppRole } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import type { Session } from "@supabase/supabase-js";
 import { getCurrentWorkspaceId } from "@/lib/services/workspace.service";
+import { isRouteAuthorized } from "@/lib/route-roles";
 import { Sparkles } from "lucide-react";
 
 /** Loader data type */
@@ -43,14 +44,14 @@ function SupremeIntelligencePage() {
 
   useEffect(() => {
     // Role allow-list mirrors the committed sidebar policy in app.tsx kieNav
-    // (admin/manager/viewer/builder/developer); agent is intentionally excluded.
+    // (admin/viewer/builder/developer); agent and manager are intentionally excluded.
     // Gate AFTER auth + roles resolve so a genuine allow-listed user whose
     // roles are still empty is not bounced to /app/crm. Non-allow-listed
     // roles fail closed to /app/crm.
     if (
       !authLoading &&
       rolesReady &&
-      !hasAnyRole(["admin", "manager", "viewer", "builder", "developer"] as AppRole[])
+      !hasAnyRole(["admin", "viewer", "builder", "developer"] as AppRole[])
     )
       navigate({ to: "/fort" });
   }, [authLoading, rolesReady, hasAnyRole, navigate]);
@@ -331,7 +332,7 @@ export const Route = createFileRoute("/app/supreme-intelligence")({
   // src/routes/app.market.tsx: with `ssr: false` this runs client-side, where
   // the authenticated Supabase session (persisted in localStorage by the
   // client singleton) is available — which a server-side loader cannot rely on.
-  beforeLoad: async () => {
+  beforeLoad: async ({ context, location }) => {
     // `getSession()` can reject (transient network failure or an unrecoverable
     // token state) instead of resolving to `null`. An unhandled rejection here
     // propagates to the route error boundary and red-screens the page. Fail
@@ -381,15 +382,19 @@ export const Route = createFileRoute("/app/supreme-intelligence")({
     } catch (error) {
       console.error("[Supreme Intelligence] role resolution failed:", error);
     }
-    if (roles.length === 0) {
-      roles = ["admin", "manager", "agent", "viewer", "builder", "developer"];
+
+    const fort = (context as any)?.fort;
+    const resolvedRoles = (context as any)?.user?.roles ?? fort?.role?.appRoles ?? roles;
+    const featureFlags = fort?.featureFlags;
+    if (resolvedRoles.length > 0 && !isRouteAuthorized(resolvedRoles, location.pathname, featureFlags)) {
+      throw redirect({ to: "/fort" });
     }
 
     return {
       user: {
         id: user.id,
         workspaceId,
-        roles,
+        roles: resolvedRoles,
       },
     };
   },

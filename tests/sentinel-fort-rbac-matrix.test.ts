@@ -39,12 +39,26 @@ describe("SENTINEL FORT / RBAC x Fort access matrix - role battery", () => {
     }
   });
 
-  it("manager reaches every management/intelligence module (ACTIVE across the catalog)", () => {
-    for (const fort of Object.values(FORTS)) {
-      for (const route of fort.modules) {
-        expect(moduleAccessState(route, ["manager"])).toBe("ACTIVE");
-      }
-    }
+  it("manager reaches sales management and operational modules; advanced executive/governance stays LOCKED", () => {
+    expect(moduleAccessState("/app/crm", ["manager"])).toBe("ACTIVE");
+    expect(moduleAccessState("/app/leads", ["manager"])).toBe("ACTIVE");
+    expect(moduleAccessState("/app/dealrooms", ["manager"])).toBe("ACTIVE");
+    expect(moduleAccessState("/app/documents", ["manager"])).toBe("ACTIVE");
+    expect(moduleAccessState("/app/messages", ["manager"])).toBe("ACTIVE");
+    expect(moduleAccessState("/app/customer", ["manager"])).toBe("ACTIVE");
+    expect(moduleAccessState("/app/bi", ["manager"])).toBe("ACTIVE");
+    expect(moduleAccessState("/app/inventory", ["manager"])).toBe("ACTIVE");
+
+    // Executive/admin/advanced intelligence surfaces locked for manager
+    expect(moduleAccessState("/app/command", ["manager"])).toBe("LOCKED");
+    expect(moduleAccessState("/app/risk", ["manager"])).toBe("LOCKED");
+    expect(moduleAccessState("/app/users", ["manager"])).toBe("LOCKED");
+    expect(moduleAccessState("/app/governance", ["manager"])).toBe("LOCKED");
+    expect(moduleAccessState("/app/supreme-intelligence", ["manager"])).toBe("LOCKED");
+    expect(moduleAccessState("/app/market", ["manager"])).toBe("LOCKED");
+    expect(moduleAccessState("/app/salesintel", ["manager"])).toBe("LOCKED");
+    expect(moduleAccessState("/app/workflows", ["manager"])).toBe("LOCKED");
+    expect(moduleAccessState("/app/recommendations", ["manager"])).toBe("LOCKED");
   });
 
   it("agent sees sales/CRM modules only; governance/intelligence stays LOCKED", () => {

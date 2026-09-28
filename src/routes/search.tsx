@@ -7,6 +7,7 @@ import { Footer } from "@/components/landing/Footer";
 import { Input } from "@/components/ui/input";
 import { Search as SearchIcon, ArrowUpRight } from "lucide-react";
 import { SEARCH_CATEGORIES, searchEntries, type SearchCategory } from "@/lib/search-index";
+import { useAuth } from "@/hooks/use-auth";
 
 const schema = z.object({
   q: fallback(z.string(), "").default(""),
@@ -26,12 +27,13 @@ export const Route = createFileRoute("/search")({
 });
 
 function SearchPage() {
+  const { roles } = useAuth();
   const { q: initialQ, cat: initialCat } = Route.useSearch();
   const [q, setQ] = useState(initialQ);
   const [cat, setCat] = useState<SearchCategory | "All">(
     (SEARCH_CATEGORIES.includes(initialCat as SearchCategory) ? initialCat : "All") as SearchCategory | "All",
   );
-  const results = useMemo(() => searchEntries(q, cat), [q, cat]);
+  const results = useMemo(() => searchEntries(q, cat, roles), [q, cat, roles]);
   const filters: (SearchCategory | "All")[] = ["All", ...SEARCH_CATEGORIES];
 
   return (

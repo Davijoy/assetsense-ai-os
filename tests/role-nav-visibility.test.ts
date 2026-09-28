@@ -179,4 +179,67 @@ describe("/app sidebar role-based visibility — Builder & Developer", () => {
       expect(agent, `agent should NOT see ${to}`).not.toContain(to);
     }
   });
+
+  it("Sales Manager sees only sales management and operational modules (Default On + Flags)", () => {
+    const expectedVisible = [
+      "/app/crm",
+      "/app/leads",
+      "/app/marketplace",
+      "/app/voice",
+      "/app/marketing",
+      "/app/bi",
+      "/app/copilot",
+      "/app/dealrooms",
+      "/app/inventory",
+      "/app/documents",
+    ];
+    const expectedHidden = [
+      "/app/partners",
+      "/app/command",
+      "/app/docchat",
+      "/app/recommendations",
+      "/app/workflows",
+      "/app/risk",
+      "/app/market",
+      "/app/supreme-intelligence",
+      "/app/collections",
+      "/app/salesintel",
+      "/app/graph",
+      "/app/kie",
+      "/app/users",
+      "/app/governance",
+      "/app/settings/branding",
+      "/app/settings/integrations",
+    ];
+
+    expect(sorted(visibleFor("manager"))).toEqual(sorted(expectedVisible));
+    expect(new Set([...expectedVisible, ...expectedHidden])).toEqual(new Set(SIDEBAR_ROUTES));
+  });
+
+  it("Sales Manager visibility responds to dynamic feature flags", () => {
+    const disabledFlags = {
+      voice: false,
+      chat: false,
+      marketing: false,
+      bi: false,
+      marketplace: false,
+      inventory: false,
+    };
+    const granted = activeConsoleRouteSet(resolveConsoleModules(["manager"], disabledFlags));
+    const visible = SIDEBAR_ROUTES.filter((to) => granted.has(to));
+
+    // Optional modules are removed when flags are false
+    expect(visible).not.toContain("/app/voice");
+    expect(visible).not.toContain("/app/copilot");
+    expect(visible).not.toContain("/app/marketing");
+    expect(visible).not.toContain("/app/bi");
+    expect(visible).not.toContain("/app/marketplace");
+    expect(visible).not.toContain("/app/inventory");
+
+    // Core Default-On modules remain visible
+    expect(visible).toContain("/app/crm");
+    expect(visible).toContain("/app/leads");
+    expect(visible).toContain("/app/dealrooms");
+    expect(visible).toContain("/app/documents");
+  });
 });

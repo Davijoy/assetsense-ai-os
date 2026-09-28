@@ -5,6 +5,14 @@ export type SearchCategory =
   | "Company"
   | "Legal";
 
+export const SEARCH_CATEGORIES: SearchCategory[] = [
+  "Product",
+  "Solutions",
+  "Resources",
+  "Company",
+  "Legal",
+];
+
 export type SearchEntry = {
   title: string;
   to: string;
@@ -65,12 +73,22 @@ export const SEARCH_INDEX: SearchEntry[] = [
   { title: "DPA", to: "/dpa", category: "Legal", description: "Data Processing Addendum for GDPR/DPDP compliance." },
 ];
 
-export const SEARCH_CATEGORIES: SearchCategory[] = ["Product", "Solutions", "Resources", "Company", "Legal"];
+import { isRouteAuthorized } from "@/lib/route-roles";
 
-export function searchEntries(query: string, category?: SearchCategory | "All"): SearchEntry[] {
+export function searchEntries(
+  query: string,
+  category?: SearchCategory | "All",
+  roles?: readonly string[] | null,
+  featureFlags?: Record<string, boolean> | null,
+): SearchEntry[] {
   const q = query.trim().toLowerCase();
   return SEARCH_INDEX.filter((e) => {
     if (category && category !== "All" && e.category !== category) return false;
+    if (e.to.startsWith("/app/")) {
+      if (!roles || roles.length === 0 || !isRouteAuthorized(roles, e.to, featureFlags)) {
+        return false;
+      }
+    }
     if (!q) return true;
     const hay = [e.title, e.description, e.category, ...(e.keywords ?? [])].join(" ").toLowerCase();
     return hay.includes(q);

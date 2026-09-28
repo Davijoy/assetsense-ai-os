@@ -1,7 +1,8 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { useSuspenseQuery, queryOptions } from "@tanstack/react-query";
 import { useState } from "react";
 import { getBISnapshot } from "@/lib/bi.functions";
+import { isRouteAuthorized } from "@/lib/route-roles";
 import {
   Activity,
   AlertTriangle,
@@ -41,6 +42,14 @@ export const Route = createFileRoute("/app/kie")({
   head: () => ({
     meta: [{ title: "Command Center — Sentinel Knowledge Engine" }],
   }),
+  beforeLoad: async ({ context, location }) => {
+    const fort = (context as any)?.fort;
+    const roles = (context as any)?.user?.roles ?? fort?.role?.appRoles ?? [];
+    const featureFlags = fort?.featureFlags;
+    if (roles.length > 0 && !isRouteAuthorized(roles, location.pathname, featureFlags)) {
+      throw redirect({ to: "/fort" });
+    }
+  },
   loader: ({ context }) => context.queryClient.ensureQueryData(opts),
   component: CommandCenter,
 });

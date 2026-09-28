@@ -362,9 +362,9 @@ describe("O/P/Q — client state cannot grant access", () => {
     expect(FORT_SHELL_SRC).toMatch(/import \{ ROUTE_ROLES \} from "@\/lib\/route-roles"/);
     expect(FORT_SHELL_CODE).not.toMatch(/const ROUTE_ROLES|ROUTE_ROLES =/);
     // Protected routes still require privileged roles.
-    expect(ROUTE_ROLES["/app/command"]).toEqual(["admin", "manager"]);
-    expect(ROUTE_ROLES["/app/users"]).toEqual(["admin", "manager"]);
-    expect(ROUTE_ROLES["/app/governance"]).toEqual(["admin", "manager"]);
+    expect(ROUTE_ROLES["/app/command"]).toEqual(["admin"]);
+    expect(ROUTE_ROLES["/app/users"]).toEqual(["admin"]);
+    expect(ROUTE_ROLES["/app/governance"]).toEqual(["admin"]);
   });
 
   it("Q: an unknown route is UNAVAILABLE, never optimistically shown", () => {

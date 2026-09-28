@@ -136,15 +136,17 @@ describe("Admin Role Assignment & System A/B Synchronization", () => {
   });
 
   describe("5. Module Feature Flags & Administration Controls", () => {
-    it("disables voice route and module when voice flag is OFF", () => {
+    it("disables voice route and module for agent when voice flag is OFF, while admin retains access", () => {
       const featureFlags = { voice: false, crm: true };
-      expect(isRouteAuthorized(["admin", "agent"], "/app/voice", featureFlags)).toBe(false);
-      expect(isRouteAuthorized(["admin", "agent"], "/app/crm", featureFlags)).toBe(true);
+      expect(isRouteAuthorized(["agent"], "/app/voice", featureFlags)).toBe(false);
+      expect(isRouteAuthorized(["agent"], "/app/crm", featureFlags)).toBe(true);
+      expect(isRouteAuthorized(["admin"], "/app/voice", featureFlags)).toBe(true);
     });
 
-    it("disables marketing route when marketing flag is OFF", () => {
+    it("disables marketing route for manager when marketing flag is OFF, while admin retains access", () => {
       const featureFlags = { marketing: false };
-      expect(isRouteAuthorized(["admin", "manager"], "/app/marketing", featureFlags)).toBe(false);
+      expect(isRouteAuthorized(["manager"], "/app/marketing", featureFlags)).toBe(false);
+      expect(isRouteAuthorized(["admin"], "/app/marketing", featureFlags)).toBe(true);
     });
 
     it("evaluates active module grants dynamically based on feature flags", () => {

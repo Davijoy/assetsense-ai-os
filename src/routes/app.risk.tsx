@@ -5,8 +5,10 @@ import { AlertTriangle, ShieldAlert, ShieldCheck } from "lucide-react";
 export const Route = createFileRoute("/app/risk")({
   head: () => ({ meta: [{ title: "Risk Center — Sentinel Fort Group" }] }),
   beforeLoad: async ({ context, location }) => {
-    const roles = (context as any)?.user?.roles ?? (context as any)?.fort?.role?.appRoles ?? [];
-    if (roles.length > 0 && !isRouteAuthorized(roles, location.pathname)) {
+    const fort = (context as any)?.fort;
+    const roles = (context as any)?.user?.roles ?? fort?.role?.appRoles ?? [];
+    const featureFlags = fort?.featureFlags;
+    if (roles.length > 0 && !isRouteAuthorized(roles, location.pathname, featureFlags)) {
       throw redirect({ to: "/fort" });
     }
   },

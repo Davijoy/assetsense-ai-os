@@ -1,8 +1,9 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useMemo, useState, useEffect, useCallback } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { isRouteAuthorized } from "@/lib/route-roles";
 import { useActiveEntity } from "@/lib/active-entity";
 import { PropertyWizard, type EditPropertyInput } from "@/components/app/PropertyWizard";
 import {
@@ -62,6 +63,14 @@ export const Route = createFileRoute("/app/marketplace")({
   }),
   head: () => ({ meta: [{ title: "Marketplace — Sentinel Fort Group" }] }),
   ssr: false,
+  beforeLoad: async ({ context, location }) => {
+    const fort = (context as any)?.fort;
+    const roles = (context as any)?.user?.roles ?? fort?.role?.appRoles ?? [];
+    const featureFlags = fort?.featureFlags;
+    if (roles.length > 0 && !isRouteAuthorized(roles, location.pathname, featureFlags)) {
+      throw redirect({ to: "/fort" });
+    }
+  },
   component: Marketplace,
 });
 

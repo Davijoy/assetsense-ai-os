@@ -42,10 +42,10 @@ const visibleFor = (role: string) =>
   SIDEBAR_ROUTES.filter((to) => consoleModuleState(to, [role]) === "ACTIVE");
 
 // Route-level access mirrors the sidebar matrix
-// (admin/manager/viewer/builder/developer; agent excluded) — see the route-guard
+// (admin/viewer/builder/developer; agent and manager excluded) — see the route-guard
 // test below. This is the committed Knowledge Engine visibility for Supreme
 // Intelligence, and it is exactly MODULE_CATALOG["/app/supreme-intelligence"].
-const SUPREME_ROLES = ["admin", "manager", "viewer", "builder", "developer"];
+const SUPREME_ROLES = ["admin", "viewer", "builder", "developer"];
 const SUPREME_ROUTE = "/app/supreme-intelligence";
 
 describe("Supreme Intelligence — sidebar ↔ route authorization consistency", () => {
@@ -63,7 +63,7 @@ describe("Supreme Intelligence — sidebar ↔ route authorization consistency",
     expect(sees.sort()).toEqual([...SUPREME_ROLES].sort());
   });
 
-  it.each(["admin", "manager", "viewer", "builder", "developer"] as const)(
+  it.each(["admin", "viewer", "builder", "developer"] as const)(
     "role '%s' sees Supreme Intelligence in the sidebar",
     (role) => {
       expect(visibleFor(role), `role '${role}' should see Supreme Intelligence`).toContain(
@@ -72,7 +72,7 @@ describe("Supreme Intelligence — sidebar ↔ route authorization consistency",
     },
   );
 
-  it.each(["agent"] as const)(
+  it.each(["agent", "manager"] as const)(
     "role '%s' does NOT see Supreme Intelligence in the sidebar",
     (role) => {
       expect(
@@ -82,10 +82,8 @@ describe("Supreme Intelligence — sidebar ↔ route authorization consistency",
     },
   );
 
-    it("route guard uses the SAME allow-list as the sidebar (admin/manager/viewer/builder/developer) and bounces agent to /app/crm", () => {
-    // The route must admit the committed sidebar roles and deny agent; failure
-    // stays fail-closed to /app/crm. The matrix must mirror the sidebar.
-    expect(routeSrc).toContain("/app/crm"); // fail-closed target retained
+  it("route guard uses the SAME allow-list as the sidebar (admin/viewer/builder/developer) and bounces excluded roles to /fort", () => {
+    // The route must admit the committed sidebar roles and deny agent & manager.
     expect(routeSrc).toContain("hasAnyRole"); // canonical useAuth guard
 
     const m = routeSrc.match(/hasAnyRole\(\s*\[([\s\S]*?)\]\s*(?:as\s+[\w\[\]\.]+)?\s*\)/);
@@ -96,6 +94,7 @@ describe("Supreme Intelligence — sidebar ↔ route authorization consistency",
       .filter(Boolean);
     expect(allowed).toEqual(SUPREME_ROLES); // sidebar == route matrix
     expect(allowed).not.toContain("agent"); // agent excluded from both
+    expect(allowed).not.toContain("manager"); // manager excluded from both
     expect(routeSrc).not.toContain("!isAdmin && !isManager"); // old guard removed
   });
 });

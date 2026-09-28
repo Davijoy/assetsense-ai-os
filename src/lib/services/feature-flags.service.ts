@@ -9,19 +9,21 @@ export type FeatureFlag = {
 };
 
 // In-memory feature flag store with all primary Sentinel Fort modules
+// Core modules are default true; optional capabilities are default false (fail-closed)
 export const FEATURE_FLAGS_STORE: Record<string, boolean> = {
   crm: true,
   leads: true,
-  inventory: true,
-  marketplace: true,
-  marketing: true,
-  intelligence: true,
   messages: true,
-  branding: true,
-  chat: true,
-  supreme_intelligence: true,
-  voice: true,
-  collections: true,
+  inventory: false,
+  marketplace: false,
+  marketing: false,
+  bi: false,
+  intelligence: false,
+  branding: false,
+  chat: false,
+  supreme_intelligence: false,
+  voice: false,
+  collections: false,
 };
 
 export async function listFlags(
@@ -55,7 +57,7 @@ export async function isFlagEnabled(
   if (data && typeof data.enabled === "boolean") {
     return data.enabled;
   }
-  return FEATURE_FLAGS_STORE[key] ?? true;
+  return FEATURE_FLAGS_STORE[key] ?? false;
 }
 
 /**

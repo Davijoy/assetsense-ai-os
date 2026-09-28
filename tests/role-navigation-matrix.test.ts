@@ -163,34 +163,120 @@ describe("Role-Based Navigation Matrix & Central Access Authority", () => {
     });
   });
 
+  describe("Sales Manager (Manager) Access Matrix — Locked Down", () => {
+    const roles = ["manager"];
+
+    it("grants access to Core Sales Management modules (Default On)", () => {
+      const coreRoutes = [
+        "/app/crm",
+        "/app/leads",
+        "/app/dealrooms",
+        "/app/documents",
+        "/app/messages",
+        "/app/customer",
+      ];
+
+      for (const route of coreRoutes) {
+        const access = getModuleAccess({ roles }, route);
+        expect(access.state).toBe("ACTIVE");
+        expect(isRouteAuthorized(roles, route)).toBe(true);
+      }
+    });
+
+    it("evaluates Admin Optional modules dynamically with feature flags", () => {
+      const optionalWithFlags = [
+        { route: "/app/marketplace", flag: "marketplace" },
+        { route: "/app/inventory", flag: "inventory" },
+        { route: "/app/marketing", flag: "marketing" },
+        { route: "/app/bi", flag: "bi" },
+        { route: "/app/voice", flag: "voice" },
+        { route: "/app/copilot", flag: "chat" },
+      ];
+
+      for (const { route, flag } of optionalWithFlags) {
+        // When flag enabled
+        const enabledAccess = getModuleAccess({ roles, featureFlags: { [flag]: true } }, route);
+        expect(enabledAccess.state).toBe("ACTIVE");
+        expect(isRouteAuthorized(roles, route, { [flag]: true })).toBe(true);
+
+        // When flag disabled
+        const disabledAccess = getModuleAccess({ roles, featureFlags: { [flag]: false } }, route);
+        expect(disabledAccess.state).toBe("LOCKED");
+        expect(isRouteAuthorized(roles, route, { [flag]: false })).toBe(false);
+      }
+    });
+
+    it("locks advanced executive, KIE, and admin modules for manager", () => {
+      const deniedRoutes = [
+        "/app/command",
+        "/app/recommendations",
+        "/app/workflows",
+        "/app/risk",
+        "/app/market",
+        "/app/supreme-intelligence",
+        "/app/salesintel",
+        "/app/collections",
+        "/app/graph",
+        "/app/kie",
+        "/app/users",
+        "/app/governance",
+        "/app/settings/branding",
+        "/app/settings/integrations",
+        "/app/docchat",
+      ];
+
+      for (const route of deniedRoutes) {
+        const access = getModuleAccess({ roles }, route);
+        expect(access.state).toBe("LOCKED");
+        expect(isRouteAuthorized(roles, route)).toBe(false);
+      }
+    });
+  });
+
   describe("Dynamic Feature Flag Evaluation", () => {
-    it("locks voice module when voice feature flag is false", () => {
-      const context = {
-        roles: ["admin", "agent"],
+    it("locks voice module for agent when voice feature flag is false, while admin retains access", () => {
+      const agentContext = {
+        roles: ["agent"],
         featureFlags: { voice: false, crm: true },
       };
 
-      const voiceAccess = getModuleAccess(context, "/app/voice");
+      const voiceAccess = getModuleAccess(agentContext, "/app/voice");
       expect(voiceAccess.state).toBe("LOCKED");
       expect(voiceAccess.enabled).toBe(false);
-      expect(isRouteAuthorized(context.roles, "/app/voice", context.featureFlags)).toBe(false);
+      expect(isRouteAuthorized(agentContext.roles, "/app/voice", agentContext.featureFlags)).toBe(false);
 
       // Other modules remain unaffected
-      const crmAccess = getModuleAccess(context, "/app/crm");
+      const crmAccess = getModuleAccess(agentContext, "/app/crm");
       expect(crmAccess.state).toBe("ACTIVE");
       expect(crmAccess.enabled).toBe(true);
+
+      // Admin bypasses feature flag lock
+      const adminContext = {
+        roles: ["admin"],
+        featureFlags: { voice: false, crm: true },
+      };
+      expect(getModuleAccess(adminContext, "/app/voice").state).toBe("ACTIVE");
+      expect(isRouteAuthorized(adminContext.roles, "/app/voice", adminContext.featureFlags)).toBe(true);
     });
 
-    it("locks marketing module when marketing feature flag is false", () => {
-      const context = {
-        roles: ["admin", "manager"],
+    it("locks marketing module for manager when marketing feature flag is false, while admin retains access", () => {
+      const managerContext = {
+        roles: ["manager"],
         featureFlags: { marketing: false },
       };
 
-      const mktAccess = getModuleAccess(context, "/app/marketing");
+      const mktAccess = getModuleAccess(managerContext, "/app/marketing");
       expect(mktAccess.state).toBe("LOCKED");
       expect(mktAccess.enabled).toBe(false);
-      expect(isRouteAuthorized(context.roles, "/app/marketing", context.featureFlags)).toBe(false);
+      expect(isRouteAuthorized(managerContext.roles, "/app/marketing", managerContext.featureFlags)).toBe(false);
+
+      // Admin bypasses feature flag lock
+      const adminContext = {
+        roles: ["admin"],
+        featureFlags: { marketing: false },
+      };
+      expect(getModuleAccess(adminContext, "/app/marketing").state).toBe("ACTIVE");
+      expect(isRouteAuthorized(adminContext.roles, "/app/marketing", adminContext.featureFlags)).toBe(true);
     });
   });
 

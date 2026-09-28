@@ -1,5 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useState } from "react";
+import { isRouteAuthorized } from "@/lib/route-roles";
 import {
   MessageSquare,
   Send,
@@ -17,6 +18,14 @@ import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/app/messages")({
   head: () => ({ meta: [{ title: "Workspace Messaging — Sentinel Fort" }] }),
+  beforeLoad: async ({ context, location }) => {
+    const fort = (context as any)?.fort;
+    const roles = (context as any)?.user?.roles ?? fort?.role?.appRoles ?? [];
+    const featureFlags = fort?.featureFlags;
+    if (roles.length > 0 && !isRouteAuthorized(roles, location.pathname, featureFlags)) {
+      throw redirect({ to: "/fort" });
+    }
+  },
   component: WorkspaceMessagesRoute,
 });
 
@@ -41,7 +50,7 @@ interface ChannelItem {
 }
 
 export function WorkspaceMessagesRoute() {
-  const { user, profile } = useAuth();
+  const { user } = useAuth();
   const [activeChannelId, setActiveChannelId] = useState<string>("ch_general");
   const [inputText, setInputText] = useState("");
 
@@ -144,7 +153,7 @@ export function WorkspaceMessagesRoute() {
 
     const newMsg: MessageItem = {
       id: `msg_${Date.now()}`,
-      sender: profile?.full_name || user?.email?.split("@")[0] || "Current User",
+      sender: (user?.user_metadata as any)?.full_name || user?.email?.split("@")[0] || "Current User",
       role: "Workspace Member",
       content: inputText.trim(),
       timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),

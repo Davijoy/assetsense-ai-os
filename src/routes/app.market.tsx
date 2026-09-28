@@ -12,6 +12,7 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { isRouteAuthorized } from "@/lib/route-roles";
 import { getMarketBISnapshot } from "@/lib/market-ingestion.functions";
 import type { MarketIntelligence } from "@/business-intelligence/market/types";
 import type { MarketRecommendation } from "@/lib/market-ingestion.functions";
@@ -141,7 +142,7 @@ interface IngestionRun {
 export const Route = createFileRoute("/app/market")({
   head: () => ({ meta: [{ title: "Market Intelligence — Sentinel KIE" }] }),
   ssr: false,
-  beforeLoad: async () => {
+  beforeLoad: async ({ context, location }) => {
     let session: any = null;
     try {
       const { data } = await supabase.auth.getSession();
@@ -155,6 +156,12 @@ export const Route = createFileRoute("/app/market")({
     }
     if (!session?.access_token) {
       throw redirect({ to: "/auth" });
+    }
+    const fort = (context as any)?.fort;
+    const roles = (context as any)?.user?.roles ?? fort?.role?.appRoles ?? [];
+    const featureFlags = fort?.featureFlags;
+    if (roles.length > 0 && !isRouteAuthorized(roles, location.pathname, featureFlags)) {
+      throw redirect({ to: "/fort" });
     }
     return { accessToken: session.access_token };
   },

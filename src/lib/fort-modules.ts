@@ -129,6 +129,7 @@ export const MODULE_CATALOG: Record<string, ModuleCard> = {
     icon: Package,
     roles: ["admin", "manager", "builder", "developer"],
     category: "core",
+    featureFlag: "inventory",
     roleAccessModes: {
       admin: "ADMINISTRATIVE",
       manager: "ADMINISTRATIVE",
@@ -141,11 +142,10 @@ export const MODULE_CATALOG: Record<string, ModuleCard> = {
     label: "Market Intelligence",
     description: "Localities, pricing and demand",
     icon: Globe2,
-    roles: ["admin", "manager", "viewer", "builder", "developer"],
+    roles: ["admin", "viewer", "builder", "developer"],
     category: "intelligence",
     roleAccessModes: {
       admin: "ADMINISTRATIVE",
-      manager: "ADMINISTRATIVE",
       viewer: "VIEW_ONLY",
       builder: "VIEW_ONLY",
       developer: "VIEW_ONLY",
@@ -172,11 +172,10 @@ export const MODULE_CATALOG: Record<string, ModuleCard> = {
     label: "Executive Command",
     description: "Cross-domain command surface",
     icon: Command,
-    roles: ["admin", "manager"],
+    roles: ["admin"],
     category: "intelligence",
     roleAccessModes: {
       admin: "ADMINISTRATIVE",
-      manager: "ADMINISTRATIVE",
     },
   },
   "/app/messages": {
@@ -227,12 +226,11 @@ export const MODULE_CATALOG: Record<string, ModuleCard> = {
     label: "Supreme Intelligence",
     description: "Reasoning across every domain",
     icon: Sparkles,
-    roles: ["admin", "manager", "viewer", "builder", "developer"],
+    roles: ["admin", "viewer", "builder", "developer"],
     category: "intelligence",
     featureFlag: "supreme_intelligence",
     roleAccessModes: {
       admin: "ADMINISTRATIVE",
-      manager: "ADMINISTRATIVE",
       viewer: "VIEW_ONLY",
       builder: "VIEW_ONLY",
       developer: "VIEW_ONLY",
@@ -273,11 +271,10 @@ export const MODULE_CATALOG: Record<string, ModuleCard> = {
     label: "Risk Center",
     description: "Business and portfolio risk",
     icon: ShieldAlert,
-    roles: ["admin", "manager"],
+    roles: ["admin"],
     category: "intelligence",
     roleAccessModes: {
       admin: "ADMINISTRATIVE",
-      manager: "ADMINISTRATIVE",
     },
   },
   "/app/users": {
@@ -285,11 +282,10 @@ export const MODULE_CATALOG: Record<string, ModuleCard> = {
     label: "Users",
     description: "Workspace members and access",
     icon: Users,
-    roles: ["admin", "manager"],
+    roles: ["admin"],
     category: "admin",
     roleAccessModes: {
       admin: "ADMINISTRATIVE",
-      manager: "ADMINISTRATIVE",
     },
   },
   "/app/governance": {
@@ -297,11 +293,10 @@ export const MODULE_CATALOG: Record<string, ModuleCard> = {
     label: "Governance",
     description: "Platform policy and controls",
     icon: ShieldAlert,
-    roles: ["admin", "manager"],
+    roles: ["admin"],
     category: "admin",
     roleAccessModes: {
       admin: "ADMINISTRATIVE",
-      manager: "ADMINISTRATIVE",
     },
   },
   "/app/customer": {
@@ -323,11 +318,10 @@ export const MODULE_CATALOG: Record<string, ModuleCard> = {
     label: "Sales Intelligence",
     description: "Sales velocity and pricing",
     icon: BarChart3,
-    roles: ["admin", "manager", "builder", "developer"],
+    roles: ["admin", "builder", "developer"],
     category: "intelligence",
     roleAccessModes: {
       admin: "ADMINISTRATIVE",
-      manager: "ADMINISTRATIVE",
       builder: "VIEW_ONLY",
       developer: "VIEW_ONLY",
     },
@@ -337,11 +331,10 @@ export const MODULE_CATALOG: Record<string, ModuleCard> = {
     label: "Recommendations",
     description: "Next-best action engine",
     icon: Lightbulb,
-    roles: ["admin", "manager", "builder"],
+    roles: ["admin", "builder"],
     category: "intelligence",
     roleAccessModes: {
       admin: "ADMINISTRATIVE",
-      manager: "ADMINISTRATIVE",
       builder: "OPERATIONAL",
     },
   },
@@ -350,11 +343,10 @@ export const MODULE_CATALOG: Record<string, ModuleCard> = {
     label: "Workflows",
     description: "Autonomous orchestration",
     icon: Workflow,
-    roles: ["admin", "manager", "builder", "developer"],
+    roles: ["admin", "builder", "developer"],
     category: "intelligence",
     roleAccessModes: {
       admin: "ADMINISTRATIVE",
-      manager: "ADMINISTRATIVE",
       builder: "OPERATIONAL",
       developer: "OPERATIONAL",
     },
@@ -366,6 +358,7 @@ export const MODULE_CATALOG: Record<string, ModuleCard> = {
     icon: MessageSquareText,
     roles: ["admin", "manager", "builder", "developer"],
     category: "intelligence",
+    featureFlag: "chat",
     roleAccessModes: {
       admin: "ADMINISTRATIVE",
       manager: "ADMINISTRATIVE",
@@ -378,11 +371,10 @@ export const MODULE_CATALOG: Record<string, ModuleCard> = {
     label: "Document Chat",
     description: "Chat over your documents",
     icon: FileText,
-    roles: ["admin", "manager", "builder", "developer"],
+    roles: ["admin", "builder", "developer"],
     category: "intelligence",
     roleAccessModes: {
       admin: "ADMINISTRATIVE",
-      manager: "ADMINISTRATIVE",
       builder: "OPERATIONAL",
       developer: "OPERATIONAL",
     },
@@ -392,11 +384,10 @@ export const MODULE_CATALOG: Record<string, ModuleCard> = {
     label: "Knowledge & Insights",
     description: "Cross-domain knowledge graph",
     icon: Globe2,
-    roles: ["admin", "manager", "builder", "developer"],
+    roles: ["admin", "builder", "developer"],
     category: "intelligence",
     roleAccessModes: {
       admin: "ADMINISTRATIVE",
-      manager: "ADMINISTRATIVE",
       builder: "OPERATIONAL",
       developer: "OPERATIONAL",
     },
@@ -458,18 +449,42 @@ export function getModuleAccess(
     };
   }
 
-  // Feature flag enforcement
-  if (card.featureFlag && context.featureFlags && context.featureFlags[card.featureFlag] === false) {
-    return {
-      route,
-      state: "LOCKED",
-      accessMode: "LOCKED",
-      label: card.label,
-      description: card.description,
-      category: card.category,
-      featureFlag: card.featureFlag,
-      enabled: false,
-    };
+  // Feature flag enforcement: Workspace feature flags control non-admin user availability.
+  // For admin, role-authorized modules remain accessible.
+  if (card.featureFlag && context.featureFlags) {
+    const isAdmin = context.roles.includes("admin");
+    if (!isAdmin) {
+      const isCore = card.featureFlag === "crm" || (card.category === "core" && (route === "/app/crm" || route === "/app/leads"));
+
+      if (isCore) {
+        if (context.featureFlags[card.featureFlag] === false) {
+          return {
+            route,
+            state: "LOCKED",
+            accessMode: "LOCKED",
+            label: card.label,
+            description: card.description,
+            category: card.category,
+            featureFlag: card.featureFlag,
+            enabled: false,
+          };
+        }
+      } else {
+        // Optional capability: must be explicitly true. Missing or false -> LOCKED
+        if (context.featureFlags[card.featureFlag] !== true) {
+          return {
+            route,
+            state: "LOCKED",
+            accessMode: "LOCKED",
+            label: card.label,
+            description: card.description,
+            category: card.category,
+            featureFlag: card.featureFlag,
+            enabled: false,
+          };
+        }
+      }
+    }
   }
 
   const userRoles = context.roles;

@@ -13,24 +13,24 @@ export const ROUTE_ROLES: Record<string, readonly string[]> = {
   "/app/voice": ["admin", "manager", "agent"],
   "/app/marketing": ["admin", "manager"],
   "/app/bi": ["admin", "manager", "viewer", "builder", "developer"],
-  "/app/partners": ["admin", "manager", "builder", "developer"],
-  "/app/command": ["admin", "manager"],
+  "/app/partners": ["admin", "builder", "developer"],
+  "/app/command": ["admin"],
   "/app/copilot": ["admin", "manager", "builder", "developer"],
-  "/app/docchat": ["admin", "manager", "builder", "developer"],
-  "/app/recommendations": ["admin", "manager", "builder"],
-  "/app/workflows": ["admin", "manager", "builder", "developer"],
+  "/app/docchat": ["admin", "builder", "developer"],
+  "/app/recommendations": ["admin", "builder"],
+  "/app/workflows": ["admin", "builder", "developer"],
   "/app/dealrooms": ["admin", "manager", "agent", "builder", "developer"],
-  "/app/risk": ["admin", "manager"],
-  "/app/market": ["admin", "manager", "viewer", "builder", "developer"],
-  "/app/supreme-intelligence": ["admin", "manager", "viewer", "builder", "developer"],
+  "/app/risk": ["admin"],
+  "/app/market": ["admin", "viewer", "builder", "developer"],
+  "/app/supreme-intelligence": ["admin", "viewer", "builder", "developer"],
   "/app/inventory": ["admin", "manager", "builder", "developer"],
-  "/app/users": ["admin", "manager"],
-  "/app/governance": ["admin", "manager"],
+  "/app/users": ["admin"],
+  "/app/governance": ["admin"],
   "/app/customer": ["admin", "manager", "agent", "viewer"],
-  "/app/salesintel": ["admin", "manager", "builder", "developer"],
-  "/app/kie": ["admin", "manager", "builder", "developer"],
-  "/app/collections": ["admin", "manager", "viewer"],
-  "/app/graph": ["admin", "manager"],
+  "/app/salesintel": ["admin", "builder", "developer"],
+  "/app/kie": ["admin", "builder", "developer"],
+  "/app/collections": ["admin", "viewer"],
+  "/app/graph": ["admin"],
   "/app/documents": ["admin", "manager", "agent", "builder", "developer"],
   "/app/messages": ["admin", "manager", "agent", "viewer", "builder", "developer"],
   "/app/settings/branding": ["admin"],
@@ -44,14 +44,23 @@ export function isRouteAuthorized(
 ): boolean {
   if (!path) return false;
 
-  // Feature flag checks
-  if (featureFlags) {
-    if (path.startsWith("/app/voice") && featureFlags.voice === false) return false;
-    if (path.startsWith("/app/marketing") && (featureFlags.marketing === false || featureFlags.ai_marketing === false)) return false;
-    if (path.startsWith("/app/marketplace") && featureFlags.marketplace === false) return false;
+  const isAdmin = roles.includes("admin");
+
+  // Feature flag checks: Workspace feature flags control non-admin user availability.
+  // For admin, role-authorized modules remain accessible regardless of workspace feature flags.
+  if (featureFlags && !isAdmin) {
+    // Core route: Default On, fail closed only if explicitly disabled (false)
     if (path.startsWith("/app/crm") && featureFlags.crm === false) return false;
-    if (path.startsWith("/app/bi") && featureFlags.bi === false) return false;
-    if (path.startsWith("/app/supreme-intelligence") && featureFlags.supreme_intelligence === false) return false;
+
+    // Optional routes: Fail closed (must be explicitly true)
+    if (path.startsWith("/app/voice") && featureFlags.voice !== true) return false;
+    if (path.startsWith("/app/marketing") && (featureFlags.marketing !== true && featureFlags.ai_marketing !== true)) return false;
+    if (path.startsWith("/app/marketplace") && featureFlags.marketplace !== true) return false;
+    if (path.startsWith("/app/bi") && featureFlags.bi !== true) return false;
+    if (path.startsWith("/app/supreme-intelligence") && featureFlags.supreme_intelligence !== true) return false;
+    if (path.startsWith("/app/inventory") && featureFlags.inventory !== true) return false;
+    if (path.startsWith("/app/copilot") && featureFlags.chat !== true) return false;
+    if (path.startsWith("/app/collections") && featureFlags.collections !== true) return false;
   }
 
   const allowed = ROUTE_ROLES[path];

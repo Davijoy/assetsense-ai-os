@@ -1,9 +1,18 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Network, Sparkles } from "lucide-react";
+import { isRouteAuthorized } from "@/lib/route-roles";
 
 export const Route = createFileRoute("/app/graph")({
   head: () => ({ meta: [{ title: "Intelligence Graph — Sentinel Fort Group" }] }),
+  beforeLoad: async ({ context, location }) => {
+    const fort = (context as any)?.fort;
+    const roles = (context as any)?.user?.roles ?? fort?.role?.appRoles ?? [];
+    const featureFlags = fort?.featureFlags;
+    if (roles.length > 0 && !isRouteAuthorized(roles, location.pathname, featureFlags)) {
+      throw redirect({ to: "/fort" });
+    }
+  },
   component: Graph,
 });
 

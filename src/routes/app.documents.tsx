@@ -1,7 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { isRouteAuthorized } from "@/lib/route-roles";
 import { getInsightExplanation, getDatasetDetail } from "@/lib/insights.functions";
 import {
   Dialog,
@@ -29,6 +30,14 @@ import {
 
 export const Route = createFileRoute("/app/documents")({
   head: () => ({ meta: [{ title: "Document Intelligence — Sentinel Knowledge Engine" }] }),
+  beforeLoad: async ({ context, location }) => {
+    const fort = (context as any)?.fort;
+    const roles = (context as any)?.user?.roles ?? fort?.role?.appRoles ?? [];
+    const featureFlags = fort?.featureFlags;
+    if (roles.length > 0 && !isRouteAuthorized(roles, location.pathname, featureFlags)) {
+      throw redirect({ to: "/fort" });
+    }
+  },
   component: Documents,
 });
 

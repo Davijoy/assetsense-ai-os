@@ -1060,11 +1060,11 @@ describe("Sales Executive Persona & CRM KPI Scoping Remediation", () => {
       expect(access.accessMode).toBe("OPERATIONAL");
     });
 
-    it("9. Manager retains access to Sales Intelligence (/app/salesintel)", () => {
-      expect(isRouteAuthorized(MANAGER_ROLES, "/app/salesintel")).toBe(true);
+    it("9. Manager is locked out of Sales Intelligence (/app/salesintel) under entitlement lockdown", () => {
+      expect(isRouteAuthorized(MANAGER_ROLES, "/app/salesintel")).toBe(false);
       const access = getModuleAccess({ roles: MANAGER_ROLES }, "/app/salesintel");
-      expect(access.state).toBe("ACTIVE");
-      expect(access.accessMode).toBe("ADMINISTRATIVE");
+      expect(access.state).toBe("LOCKED");
+      expect(access.accessMode).toBe("LOCKED");
     });
 
     it("10. Admin retains access to Sales Intelligence (/app/salesintel)", () => {
@@ -1114,15 +1114,23 @@ describe("Sales Executive Persona & CRM KPI Scoping Remediation", () => {
       expect(agentGrantedRoutes.has("/app/command")).toBe(false);
       expect(agentGrantedRoutes.has("/app/risk")).toBe(false);
 
-      // Manager has access to managerial modules
+      // Manager has access to sales management modules and optional flags
       const managerGrantedRoutes = activeConsoleRouteSet(resolveConsoleModules(MANAGER_ROLES));
-      expect(managerGrantedRoutes.has("/app/salesintel")).toBe(true);
+      expect(managerGrantedRoutes.has("/app/crm")).toBe(true);
+      expect(managerGrantedRoutes.has("/app/leads")).toBe(true);
+      expect(managerGrantedRoutes.has("/app/dealrooms")).toBe(true);
+      expect(managerGrantedRoutes.has("/app/documents")).toBe(true);
       expect(managerGrantedRoutes.has("/app/marketing")).toBe(true);
       expect(managerGrantedRoutes.has("/app/copilot")).toBe(true);
-      expect(managerGrantedRoutes.has("/app/docchat")).toBe(true);
       expect(managerGrantedRoutes.has("/app/bi")).toBe(true);
-      expect(managerGrantedRoutes.has("/app/users")).toBe(true);
-      expect(managerGrantedRoutes.has("/app/governance")).toBe(true);
+
+      // Manager is locked out of denied modules
+      expect(managerGrantedRoutes.has("/app/salesintel")).toBe(false);
+      expect(managerGrantedRoutes.has("/app/docchat")).toBe(false);
+      expect(managerGrantedRoutes.has("/app/users")).toBe(false);
+      expect(managerGrantedRoutes.has("/app/governance")).toBe(false);
+      expect(managerGrantedRoutes.has("/app/command")).toBe(false);
+      expect(managerGrantedRoutes.has("/app/risk")).toBe(false);
     });
   });
 
@@ -1219,7 +1227,7 @@ describe("Sales Executive Persona & CRM KPI Scoping Remediation", () => {
   // ── 13. Sales Executive Voice Module Entitlement & Feature Flag Authority ──
   describe("13. Sales Executive Voice Module Entitlement & Feature Flag Authority", () => {
     it("hides /app/voice from Sales Executive sidebar when voice feature flag is false", () => {
-      const consoleModules = resolveConsoleModules(["agent"], { voice: false });
+      const consoleModules = resolveConsoleModules(["agent"], { voice: false, marketplace: true });
       const visibleRoutes = activeConsoleRouteSet(consoleModules);
 
       expect(visibleRoutes.has("/app/voice")).toBe(false);
@@ -1234,7 +1242,7 @@ describe("Sales Executive Persona & CRM KPI Scoping Remediation", () => {
     });
 
     it("displays and activates /app/voice for Sales Executive when voice feature flag is true", () => {
-      const consoleModules = resolveConsoleModules(["agent"], { voice: true });
+      const consoleModules = resolveConsoleModules(["agent"], { voice: true, marketplace: true });
       const visibleRoutes = activeConsoleRouteSet(consoleModules);
 
       expect(visibleRoutes.has("/app/voice")).toBe(true);
@@ -1244,10 +1252,10 @@ describe("Sales Executive Persona & CRM KPI Scoping Remediation", () => {
       expect(voiceGrant?.accessMode).toBe("OPERATIONAL");
     });
 
-    it("denies route authorization when voice feature flag is false", () => {
+    it("denies route authorization for non-admin roles when voice feature flag is false, while admin retains access", () => {
       expect(isRouteAuthorized(["agent"], "/app/voice", { voice: false })).toBe(false);
       expect(isRouteAuthorized(["manager"], "/app/voice", { voice: false })).toBe(false);
-      expect(isRouteAuthorized(["admin"], "/app/voice", { voice: false })).toBe(false);
+      expect(isRouteAuthorized(["admin"], "/app/voice", { voice: false })).toBe(true);
 
       expect(isRouteAuthorized(["agent"], "/app/voice", { voice: true })).toBe(true);
       expect(isRouteAuthorized(["manager"], "/app/voice", { voice: true })).toBe(true);
