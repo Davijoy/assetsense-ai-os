@@ -369,20 +369,20 @@ function FortLayout() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row antialiased transition-colors duration-200 bg-[#0C0E14] text-stone-100 selection:bg-[#2D2415] selection:text-[#E2C578]">
+    <div className="min-h-screen flex flex-col lg:flex-row antialiased transition-colors duration-200 bg-background text-stone-100 selection:bg-[#2D2415] selection:text-[#E2C578]">
       {/* ── Mobile Sidebar Header Toggle ── */}
-      <header className="lg:hidden sticky top-0 z-50 flex items-center justify-between border-b px-4 py-3 backdrop-blur border-[#232834] bg-[#0F1219]/95 text-stone-100">
+      <header className="lg:hidden sticky top-0 z-50 flex items-center justify-between border-b px-4 py-3 backdrop-blur border-border bg-card/95 text-stone-100">
         <div className="flex items-center gap-2.5">
           <SpartanShieldIcon size={30} showStar={false} />
           <div className="leading-none">
             <span className="font-display text-lg font-bold tracking-tight text-stone-100">Sentinel Fort</span>
-            <span className="ml-1 text-[9px] uppercase tracking-[0.22em] font-semibold text-[#D4AF37]">GROUP</span>
+            <span className="ml-1 text-[9px] uppercase tracking-[0.22em] font-semibold text-gold">GROUP</span>
           </div>
         </div>
         <button
           type="button"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="rounded-lg p-2 transition-colors text-stone-400 hover:bg-[#181C26] hover:text-stone-100"
+          className="rounded-lg p-2 transition-colors text-stone-400 hover:bg-surface hover:text-stone-100"
         >
           {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
@@ -390,7 +390,7 @@ function FortLayout() {
 
       {/* ── Left Executive Sidebar (Manager / Admin / Developer Shell) ── */}
       <aside
-        className={`fixed inset-y-0 left-0 z-40 w-60 border-r flex flex-col justify-between transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 bg-[#0F1219] border-[#232834] ${
+        className={`fixed inset-y-0 left-0 z-40 w-60 border-r flex flex-col justify-between transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 bg-card border-border ${
           mobileMenuOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full"
         }`}
       >
@@ -400,7 +400,7 @@ function FortLayout() {
             <SpartanShieldIcon size={32} className="transition-transform group-hover:scale-105" />
             <div className="flex flex-col leading-none">
               <span className="font-display text-lg font-bold tracking-tight text-stone-100">Sentinel Fort</span>
-              <span className="text-[8px] uppercase tracking-[0.24em] font-bold text-[#D4AF37] mt-0.5">GROUP</span>
+              <span className="text-[8px] uppercase tracking-[0.24em] font-bold text-gold mt-0.5">GROUP</span>
             </div>
           </Link>
 
@@ -425,7 +425,7 @@ function FortLayout() {
                   <div className="flex items-center gap-2.5">
                     <Icon className={`h-3.5 w-3.5 ${
                       item.active
-                        ? "text-[#D4AF37]"
+                        ? "text-gold"
                         : isLocked
                           ? "text-stone-600"
                           : "text-stone-500"
@@ -444,9 +444,9 @@ function FortLayout() {
         </div>
 
         {/* Sidebar Bottom Cards */}
-        <div className="p-3 space-y-2 border-t border-[#232834] bg-[#0A0D12]">
+        <div className="p-3 space-y-2 border-t border-border bg-[#0A0D12]">
           {/* Fort Status Box */}
-          <div className="rounded-xl border p-2.5 shadow-2xs border-[#262D3D] bg-[#141822]">
+          <div className="rounded-xl border p-2.5 shadow-2xs border-border bg-card">
             <div className="flex items-center justify-between text-[9px] font-bold tracking-wider uppercase text-stone-400">
               <span>FORT STATUS</span>
               <span className={`flex items-center gap-1 font-bold ${
@@ -459,15 +459,15 @@ function FortLayout() {
             <Link to="/fort" className="mt-1.5 flex items-center justify-between group">
               <div>
                 <div className="text-[9px] font-medium text-stone-500">Workspace</div>
-                <div className="text-[11px] font-bold truncate max-w-[140px] transition-colors text-stone-100 group-hover:text-[#D4AF37]">
+                <div className="text-[11px] font-bold truncate max-w-[140px] transition-colors text-stone-100 group-hover:text-gold">
                   {fort.workspaceName || (fort.status === "ACTIVE" ? "Sentinel Fort HQ" : "Workspace Pending")}
                 </div>
               </div>
               <ChevronRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 transition-transform text-stone-500" />
             </Link>
-            <div className="mt-1.5 pt-1.5 border-t border-[#232834] flex items-center justify-between text-[10px] font-medium text-stone-400">
+            <div className="mt-1.5 pt-1.5 border-t border-border flex items-center justify-between text-[10px] font-medium text-stone-400">
               <div className="flex items-center gap-1">
-                <ShieldCheck className="h-3 w-3 text-[#D4AF37]" />
+                <ShieldCheck className="h-3 w-3 text-gold" />
                 <span className="truncate">{roleTitle}</span>
               </div>
               <span className="font-mono text-[9px] font-bold text-primary">
@@ -479,7 +479,7 @@ function FortLayout() {
           </div>
 
           {/* User Profile Card */}
-          <div className="flex items-center justify-between rounded-xl border p-2 shadow-2xs border-[#262D3D] bg-[#141822]">
+          <div className="flex items-center justify-between rounded-xl border p-2 shadow-2xs border-border bg-card">
             <div className="flex items-center gap-2 truncate">
               <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#D4AF37] to-[#8C6D1F] text-[10px] font-bold text-[#141720] shadow-2xs">
                 {userInitial}
@@ -507,7 +507,7 @@ function FortLayout() {
       {/* ── Main Content Shell ── */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top Command Bar */}
-        <header className="sticky top-0 z-30 flex flex-wrap items-center justify-between gap-3 border-b px-4 sm:px-5 py-2 backdrop-blur-md border-[#232834] bg-[#0C0E14]/90 text-stone-100">
+        <header className="sticky top-0 z-30 flex flex-wrap items-center justify-between gap-3 border-b px-4 sm:px-5 py-2 backdrop-blur-md border-border bg-background/90 text-stone-100">
           {/* Greeting */}
           <div className="leading-tight">
             <div className="flex items-center gap-1.5 text-sm font-bold tracking-tight text-stone-100">

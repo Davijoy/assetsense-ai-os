@@ -25,22 +25,22 @@ export function SpartanShieldIcon({
     >
       <defs>
         <linearGradient id="shieldGoldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#F5D77F" />
-          <stop offset="35%" stopColor="#D4AF37" />
-          <stop offset="70%" stopColor="#B89635" />
-          <stop offset="100%" stopColor="#8C6D1F" />
+          <stop offset="0%" stopColor="var(--gold-light, #F5D77F)" />
+          <stop offset="35%" stopColor="var(--gold, #D4AF37)" />
+          <stop offset="70%" stopColor="var(--gold-dark, #B89635)" />
+          <stop offset="100%" stopColor="var(--gold-dark, #8C6D1F)" />
         </linearGradient>
         <linearGradient id="shieldInnerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stopColor="#FFFDF7" />
           <stop offset="100%" stopColor="#F5EEDB" />
         </linearGradient>
         <linearGradient id="helmetGoldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#B89635" />
-          <stop offset="50%" stopColor="#8C6D1F" />
-          <stop offset="100%" stopColor="#684F12" />
+          <stop offset="0%" stopColor="var(--gold-dark, #B89635)" />
+          <stop offset="50%" stopColor="var(--gold-dark, #8C6D1F)" />
+          <stop offset="100%" stopColor="var(--gold-deep, #684F12)" />
         </linearGradient>
         <filter id="goldGlow" x="-20%" y="-20%" width="140%" height="140%">
-          <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="#D4AF37" floodOpacity="0.4" />
+          <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="var(--gold, #D4AF37)" floodOpacity="0.4" />
         </filter>
       </defs>
 
@@ -131,16 +131,16 @@ export function GoldTerrainBackground({ className }: { className?: string }) {
       >
         <defs>
           <linearGradient id="goldLineGrad1" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#D4AF37" stopOpacity="0" />
-            <stop offset="25%" stopColor="#D4AF37" stopOpacity="0.4" />
-            <stop offset="50%" stopColor="#F5D77F" stopOpacity="0.8" />
-            <stop offset="75%" stopColor="#D4AF37" stopOpacity="0.4" />
-            <stop offset="100%" stopColor="#D4AF37" stopOpacity="0" />
+            <stop offset="0%" stopColor="var(--gold, #D4AF37)" stopOpacity="0" />
+            <stop offset="25%" stopColor="var(--gold, #D4AF37)" stopOpacity="0.4" />
+            <stop offset="50%" stopColor="var(--gold-light, #F5D77F)" stopOpacity="0.8" />
+            <stop offset="75%" stopColor="var(--gold, #D4AF37)" stopOpacity="0.4" />
+            <stop offset="100%" stopColor="var(--gold, #D4AF37)" stopOpacity="0" />
           </linearGradient>
           <linearGradient id="goldLineGrad2" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#B89635" stopOpacity="0" />
-            <stop offset="50%" stopColor="#D4AF37" stopOpacity="0.5" />
-            <stop offset="100%" stopColor="#B89635" stopOpacity="0" />
+            <stop offset="0%" stopColor="var(--gold-dark, #B89635)" stopOpacity="0" />
+            <stop offset="50%" stopColor="var(--gold, #D4AF37)" stopOpacity="0.5" />
+            <stop offset="100%" stopColor="var(--gold-dark, #B89635)" stopOpacity="0" />
           </linearGradient>
         </defs>
 

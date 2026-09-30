@@ -1,65 +1,179 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from "react";
 import { supabase as supabaseTyped } from "@/integrations/supabase/client";
-// branding_settings is not yet in generated types — cast for now.
-const supabase = supabaseTyped as unknown as {
-  from: (table: string) => any;
-};
+import { useOptionalAuth } from "@/hooks/use-auth";
+import { getCurrentWorkspaceId } from "@/lib/services/workspace.service";
+import { loadBranding, saveBrandingUrls, resetBranding } from "@/lib/services/branding.service";
+import { loadWorkspaceThemeSettings, resolveEffectiveTheme } from "@/lib/services/workspace-theme.service";
+import {
+  mapRoleToExperience,
+  loadExperienceOverride,
+  resolveEffectiveExperienceTheme,
+  type WorkspaceExperienceType,
+} from "@/lib/services/workspace-experience-theme.service";
+import { applyThemeToDOM } from "@/lib/theme.manager";
+import { applyMotionToDOM } from "@/lib/motion.manager";
+import { setRuntimeFavicon } from "@/lib/favicon.manager";
+import { usePrefersReducedMotion } from "@/hooks/use-reduced-motion";
 
 type BrandingState = {
   logoUrl: string | null;
   logoUrlDark: string | null;
-  setLogos: (urls: { logoUrl?: string | null; logoUrlDark?: string | null }) => Promise<void>;
+  workspaceId: string | null;
+  activeExperience: WorkspaceExperienceType;
+  setLogos: (urls: { logoUrl?: string | null; logoUrlDark?: string | null; workspaceId?: string | null }) => Promise<void>;
+  resetToDefault: (targetWorkspaceId?: string | null) => Promise<void>;
+  refresh: () => Promise<void>;
   loading: boolean;
 };
 
 const BrandingContext = createContext<BrandingState>({
   logoUrl: null,
   logoUrlDark: null,
+  workspaceId: null,
+  activeExperience: "platform_administrator",
   setLogos: async () => {},
+  resetToDefault: async () => {},
+  refresh: async () => {},
   loading: true,
 });
 
-export function BrandingProvider({ children }: { children: ReactNode }) {
+export function BrandingProvider({
+  children,
+  workspaceId: explicitWorkspaceId,
+}: {
+  children: ReactNode;
+  workspaceId?: string | null;
+}) {
+  const auth = useOptionalAuth();
+  const userId = auth?.user?.id;
+  const userRole = auth?.roles?.[0] || "admin";
+  const prefersReducedMotion = usePrefersReducedMotion();
+
+  const [resolvedWorkspaceId, setResolvedWorkspaceId] = useState<string | null>(explicitWorkspaceId ?? null);
   const [logoUrl, setLogoUrlState] = useState<string | null>(null);
   const [logoUrlDark, setLogoUrlDarkState] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const activeExperience: WorkspaceExperienceType = mapRoleToExperience(userRole);
+
+  // 1. Resolve active workspaceId if not explicitly provided
   useEffect(() => {
+    if (explicitWorkspaceId !== undefined) {
+      setResolvedWorkspaceId(explicitWorkspaceId);
+      return;
+    }
     let active = true;
-    supabase
-      .from("branding_settings")
-      .select("logo_url, logo_url_dark")
-      .eq("tenant_key", "default")
-      .maybeSingle()
-      .then(({ data }: { data: { logo_url: string | null; logo_url_dark: string | null } | null }) => {
-        if (!active) return;
-        setLogoUrlState(data?.logo_url ?? null);
-        setLogoUrlDarkState(data?.logo_url_dark ?? null);
-        setLoading(false);
-      });
+    (async () => {
+      try {
+        const wsId = await getCurrentWorkspaceId(supabaseTyped, userId);
+        if (active) {
+          setResolvedWorkspaceId(wsId);
+        }
+      } catch {
+        if (active) {
+          setResolvedWorkspaceId(null);
+        }
+      }
+    })();
     return () => {
       active = false;
     };
-  }, []);
+  }, [explicitWorkspaceId, userId]);
 
-  const setLogos = async (urls: { logoUrl?: string | null; logoUrlDark?: string | null }) => {
-    const patch: Record<string, unknown> = { updated_at: new Date().toISOString() };
+  // 2. Fetch branding, workspace theme, and experience overrides
+  const fetchBranding = useCallback(async (targetWsId?: string | null) => {
+    const wsId = targetWsId !== undefined ? targetWsId : resolvedWorkspaceId;
+    setLoading(true);
+    try {
+      const [brandingData, themeSettings, experienceOverride] = await Promise.all([
+        loadBranding(wsId),
+        loadWorkspaceThemeSettings(wsId),
+        loadExperienceOverride(wsId || "00000000-0000-0000-0000-00000000d3f7", activeExperience),
+      ]);
+      setLogoUrlState(brandingData.logoUrl);
+      setLogoUrlDarkState(brandingData.logoUrlDark);
+
+      // Base Workspace Effective Theme
+      const baseWorkspaceTheme = resolveEffectiveTheme(
+        themeSettings.presetId,
+        themeSettings.customColors,
+        {
+          fontDisplay: themeSettings.fontDisplay,
+          fontSans: themeSettings.fontSans,
+          fontScale: themeSettings.fontScale,
+          radius: themeSettings.radius,
+        }
+      );
+
+      // Resolve Final Experience Theme with Accessibility Constraints
+      const effectiveExp = resolveEffectiveExperienceTheme(
+        baseWorkspaceTheme,
+        experienceOverride,
+        { prefersReducedMotion }
+      );
+
+      // Apply to document DOM & Favicon
+      applyThemeToDOM(effectiveExp.theme, effectiveExp.componentConfig);
+      applyMotionToDOM(effectiveExp.motionProfile, prefersReducedMotion);
+
+      if (themeSettings.faviconUrl) {
+        setRuntimeFavicon(themeSettings.faviconUrl);
+      }
+    } catch (err) {
+      console.error("[BrandingContext] Failed to load branding:", err);
+      setLogoUrlState(null);
+      setLogoUrlDarkState(null);
+    } finally {
+      setLoading(false);
+    }
+  }, [resolvedWorkspaceId, activeExperience, prefersReducedMotion]);
+
+  useEffect(() => {
+    fetchBranding();
+  }, [fetchBranding]);
+
+  // 3. Save logos to DB and update local state immediately
+  const setLogos = async (urls: {
+    logoUrl?: string | null;
+    logoUrlDark?: string | null;
+    workspaceId?: string | null;
+  }) => {
+    const targetWsId = urls.workspaceId !== undefined ? urls.workspaceId : resolvedWorkspaceId;
     if (urls.logoUrl !== undefined) {
       setLogoUrlState(urls.logoUrl);
-      patch.logo_url = urls.logoUrl;
     }
     if (urls.logoUrlDark !== undefined) {
       setLogoUrlDarkState(urls.logoUrlDark);
-      patch.logo_url_dark = urls.logoUrlDark;
     }
-    await supabase
-      .from("branding_settings")
-      .update(patch)
-      .eq("tenant_key", "default");
+
+    await saveBrandingUrls({
+      logoUrl: urls.logoUrl,
+      logoUrlDark: urls.logoUrlDark,
+      workspaceId: targetWsId,
+    });
+  };
+
+  // 4. Reset logos to defaults
+  const resetToDefault = async (targetWorkspaceId?: string | null) => {
+    const targetWsId = targetWorkspaceId !== undefined ? targetWorkspaceId : resolvedWorkspaceId;
+    setLogoUrlState(null);
+    setLogoUrlDarkState(null);
+    await resetBranding(targetWsId);
   };
 
   return (
-    <BrandingContext.Provider value={{ logoUrl, logoUrlDark, setLogos, loading }}>
+    <BrandingContext.Provider
+      value={{
+        logoUrl,
+        logoUrlDark,
+        workspaceId: resolvedWorkspaceId,
+        activeExperience,
+        setLogos,
+        resetToDefault,
+        refresh: fetchBranding,
+        loading,
+      }}
+    >
       {children}
     </BrandingContext.Provider>
   );

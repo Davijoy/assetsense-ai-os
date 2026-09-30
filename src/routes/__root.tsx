@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
@@ -14,6 +15,7 @@ import { AuthProvider, useAuth } from "@/hooks/use-auth";
 import { Toaster } from "@/components/ui/sonner";
 import { SupremeEntity } from "@/components/sentinel/SupremeEntity";
 import { ActiveEntityProvider } from "@/lib/active-entity";
+import { applyThemeToDOM, loadSavedTheme } from "@/lib/theme.manager";
 
 function NotFoundComponent() {
   return (
@@ -131,6 +133,10 @@ function RootShell({ children }: { children: React.ReactNode }) {
 
 function RootContent() {
   const { user, roles } = useAuth();
+
+  useEffect(() => {
+    applyThemeToDOM(loadSavedTheme());
+  }, []);
 
   return (
     <>

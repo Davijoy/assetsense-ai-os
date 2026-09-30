@@ -2297,11 +2297,11 @@ export function FortDashboard({ fort, roles, workspace, persona, userName: propU
           </div>
 
           {/* ── Bottom Compact Quote Strip ── */}
-          <div className="rounded-xl border border-[#262D3D] bg-gradient-to-r from-[#12151C] via-[#181D28] to-[#12151C] py-1.5 px-4 text-center shadow-md">
+          <div className="rounded-xl border border-border bg-gradient-to-r from-[#12151C] via-[#181D28] to-[#12151C] py-1.5 px-4 text-center shadow-md">
             <p className="font-serif italic text-xs text-stone-300 tracking-wide inline">
               “We don't just build businesses. We build legacies.”
             </p>
-            <span className="ml-2 text-[9px] uppercase tracking-[0.16em] font-bold text-[#D4AF37]">
+            <span className="ml-2 text-[9px] uppercase tracking-[0.16em] font-bold text-gold">
               — The Sentinel Principle
             </span>
           </div>
@@ -2310,7 +2310,7 @@ export function FortDashboard({ fort, roles, workspace, persona, userName: propU
         {/* ── Right Column: Telemetry & Activity Panels (4 cols on lg, 3 cols on xl) ── */}
         <aside className="lg:col-span-4 xl:col-span-3 space-y-2.5">
           {/* 1. FORT OVERVIEW */}
-          <div className="fort-hub-card rounded-xl p-3 border border-[#232834] bg-[#121622]">
+          <div className="fort-hub-card rounded-xl p-3 border border-border bg-card">
             <div className="flex items-center justify-between">
               <span className="text-[9px] font-bold uppercase tracking-wider text-stone-400">SYSTEM TELEMETRY</span>
               <span className="rounded-full bg-emerald-950/60 text-emerald-400 border border-emerald-800 px-1.5 py-0.2 text-[9px] font-bold">
@@ -2338,7 +2338,7 @@ export function FortDashboard({ fort, roles, workspace, persona, userName: propU
           </div>
 
           {/* 2. ACTIVITY FEED */}
-          <div className="fort-hub-card rounded-xl p-3 border border-[#232834] bg-[#121622]">
+          <div className="fort-hub-card rounded-xl p-3 border border-border bg-card">
             <div className="flex items-center justify-between mb-1.5">
               <span className="text-[9px] font-bold uppercase tracking-wider text-stone-400">ACTIVITY FEED</span>
               <Activity className="h-3 w-3 text-stone-500" />
@@ -2346,10 +2346,10 @@ export function FortDashboard({ fort, roles, workspace, persona, userName: propU
             <div className="text-[10px] text-stone-400 font-medium leading-snug">
               No live audit stream is configured. Telemetry updates dynamically as actions occur.
             </div>
-            <div className="mt-2 pt-1.5 border-t border-[#232834]">
+            <div className="mt-2 pt-1.5 border-t border-border">
               <Link
                 to="/app/crm"
-                className="flex items-center justify-between text-[10px] font-bold text-[#D4AF37] hover:text-[#E5C368] transition-colors"
+                className="flex items-center justify-between text-[10px] font-bold text-gold hover:text-gold-light transition-colors"
               >
                 <span>Open CRM Operations</span>
                 <ChevronRight className="h-3 w-3" />
@@ -2359,7 +2359,7 @@ export function FortDashboard({ fort, roles, workspace, persona, userName: propU
 
           {/* 3. FORT AI INSIGHT */}
           <div className="fort-hub-card rounded-xl p-3 bg-gradient-to-br from-[#181624] to-[#12151E] border-[#362E48]">
-            <div className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-[#D4AF37]">
+            <div className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-gold">
               <Sparkles className="h-3 w-3" />
               <span>SUPREME INTELLIGENCE</span>
             </div>
@@ -2369,7 +2369,7 @@ export function FortDashboard({ fort, roles, workspace, persona, userName: propU
             <div className="mt-2 pt-1.5 border-t border-[#2D283E]">
               <Link
                 to={SUPREME_INTELLIGENCE_ROUTE}
-                className="flex items-center justify-between text-[10px] font-bold text-[#D4AF37] hover:text-[#E5C368]"
+                className="flex items-center justify-between text-[10px] font-bold text-gold hover:text-gold-light"
               >
                 <span>Launch Supreme Assessment</span>
                 <ChevronRight className="h-3 w-3" />
