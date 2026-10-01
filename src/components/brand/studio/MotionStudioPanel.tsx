@@ -273,6 +273,36 @@ export function MotionStudioPanel({
               </div>
             </div>
 
+            {/* Drift Intensity */}
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-1.5 text-xs text-foreground font-medium">
+                <Wind className="h-3 w-3 text-muted-foreground" />
+                <span>Drift Speed</span>
+              </div>
+              <div className="grid grid-cols-4 gap-1">
+                {INTENSITY_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() =>
+                      onUpdateAtmosphere({
+                        ...atmosphereConfig,
+                        driftIntensity: opt.id,
+                      })
+                    }
+                    className={cn(
+                      "rounded-md border py-1 text-[10px] font-medium transition-colors",
+                      (atmosphereConfig.driftIntensity || "medium") === opt.id
+                        ? "border-primary bg-primary text-primary-foreground font-bold"
+                        : "border-border bg-surface/50 text-muted-foreground hover:bg-surface"
+                    )}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {/* Watermark Visibility */}
             <div className="space-y-1.5 flex flex-col justify-between">
               <div className="flex items-center gap-1.5 text-xs text-foreground font-medium">

@@ -115,6 +115,12 @@ export function mapRoleToExperience(role: string = "admin"): WorkspaceExperience
   return "sales_executive"; // manager, agent, broker, channel_partner, sales_executive
 }
 
+export interface WorkspaceDefaults {
+  motionProfileId?: string;
+  atmosphereConfig?: Partial<AtmosphereConfig>;
+  componentConfig?: Partial<ComponentConfig>;
+}
+
 /**
  * Resolves effective theme, motion, atmosphere, and component styling following the strict hierarchy:
  * Sentinel Default -> Workspace Theme -> Experience Override -> Accessibility Constraints
@@ -122,7 +128,8 @@ export function mapRoleToExperience(role: string = "admin"): WorkspaceExperience
 export function resolveEffectiveExperienceTheme(
   workspaceTheme: ThemePreset = DEFAULT_THEME,
   experienceOverride: ExperienceOverrideConfig = {},
-  accessibilityState: { prefersReducedMotion?: boolean } = {}
+  accessibilityState: { prefersReducedMotion?: boolean } = {},
+  workspaceDefaults?: WorkspaceDefaults
 ): {
   theme: ThemePreset;
   motionProfile: MotionProfile;
@@ -152,22 +159,24 @@ export function resolveEffectiveExperienceTheme(
   };
 
   // 2. Resolve Effective Motion Profile
-  let baseMotion = DEFAULT_MOTION_PROFILE;
-  if (experienceOverride.motionProfileId) {
-    baseMotion =
-      MOTION_PROFILES.find((p) => p.id === experienceOverride.motionProfileId) ||
-      DEFAULT_MOTION_PROFILE;
-  }
+  const targetMotionId =
+    experienceOverride.motionProfileId ||
+    workspaceDefaults?.motionProfileId ||
+    DEFAULT_MOTION_PROFILE.id;
+  const baseMotion =
+    MOTION_PROFILES.find((p) => p.id === targetMotionId) || DEFAULT_MOTION_PROFILE;
 
   // 3. Resolve Effective Atmosphere Config
   const atmosphereConfig: AtmosphereConfig = {
     ...DEFAULT_ATMOSPHERE_CONFIG,
+    ...(workspaceDefaults?.atmosphereConfig || {}),
     ...(experienceOverride.atmosphereConfig || {}),
   };
 
   // 4. Resolve Effective Component Config
   const componentConfig: ComponentConfig = {
     ...DEFAULT_COMPONENT_CONFIG,
+    ...(workspaceDefaults?.componentConfig || {}),
     ...(experienceOverride.componentConfig || {}),
   };
 
@@ -198,10 +207,13 @@ export function resolveEffectiveExperienceTheme(
 export function getInheritanceBreakdown(
   workspaceTheme: ThemePreset = DEFAULT_THEME,
   experienceOverride: ExperienceOverrideConfig = {},
-  accessibilityState: { prefersReducedMotion?: boolean } = {}
+  accessibilityState: { prefersReducedMotion?: boolean } = {},
+  workspaceDefaults?: WorkspaceDefaults
 ): InheritancePropertyItem[] {
   const isExp = (val: any) => val !== undefined && val !== null && val !== "";
   const isWs = (val: any, def: any) => val !== undefined && val !== null && val !== def;
+
+  const wsMotionId = workspaceDefaults?.motionProfileId || "executive";
 
   const items: InheritancePropertyItem[] = [
     {
@@ -314,13 +326,15 @@ export function getInheritanceBreakdown(
       category: "Motion",
       effectiveValue: accessibilityState.prefersReducedMotion
         ? "Static Focus (Reduced Motion)"
-        : experienceOverride.motionProfileId || "executive (Standard)",
+        : experienceOverride.motionProfileId || `${wsMotionId} (Workspace)`,
       source: accessibilityState.prefersReducedMotion
         ? "ACCESSIBILITY"
         : isExp(experienceOverride.motionProfileId)
         ? "EXPERIENCE"
-        : "WORKSPACE",
-      workspaceValue: "executive",
+        : wsMotionId !== "executive"
+        ? "WORKSPACE"
+        : "SENTINEL",
+      workspaceValue: wsMotionId,
       experienceValue: experienceOverride.motionProfileId,
     },
   ];

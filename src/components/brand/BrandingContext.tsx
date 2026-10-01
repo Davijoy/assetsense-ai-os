@@ -133,7 +133,12 @@ export function BrandingProvider({
       const effectiveExp = resolveEffectiveExperienceTheme(
         baseWorkspaceTheme,
         experienceOverride,
-        { prefersReducedMotion }
+        { prefersReducedMotion },
+        {
+          motionProfileId: themeSettings.motionProfileId,
+          atmosphereConfig: themeSettings.atmosphereConfig,
+          componentConfig: themeSettings.componentConfig,
+        }
       );
 
       // Update Local State for Components

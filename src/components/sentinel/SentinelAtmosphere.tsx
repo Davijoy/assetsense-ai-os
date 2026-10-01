@@ -38,7 +38,10 @@ export function SentinelAtmosphere({
   const gridIntensity = config?.gridIntensity ?? (subtle ? "low" : "medium");
   const glowIntensity = config?.glowIntensity ?? (subtle ? "low" : "medium");
   const particleDensity = config?.particleDensity ?? (subtle ? "none" : "medium");
+  const driftIntensity = config?.driftIntensity ?? (subtle ? "low" : "medium");
   const showWatermark = config ? config.watermarkVisibility : true;
+
+  const driftClass = driftIntensity === "none" ? "" : "sentinel-atmosphere-drift";
 
   // Compute CSS classes based on intensity levels
   const gridOpacityClass =
@@ -76,7 +79,7 @@ export function SentinelAtmosphere({
 
       {/* drifting watermark emblem */}
       {showWatermark && gridIntensity !== "none" && (
-        <div className="absolute right-[8%] top-[12%] h-56 w-56 -rotate-12 sentinel-atmosphere-drift opacity-70">
+        <div className={cn("absolute right-[8%] top-[12%] h-56 w-56 -rotate-12 opacity-70", driftClass)}>
           <div className="flex h-full w-full items-center justify-center rounded-full bg-card/20">
             <SentinelMark className="h-14 w-14 opacity-60" />
           </div>
@@ -86,20 +89,20 @@ export function SentinelAtmosphere({
       {/* soft particle field — restful, non-interfering */}
       {particleDensity !== "none" && (
         <div className="absolute inset-0">
-          <Dust className="left-[12%] top-[28%]" />
-          <Dust className="left-[72%] top-[18%]" />
+          <Dust className={cn("left-[12%] top-[28%]", driftClass)} />
+          <Dust className={cn("left-[72%] top-[18%]", driftClass)} />
           {(particleDensity === "medium" || particleDensity === "high") && (
             <>
-              <Dust className="left-[38%] top-[64%]" />
-              <Dust className="left-[90%] top-[52%]" />
+              <Dust className={cn("left-[38%] top-[64%]", driftClass)} />
+              <Dust className={cn("left-[90%] top-[52%]", driftClass)} />
             </>
           )}
           {particleDensity === "high" && (
             <>
-              <Dust className="left-[25%] top-[80%]" />
-              <Dust className="left-[82%] top-[75%]" />
-              <Dust className="left-[55%] top-[22%]" />
-              <Dust className="left-[48%] top-[45%]" />
+              <Dust className={cn("left-[25%] top-[80%]", driftClass)} />
+              <Dust className={cn("left-[82%] top-[75%]", driftClass)} />
+              <Dust className={cn("left-[55%] top-[22%]", driftClass)} />
+              <Dust className={cn("left-[48%] top-[45%]", driftClass)} />
             </>
           )}
         </div>
@@ -112,7 +115,7 @@ function Dust({ className }: { className?: string }) {
   return (
     <span
       className={cn(
-        "absolute h-1.5 w-1.5 rounded-full bg-primary/25 sentinel-atmosphere-drift",
+        "absolute h-1.5 w-1.5 rounded-full bg-primary/25",
         className
       )}
     />

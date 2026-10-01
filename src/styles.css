@@ -178,10 +178,10 @@
   .shadow-elevated { box-shadow: var(--shadow-elevated); }
 
   /* --- Sentinel living identity — restrained, GPU-friendly, reduced-motion aware --- */
-  .sentinel-orb { animation: sentinel-breathe 7s ease-in-out infinite; }
-  .sentinel-drift { animation: sentinel-drift 16s ease-in-out infinite; }
-  .sentinel-pulse { animation: sentinel-pulse 6s ease-in-out infinite; }
-  .sentinel-atmosphere-drift { animation: sentinel-atmosphere 26s ease-in-out infinite; }
+  .sentinel-orb { animation: sentinel-breathe var(--motion-breathe-duration, 7s) ease-in-out infinite; }
+  .sentinel-drift { animation: sentinel-drift var(--motion-drift-duration, 16s) ease-in-out infinite; }
+  .sentinel-pulse { animation: sentinel-pulse var(--motion-pulse-duration, 6s) ease-in-out infinite; }
+  .sentinel-atmosphere-drift { animation: sentinel-atmosphere var(--motion-drift-duration, 26s) ease-in-out infinite; }
 
   /* Semantic motion classes */
   .sentinel-motion-transition {
@@ -194,7 +194,7 @@
     transform: scale(var(--motion-hover-scale, 1.02));
   }
   .sentinel-motion-enter {
-    animation: sentinel-breathe var(--motion-drift-duration, 7s) ease-in-out infinite;
+    animation: sentinel-breathe var(--motion-breathe-duration, 7s) ease-in-out infinite;
   }
   .sentinel-motion-float {
     animation: sentinel-drift var(--motion-drift-duration, 16s) ease-in-out infinite;
@@ -206,13 +206,15 @@
     .sentinel-pulse,
     .sentinel-atmosphere-drift,
     .sentinel-motion-enter,
-    .sentinel-motion-float {
-      animation: none;
-      opacity: 1;
-      transform: none;
+    .sentinel-motion-float,
+    .supreme-entity-float,
+    .supreme-entity-breathe {
+      animation: none !important;
+      opacity: 1 !important;
+      transform: none !important;
     }
     .sentinel-motion-hover:hover {
-      transform: none;
+      transform: none !important;
     }
   }
 }

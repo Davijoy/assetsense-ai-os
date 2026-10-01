@@ -130,6 +130,8 @@ export function getMotionCssVariables(
     vars["--motion-hover-scale"] = "1";
     vars["--motion-transition-duration"] = "0ms";
     vars["--motion-drift-duration"] = "0s";
+    vars["--motion-breathe-duration"] = "0s";
+    vars["--motion-pulse-duration"] = "0s";
     vars["--motion-glow-opacity"] = "0";
     return vars;
   }
@@ -146,6 +148,24 @@ export function getMotionCssVariables(
   else if (profile.glowIntensity === "low") vars["--motion-glow-opacity"] = "0.2";
   else if (profile.glowIntensity === "medium") vars["--motion-glow-opacity"] = "0.45";
   else vars["--motion-glow-opacity"] = "0.75";
+
+  if (profile.driftIntensity === "none") {
+    vars["--motion-drift-duration"] = "0s";
+    vars["--motion-breathe-duration"] = "0s";
+    vars["--motion-pulse-duration"] = "0s";
+  } else if (profile.driftIntensity === "low") {
+    vars["--motion-drift-duration"] = "24s";
+    vars["--motion-breathe-duration"] = "9s";
+    vars["--motion-pulse-duration"] = "8s";
+  } else if (profile.driftIntensity === "medium") {
+    vars["--motion-drift-duration"] = "16s";
+    vars["--motion-breathe-duration"] = "7s";
+    vars["--motion-pulse-duration"] = "6s";
+  } else {
+    vars["--motion-drift-duration"] = "10s";
+    vars["--motion-breathe-duration"] = "4.5s";
+    vars["--motion-pulse-duration"] = "3.5s";
+  }
 
   return vars;
 }

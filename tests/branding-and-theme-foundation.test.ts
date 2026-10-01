@@ -879,6 +879,9 @@ describe("Sentinel Fort — Brand & Experience Studio 2.0 (Phase 2D Hardened)", 
       expect(motionVars["--motion-duration-multiplier"]).toBe("0.75");
       expect(motionVars["--motion-transition-duration"]).toBe("150ms");
       expect(motionVars["--motion-hover-scale"]).toBe("1.01");
+      expect(motionVars["--motion-drift-duration"]).toBe("24s");
+      expect(motionVars["--motion-breathe-duration"]).toBe("9s");
+      expect(motionVars["--motion-pulse-duration"]).toBe("8s");
     });
 
     it("9. Atmosphere config reaches live SentinelAtmosphere with valid intensity levels", () => {
@@ -900,6 +903,9 @@ describe("Sentinel Fort — Brand & Experience Studio 2.0 (Phase 2D Hardened)", 
       expect(motionVars["--motion-duration-multiplier"]).toBe("0");
       expect(motionVars["--motion-transition-duration"]).toBe("0ms");
       expect(motionVars["--motion-hover-scale"]).toBe("1");
+      expect(motionVars["--motion-drift-duration"]).toBe("0s");
+      expect(motionVars["--motion-breathe-duration"]).toBe("0s");
+      expect(motionVars["--motion-pulse-duration"]).toBe("0s");
       expect(motionVars["--motion-glow-opacity"]).toBe("0");
     });
 
@@ -915,6 +921,9 @@ describe("Sentinel Fort — Brand & Experience Studio 2.0 (Phase 2D Hardened)", 
       expect(motionVars["--motion-duration-multiplier"]).toBe("1.25");
       expect(motionVars["--motion-hover-scale"]).toBe("1.035");
       expect(motionVars["--motion-glow-opacity"]).toBe("0.75");
+      expect(motionVars["--motion-drift-duration"]).toBe("10s");
+      expect(motionVars["--motion-breathe-duration"]).toBe("4.5s");
+      expect(motionVars["--motion-pulse-duration"]).toBe("3.5s");
     });
 
     it("12. prefers-reduced-motion unconditionally overrides immersive profile", () => {
@@ -923,20 +932,33 @@ describe("Sentinel Fort — Brand & Experience Studio 2.0 (Phase 2D Hardened)", 
       expect(motionVars["--motion-duration-multiplier"]).toBe("0");
       expect(motionVars["--motion-transition-duration"]).toBe("0ms");
       expect(motionVars["--motion-hover-scale"]).toBe("1");
+      expect(motionVars["--motion-drift-duration"]).toBe("0s");
+      expect(motionVars["--motion-breathe-duration"]).toBe("0s");
+      expect(motionVars["--motion-pulse-duration"]).toBe("0s");
       expect(motionVars["--motion-glow-opacity"]).toBe("0");
     });
 
-    it("13. Experience override applies to real runtime", () => {
+    it("13. Experience override applies to real runtime and inherits workspace motion defaults", () => {
       const baseTheme: ThemePreset = DEFAULT_THEME;
       const investorOverride: ExperienceOverrideConfig = {
         primaryHex: "#10B981",
         accentHex: "#34D399",
       };
-      const resolved = resolveEffectiveExperienceTheme(baseTheme, investorOverride);
+      const resolved = resolveEffectiveExperienceTheme(
+        baseTheme,
+        investorOverride,
+        {},
+        {
+          motionProfileId: "subtle",
+          atmosphereConfig: { gridIntensity: "high" },
+        }
+      );
       const vars = getThemeCssVariables(resolved.theme);
       expect(vars["--primary"]).toBe("#10B981");
       expect(vars["--accent"]).toBe("#34D399");
       expect(vars["--background"]).toBe("#0C0E14");
+      expect(resolved.motionProfile.id).toBe("subtle");
+      expect(resolved.atmosphereConfig.gridIntensity).toBe("high");
     });
 
     it("14. Preview remains isolated before Save (pure helper functions without DOM mutation)", () => {

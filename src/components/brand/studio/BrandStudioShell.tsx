@@ -105,7 +105,7 @@ const STUDIO_TABS: StudioTabItem[] = [
 ];
 
 export function BrandStudioShell() {
-  const { logoUrl, logoUrlDark, workspaceId } = useBranding();
+  const { logoUrl, logoUrlDark, workspaceId, refresh } = useBranding();
   const [activeTab, setActiveTab] = useState<StudioTabId>("identity");
   const [viewport, setViewport] = useState<ViewportMode>("desktop");
   const [previewMode, setPreviewMode] = useState<PreviewMode>("fort");
@@ -226,7 +226,16 @@ export function BrandStudioShell() {
     // B. Experience Override Preview Mode
     if (experiencePreviewSelection !== "workspace") {
       const expOverride = experienceOverrides[experiencePreviewSelection] || {};
-      const resolved = resolveEffectiveExperienceTheme(effectiveTheme, expOverride);
+      const resolved = resolveEffectiveExperienceTheme(
+        effectiveTheme,
+        expOverride,
+        {},
+        {
+          motionProfileId: selectedMotionProfile.id,
+          atmosphereConfig: draftSettings.atmosphereConfig,
+          componentConfig: draftSettings.componentConfig,
+        }
+      );
       return {
         theme: resolved.theme,
         motion: resolved.motionProfile,
@@ -301,6 +310,9 @@ export function BrandStudioShell() {
       applyMotionToDOM(selectedMotionProfile);
       setRuntimeFavicon(draftSettings.faviconUrl);
 
+      // Refresh global BrandingContext
+      await refresh();
+
       setStatusMessage({
         type: "success",
         text: "Workspace brand & theme settings successfully saved and snapshot recorded.",
@@ -361,6 +373,9 @@ export function BrandStudioShell() {
       applyMotionToDOM(DEFAULT_MOTION_PROFILE);
       setRuntimeFavicon(null);
 
+      // Refresh global BrandingContext
+      await refresh();
+
       setStatusMessage({
         type: "success",
         text: "Workspace theme settings reset to Sentinel defaults.",
@@ -406,6 +421,9 @@ export function BrandStudioShell() {
 
     const updatedVersions = await loadBrandThemeVersions(targetWsId);
     setVersions(updatedVersions);
+
+    // Refresh global BrandingContext
+    await refresh();
   };
 
   // 6. Reset Experience Override Handler
@@ -432,6 +450,9 @@ export function BrandStudioShell() {
 
     const updatedVersions = await loadBrandThemeVersions(targetWsId);
     setVersions(updatedVersions);
+
+    // Refresh global BrandingContext
+    await refresh();
   };
 
   // 7. Version Restore Handler
@@ -439,6 +460,7 @@ export function BrandStudioShell() {
     try {
       const result = await restoreBrandThemeVersion(targetWsId, targetVersion);
       await refreshAll();
+      await refresh();
       setActivePreviewVersion(null);
 
       if (result.warnings && result.warnings.length > 0) {
