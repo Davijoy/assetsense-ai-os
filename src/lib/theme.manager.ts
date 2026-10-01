@@ -203,21 +203,73 @@ export function getThemeCssVariables(
   components: ComponentConfig = DEFAULT_COMPONENT_CONFIG
 ): Record<string, string> {
   const vars: Record<string, string> = {};
+
+  // 1. Typography & Scale
   if (theme.fontDisplay) vars["--font-display"] = theme.fontDisplay;
   if (theme.fontSans) vars["--font-sans"] = theme.fontSans;
   if (theme.radius) vars["--radius"] = theme.radius;
-  if (theme.fontScale) vars["--font-scale"] = String(theme.fontScale);
-  if (theme.primaryHex) {
-    vars["--primary-hex"] = theme.primaryHex;
-    vars["--gold"] = (theme as any).goldHex || theme.primaryHex;
-  }
-  if (theme.backgroundHex) vars["--bg-custom"] = theme.backgroundHex;
-  if (theme.surfaceHex) vars["--surface-custom"] = theme.surfaceHex;
-  if (theme.accentHex) vars["--accent-custom"] = theme.accentHex;
-  if ((theme as any).borderHex) vars["--border-custom"] = (theme as any).borderHex;
-  if ((theme as any).foregroundHex) vars["--foreground-custom"] = (theme as any).foregroundHex;
+  vars["--font-scale"] = String(theme.fontScale ?? 1.0);
 
-  // Component Tokens
+  // 2. Core Semantic Color Tokens (AUTHORITATIVE RUNTIME PALETTE)
+  const bgHex = theme.backgroundHex || "#0C0E14";
+  const surfaceHex = theme.surfaceHex || "#121622";
+  const primaryHex = theme.primaryHex || "#D4AF37";
+  const accentHex = theme.accentHex || theme.primaryHex || "#F3E5AB";
+  const foregroundHex = (theme as any).foregroundHex || "#F5F5F7";
+  const borderHex = (theme as any).borderHex || `${surfaceHex}66`;
+
+  // Determine accessible text contrast for primary button / badge text
+  const primaryFg =
+    (theme as any).primaryForegroundHex ||
+    (getContrastRatio(primaryHex, "#0C0E14") >= 3.0 ? "#0C0E14" : "#FFFFFF");
+
+  vars["--background"] = bgHex;
+  vars["--foreground"] = foregroundHex;
+
+  vars["--surface"] = surfaceHex;
+  vars["--surface-elevated"] = (theme as any).surfaceElevatedHex || surfaceHex;
+
+  vars["--card"] = surfaceHex;
+  vars["--card-foreground"] = (theme as any).cardForegroundHex || foregroundHex;
+
+  vars["--popover"] = surfaceHex;
+  vars["--popover-foreground"] = (theme as any).popoverForegroundHex || foregroundHex;
+
+  vars["--primary"] = primaryHex;
+  vars["--primary-foreground"] = primaryFg;
+  vars["--primary-hover"] = (theme as any).primaryHoverHex || primaryHex;
+
+  vars["--secondary"] = (theme as any).secondaryHex || surfaceHex;
+  vars["--secondary-foreground"] = (theme as any).secondaryForegroundHex || foregroundHex;
+
+  vars["--accent"] = accentHex;
+  vars["--accent-foreground"] = (theme as any).accentForegroundHex || "#0C0E14";
+
+  vars["--muted"] = (theme as any).mutedHex || "#1E2330";
+  vars["--muted-foreground"] = (theme as any).mutedForegroundHex || "#8C92A4";
+
+  vars["--border"] = borderHex;
+  vars["--input"] = (theme as any).inputHex || borderHex;
+  vars["--ring"] = primaryHex;
+
+  vars["--sidebar"] = bgHex;
+  vars["--sidebar-foreground"] = foregroundHex;
+  vars["--sidebar-border"] = borderHex;
+  vars["--sidebar-accent"] = surfaceHex;
+  vars["--sidebar-primary"] = primaryHex;
+  vars["--sidebar-primary-foreground"] = primaryFg;
+
+  vars["--gold"] = (theme as any).goldHex || (theme.id === "clout_obsidian_gold" ? "#D4AF37" : primaryHex);
+
+  // 3. Backward Compatibility & Scoped Custom Tokens
+  vars["--primary-hex"] = primaryHex;
+  vars["--bg-custom"] = bgHex;
+  vars["--surface-custom"] = surfaceHex;
+  vars["--accent-custom"] = accentHex;
+  vars["--border-custom"] = borderHex;
+  vars["--foreground-custom"] = foregroundHex;
+
+  // 4. Component Studio Tokens
   const elevation = ELEVATION_OPTIONS.find((e) => e.id === components.elevation);
   if (elevation) vars["--card-shadow"] = elevation.shadow;
 

@@ -10,16 +10,32 @@ import {
   resolveEffectiveExperienceTheme,
   type WorkspaceExperienceType,
 } from "@/lib/services/workspace-experience-theme.service";
-import { applyThemeToDOM } from "@/lib/theme.manager";
-import { applyMotionToDOM } from "@/lib/motion.manager";
+import {
+  type ThemePreset,
+  type ComponentConfig,
+  DEFAULT_THEME,
+  DEFAULT_COMPONENT_CONFIG,
+  applyThemeToDOM,
+} from "@/lib/theme.manager";
+import {
+  type MotionProfile,
+  type AtmosphereConfig,
+  DEFAULT_MOTION_PROFILE,
+  DEFAULT_ATMOSPHERE_CONFIG,
+  applyMotionToDOM,
+} from "@/lib/motion.manager";
 import { setRuntimeFavicon } from "@/lib/favicon.manager";
 import { usePrefersReducedMotion } from "@/hooks/use-reduced-motion";
 
-type BrandingState = {
+export type BrandingState = {
   logoUrl: string | null;
   logoUrlDark: string | null;
   workspaceId: string | null;
   activeExperience: WorkspaceExperienceType;
+  effectiveTheme: ThemePreset;
+  motionProfile: MotionProfile;
+  atmosphereConfig: AtmosphereConfig;
+  componentConfig: ComponentConfig;
   setLogos: (urls: { logoUrl?: string | null; logoUrlDark?: string | null; workspaceId?: string | null }) => Promise<void>;
   resetToDefault: (targetWorkspaceId?: string | null) => Promise<void>;
   refresh: () => Promise<void>;
@@ -31,6 +47,10 @@ const BrandingContext = createContext<BrandingState>({
   logoUrlDark: null,
   workspaceId: null,
   activeExperience: "platform_administrator",
+  effectiveTheme: DEFAULT_THEME,
+  motionProfile: DEFAULT_MOTION_PROFILE,
+  atmosphereConfig: DEFAULT_ATMOSPHERE_CONFIG,
+  componentConfig: DEFAULT_COMPONENT_CONFIG,
   setLogos: async () => {},
   resetToDefault: async () => {},
   refresh: async () => {},
@@ -52,6 +72,10 @@ export function BrandingProvider({
   const [resolvedWorkspaceId, setResolvedWorkspaceId] = useState<string | null>(explicitWorkspaceId ?? null);
   const [logoUrl, setLogoUrlState] = useState<string | null>(null);
   const [logoUrlDark, setLogoUrlDarkState] = useState<string | null>(null);
+  const [effectiveTheme, setEffectiveTheme] = useState<ThemePreset>(DEFAULT_THEME);
+  const [motionProfile, setMotionProfile] = useState<MotionProfile>(DEFAULT_MOTION_PROFILE);
+  const [atmosphereConfig, setAtmosphereConfig] = useState<AtmosphereConfig>(DEFAULT_ATMOSPHERE_CONFIG);
+  const [componentConfig, setComponentConfig] = useState<ComponentConfig>(DEFAULT_COMPONENT_CONFIG);
   const [loading, setLoading] = useState(true);
 
   const activeExperience: WorkspaceExperienceType = mapRoleToExperience(userRole);
@@ -112,6 +136,12 @@ export function BrandingProvider({
         { prefersReducedMotion }
       );
 
+      // Update Local State for Components
+      setEffectiveTheme(effectiveExp.theme);
+      setMotionProfile(effectiveExp.motionProfile);
+      setAtmosphereConfig(effectiveExp.atmosphereConfig);
+      setComponentConfig(effectiveExp.componentConfig);
+
       // Apply to document DOM & Favicon
       applyThemeToDOM(effectiveExp.theme, effectiveExp.componentConfig);
       applyMotionToDOM(effectiveExp.motionProfile, prefersReducedMotion);
@@ -168,6 +198,10 @@ export function BrandingProvider({
         logoUrlDark,
         workspaceId: resolvedWorkspaceId,
         activeExperience,
+        effectiveTheme,
+        motionProfile,
+        atmosphereConfig,
+        componentConfig,
         setLogos,
         resetToDefault,
         refresh: fetchBranding,

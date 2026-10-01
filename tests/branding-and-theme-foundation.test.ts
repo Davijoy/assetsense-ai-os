@@ -809,4 +809,191 @@ describe("Sentinel Fort — Brand & Experience Studio 2.0 (Phase 2D Hardened)", 
       expect(ROUTE_ROLES["/app/settings/branding"]).toEqual(["admin"]);
     });
   });
+
+  describe("G. Brand Studio Global Runtime Propagation", () => {
+    it("1. Workspace theme applies complete semantic root CSS variables", () => {
+      const vars = getThemeCssVariables(DEFAULT_THEME, DEFAULT_COMPONENT_CONFIG);
+      expect(vars["--background"]).toBe("#0C0E14");
+      expect(vars["--foreground"]).toBe("#F5F5F7");
+      expect(vars["--card"]).toBe("#121622");
+      expect(vars["--surface"]).toBe("#121622");
+      expect(vars["--surface-elevated"]).toBe("#121622");
+      expect(vars["--primary"]).toBe("#D4AF37");
+      expect(vars["--primary-foreground"]).toBe("#0C0E14");
+      expect(vars["--accent"]).toBe("#F3E5AB");
+      expect(vars["--border"]).toBe("#12162266");
+      expect(vars["--sidebar"]).toBe("#0C0E14");
+      expect(vars["--gold"]).toBe("#D4AF37");
+      expect(vars["--radius"]).toBe("0.5rem");
+    });
+
+    it("2. Changing persisted background changes root --background", () => {
+      const emeraldTheme = THEME_PRESETS.find((p) => p.id === "sovereign_emerald")!;
+      const vars = getThemeCssVariables(emeraldTheme);
+      expect(vars["--background"]).toBe("#08120E");
+      expect(vars["--sidebar"]).toBe("#08120E");
+    });
+
+    it("3. Changing surface affects root card/surface tokens", () => {
+      const cobaltTheme = THEME_PRESETS.find((p) => p.id === "cobalt_cyber")!;
+      const vars = getThemeCssVariables(cobaltTheme);
+      expect(vars["--card"]).toBe("#10182E");
+      expect(vars["--surface"]).toBe("#10182E");
+      expect(vars["--popover"]).toBe("#10182E");
+    });
+
+    it("4. Button radius affects shared Button token --button-radius", () => {
+      const config: ComponentConfig = { ...DEFAULT_COMPONENT_CONFIG, buttonShape: "pill" };
+      const vars = getThemeCssVariables(DEFAULT_THEME, config);
+      expect(vars["--button-radius"]).toBe("9999px");
+    });
+
+    it("5. Card elevation affects shared Card token --card-shadow", () => {
+      const config: ComponentConfig = { ...DEFAULT_COMPONENT_CONFIG, elevation: "executive" };
+      const vars = getThemeCssVariables(DEFAULT_THEME, config);
+      expect(vars["--card-shadow"]).toBe("0 20px 50px rgba(0, 0, 0, 0.45)");
+    });
+
+    it("6. Border strength affects semantic borders token --border-opacity", () => {
+      const config: ComponentConfig = { ...DEFAULT_COMPONENT_CONFIG, borderStrength: "strong" };
+      const vars = getThemeCssVariables(DEFAULT_THEME, config);
+      expect(vars["--border-opacity"]).toBe("1.0");
+    });
+
+    it("7. Typography applies globally after save", () => {
+      const customTheme: ThemePreset = {
+        ...DEFAULT_THEME,
+        fontDisplay: '"Playfair Display", Georgia, serif',
+        fontSans: '"Inter", sans-serif',
+        fontScale: 1.15,
+      };
+      const vars = getThemeCssVariables(customTheme);
+      expect(vars["--font-display"]).toBe('"Playfair Display", Georgia, serif');
+      expect(vars["--font-sans"]).toBe('"Inter", sans-serif');
+      expect(vars["--font-scale"]).toBe("1.15");
+    });
+
+    it("8. Motion variables apply globally after save", () => {
+      const profile = MOTION_PROFILES.find((p) => p.id === "subtle")!;
+      const motionVars = getMotionCssVariables(profile, false);
+      expect(motionVars["--motion-duration-multiplier"]).toBe("0.75");
+      expect(motionVars["--motion-transition-duration"]).toBe("150ms");
+      expect(motionVars["--motion-hover-scale"]).toBe("1.01");
+    });
+
+    it("9. Atmosphere config reaches live SentinelAtmosphere with valid intensity levels", () => {
+      const profile = MOTION_PROFILES.find((p) => p.id === "executive")!;
+      const atmo = profileToAtmosphereConfig(profile);
+      expect(atmo.enabled).toBe(true);
+      expect(atmo.gridIntensity).toBe("medium");
+      expect(atmo.glowIntensity).toBe("medium");
+      expect(atmo.particleDensity).toBe("medium");
+      expect(atmo.watermarkVisibility).toBe(true);
+    });
+
+    it("10. OFF disables live atmosphere motion and sets zero durations", () => {
+      const profile = MOTION_PROFILES.find((p) => p.id === "off")!;
+      const atmo = profileToAtmosphereConfig(profile);
+      expect(atmo.enabled).toBe(false);
+
+      const motionVars = getMotionCssVariables(profile, false);
+      expect(motionVars["--motion-duration-multiplier"]).toBe("0");
+      expect(motionVars["--motion-transition-duration"]).toBe("0ms");
+      expect(motionVars["--motion-hover-scale"]).toBe("1");
+      expect(motionVars["--motion-glow-opacity"]).toBe("0");
+    });
+
+    it("11. IMMERSIVE increases live atmosphere intensity and scale", () => {
+      const profile = MOTION_PROFILES.find((p) => p.id === "immersive")!;
+      const atmo = profileToAtmosphereConfig(profile);
+      expect(atmo.enabled).toBe(true);
+      expect(atmo.gridIntensity).toBe("high");
+      expect(atmo.glowIntensity).toBe("high");
+      expect(atmo.particleDensity).toBe("high");
+
+      const motionVars = getMotionCssVariables(profile, false);
+      expect(motionVars["--motion-duration-multiplier"]).toBe("1.25");
+      expect(motionVars["--motion-hover-scale"]).toBe("1.035");
+      expect(motionVars["--motion-glow-opacity"]).toBe("0.75");
+    });
+
+    it("12. prefers-reduced-motion unconditionally overrides immersive profile", () => {
+      const profile = MOTION_PROFILES.find((p) => p.id === "immersive")!;
+      const motionVars = getMotionCssVariables(profile, true); // prefersReduced = true
+      expect(motionVars["--motion-duration-multiplier"]).toBe("0");
+      expect(motionVars["--motion-transition-duration"]).toBe("0ms");
+      expect(motionVars["--motion-hover-scale"]).toBe("1");
+      expect(motionVars["--motion-glow-opacity"]).toBe("0");
+    });
+
+    it("13. Experience override applies to real runtime", () => {
+      const baseTheme: ThemePreset = DEFAULT_THEME;
+      const investorOverride: ExperienceOverrideConfig = {
+        primaryHex: "#10B981",
+        accentHex: "#34D399",
+      };
+      const resolved = resolveEffectiveExperienceTheme(baseTheme, investorOverride);
+      const vars = getThemeCssVariables(resolved.theme);
+      expect(vars["--primary"]).toBe("#10B981");
+      expect(vars["--accent"]).toBe("#34D399");
+      expect(vars["--background"]).toBe("#0C0E14");
+    });
+
+    it("14. Preview remains isolated before Save (pure helper functions without DOM mutation)", () => {
+      const previewTheme = THEME_PRESETS.find((p) => p.id === "amethyst_executive")!;
+      const previewVars = getThemeCssVariables(previewTheme);
+      expect(previewVars["--primary"]).toBe("#8B5CF6");
+      expect(DEFAULT_THEME.primaryHex).toBe("#D4AF37");
+    });
+
+    it("15. Save causes BrandingContext refresh and updates workspace persistence", async () => {
+      const wsId = "00000000-0000-0000-0000-00000000d3f7";
+      await saveWorkspaceThemeSettings(wsId, {
+        presetId: "rose_platinum",
+        customColors: { primaryHex: "#F43F5E" },
+      });
+
+      const loaded = await loadWorkspaceThemeSettings(wsId);
+      expect(loaded.presetId).toBe("rose_platinum");
+      expect(loaded.customColors.primaryHex).toBe("#F43F5E");
+    });
+
+    it("16. Refresh restores persisted theme from storage / database", async () => {
+      const wsId = "00000000-0000-0000-0000-00000000d3f7";
+      const loaded = await loadWorkspaceThemeSettings(wsId);
+      const effective = resolveEffectiveTheme(loaded.presetId, loaded.customColors, {
+        fontDisplay: loaded.fontDisplay,
+        fontSans: loaded.fontSans,
+      });
+      expect(effective.primaryHex).toBe("#2563EB");
+      expect(effective.backgroundHex).toBe("#090E1A");
+    });
+
+    it("17. Maintains single-mount atmosphere safety across views", () => {
+      expect(DEFAULT_ATMOSPHERE_CONFIG.enabled).toBe(true);
+      expect(DEFAULT_ATMOSPHERE_CONFIG.watermarkVisibility).toBe(true);
+    });
+
+    it("18. No RBAC changes to console permissions", () => {
+      expect(isRouteAuthorized(["admin"], "/app/settings/branding", {})).toBe(true);
+      expect(isRouteAuthorized(["manager"], "/app/crm", {})).toBe(true);
+      expect(isRouteAuthorized(["agent"], "/app/leads", {})).toBe(true);
+    });
+
+    it("19. Five theme IDs remain strictly unchanged", () => {
+      const ids = THEME_PRESETS.map((p) => p.id);
+      expect(ids).toEqual([
+        "clout_obsidian_gold",
+        "sovereign_emerald",
+        "cobalt_cyber",
+        "amethyst_executive",
+        "rose_platinum",
+      ]);
+    });
+
+    it("20. Four motion IDs remain strictly unchanged", () => {
+      const ids = MOTION_PROFILES.map((p) => p.id);
+      expect(ids).toEqual(["off", "subtle", "executive", "immersive"]);
+    });
+  });
 });

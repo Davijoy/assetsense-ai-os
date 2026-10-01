@@ -59,8 +59,8 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
-  --font-display: "Instrument Serif", ui-serif, Georgia, serif;
-  --font-sans: "Work Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-display, "Instrument Serif", ui-serif, Georgia, serif);
+  --font-sans: var(--font-sans, "Work Sans", ui-sans-serif, system-ui, sans-serif);
   --color-emerald-glow: var(--emerald-glow);
   --color-surface: var(--surface);
   --color-surface-elevated: var(--surface-elevated);
@@ -71,7 +71,16 @@
 
 :root {
   /* Sentinel Fort Group — Midnight + Electric Green (dark by default) */
-  --radius: 0.75rem;
+  --radius: 0.5rem;
+  --button-radius: 0.375rem;
+  --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+  --border-opacity: 0.7;
+  --density-scale: 1.0;
+  --glass-blur: 8px;
+  --glass-opacity: 0.85;
+  --font-scale: 1.0;
+  --font-display: "Instrument Serif", ui-serif, Georgia, serif;
+  --font-sans: "Work Sans", ui-sans-serif, system-ui, sans-serif;
   --background: oklch(0.13 0.03 260);
   --foreground: oklch(0.96 0.01 240);
   --surface: oklch(0.17 0.04 258);
@@ -145,6 +154,10 @@
     font-weight: 400;
     letter-spacing: -0.02em;
   }
+
+  button, .btn {
+    border-radius: var(--button-radius, var(--radius));
+  }
 }
 
 @layer utilities {
@@ -169,13 +182,36 @@
   .sentinel-drift { animation: sentinel-drift 16s ease-in-out infinite; }
   .sentinel-pulse { animation: sentinel-pulse 6s ease-in-out infinite; }
   .sentinel-atmosphere-drift { animation: sentinel-atmosphere 26s ease-in-out infinite; }
+
+  /* Semantic motion classes */
+  .sentinel-motion-transition {
+    transition: all var(--motion-transition-duration, 200ms) cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .sentinel-motion-hover {
+    transition: transform var(--motion-transition-duration, 200ms) cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .sentinel-motion-hover:hover {
+    transform: scale(var(--motion-hover-scale, 1.02));
+  }
+  .sentinel-motion-enter {
+    animation: sentinel-breathe var(--motion-drift-duration, 7s) ease-in-out infinite;
+  }
+  .sentinel-motion-float {
+    animation: sentinel-drift var(--motion-drift-duration, 16s) ease-in-out infinite;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .sentinel-orb,
     .sentinel-drift,
     .sentinel-pulse,
-    .sentinel-atmosphere-drift {
+    .sentinel-atmosphere-drift,
+    .sentinel-motion-enter,
+    .sentinel-motion-float {
       animation: none;
       opacity: 1;
+      transform: none;
+    }
+    .sentinel-motion-hover:hover {
       transform: none;
     }
   }

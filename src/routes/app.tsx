@@ -23,6 +23,7 @@ import {
   type FortWorkspaceContext,
 } from "@/lib/fort-experience";
 import { useAuth } from "@/hooks/use-auth";
+import { useBranding } from "@/components/brand/BrandingContext";
 import { isRouteAuthorized } from "@/lib/route-roles";
 import { toast } from "sonner";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -215,6 +216,7 @@ function AppShell() {
   // Used ONLY to end the session. Deliberately does not read `roles`/`isAdmin`:
   // a client-side role check must never be the source of truth here.
   const { signOut } = useAuth();
+  const { atmosphereConfig } = useBranding();
 
   /**
    * Which sidebar entries are shown. Presentation filtering over the server's
@@ -246,9 +248,9 @@ function AppShell() {
   const membershipPending = fort.reason === "MEMBERSHIP_PENDING";
   const onboarding = path === ONBOARDING_ROUTE;
 
-    return (
-    <div className="min-h-screen bg-background text-foreground">
-      <SentinelAtmosphere />
+  return (
+    <div data-sentinel-theme className="min-h-screen bg-background text-foreground font-sans">
+      <SentinelAtmosphere config={atmosphereConfig} />
       <aside className="fixed inset-y-0 left-0 hidden w-64 flex-col border-r border-border/60 bg-sidebar md:flex">
         <Link to="/fort" className="flex h-16 items-center gap-2 px-6 border-b border-border/60" title="Return to Sentinel Fort Home">
           <SentinelMark />
