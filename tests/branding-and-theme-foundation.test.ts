@@ -70,6 +70,7 @@ import {
   type BrandVersionSnapshot,
 } from "@/lib/services/brand-version.service";
 import { isRouteAuthorized, ROUTE_ROLES } from "@/lib/route-roles";
+import { buttonVariants } from "@/components/ui/button";
 
 // Mock Supabase in-memory store
 let store: Record<string, any[]> = {};
@@ -1016,6 +1017,42 @@ describe("Sentinel Fort — Brand & Experience Studio 2.0 (Phase 2D Hardened)", 
     it("20. Four motion IDs remain strictly unchanged", () => {
       const ids = MOTION_PROFILES.map((p) => p.id);
       expect(ids).toEqual(["off", "subtle", "executive", "immersive"]);
+    });
+
+    it("21. Button shared component consumes motion classes", () => {
+      const classes = buttonVariants({ variant: "default" });
+      expect(classes).toContain("sentinel-motion-transition");
+      expect(classes).toContain("sentinel-motion-hover");
+      expect(classes).toContain("rounded-[var(--button-radius,var(--radius))]");
+    });
+
+    it("22. Profile particle density strictly differentiates OFF (none), SUBTLE (low), EXECUTIVE (medium), IMMERSIVE (high)", () => {
+      const off = MOTION_PROFILES.find((p) => p.id === "off")!;
+      const subtle = MOTION_PROFILES.find((p) => p.id === "subtle")!;
+      const executive = MOTION_PROFILES.find((p) => p.id === "executive")!;
+      const immersive = MOTION_PROFILES.find((p) => p.id === "immersive")!;
+
+      expect(off.particleDensity).toBe("none");
+      expect(subtle.particleDensity).toBe("low");
+      expect(executive.particleDensity).toBe("medium");
+      expect(immersive.particleDensity).toBe("high");
+
+      expect(profileToAtmosphereConfig(off).enabled).toBe(false);
+      expect(profileToAtmosphereConfig(subtle).particleDensity).toBe("low");
+      expect(profileToAtmosphereConfig(executive).particleDensity).toBe("medium");
+      expect(profileToAtmosphereConfig(immersive).particleDensity).toBe("high");
+    });
+
+    it("23. Drift speeds strictly differentiate OFF (0s), SUBTLE (24s), EXECUTIVE (16s), IMMERSIVE (10s)", () => {
+      const offVars = getMotionCssVariables(MOTION_PROFILES.find((p) => p.id === "off")!);
+      const subtleVars = getMotionCssVariables(MOTION_PROFILES.find((p) => p.id === "subtle")!);
+      const execVars = getMotionCssVariables(MOTION_PROFILES.find((p) => p.id === "executive")!);
+      const immVars = getMotionCssVariables(MOTION_PROFILES.find((p) => p.id === "immersive")!);
+
+      expect(offVars["--motion-drift-duration"]).toBe("0s");
+      expect(subtleVars["--motion-drift-duration"]).toBe("24s");
+      expect(execVars["--motion-drift-duration"]).toBe("16s");
+      expect(immVars["--motion-drift-duration"]).toBe("10s");
     });
   });
 });

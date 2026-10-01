@@ -249,9 +249,9 @@ function AppShell() {
   const onboarding = path === ONBOARDING_ROUTE;
 
   return (
-    <div data-sentinel-theme className="min-h-screen bg-background text-foreground font-sans">
+    <div data-sentinel-theme className="relative isolate min-h-screen bg-background text-foreground font-sans">
       <SentinelAtmosphere config={atmosphereConfig} />
-      <aside className="fixed inset-y-0 left-0 hidden w-64 flex-col border-r border-border/60 bg-sidebar md:flex">
+      <aside className="fixed inset-y-0 left-0 z-20 hidden w-64 flex-col border-r border-border/60 bg-sidebar md:flex">
         <Link to="/fort" className="flex h-16 items-center gap-2 px-6 border-b border-border/60" title="Return to Sentinel Fort Home">
           <SentinelMark />
           <div className="flex flex-col leading-none">
@@ -405,7 +405,7 @@ function AppShell() {
         </div>
       </aside>
 
-      <div className="flex h-screen flex-col md:pl-64">
+      <div className="relative z-10 flex h-screen flex-col md:pl-64">
         <AppHeader fort={fort} />
         <main className="flex-1 overflow-y-auto px-6 py-8">
           {/*

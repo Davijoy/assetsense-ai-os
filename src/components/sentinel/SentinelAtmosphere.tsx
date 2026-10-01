@@ -66,13 +66,13 @@ export function SentinelAtmosphere({
     <div
       aria-hidden="true"
       className={cn(
-        "pointer-events-none -z-20 overflow-hidden",
+        "pointer-events-none z-0 overflow-hidden",
         containerMode ? "absolute inset-0" : "fixed inset-0",
         className
       )}
     >
-      {/* slow vertical light wash */}
-      <div className={cn("absolute inset-0", glowGradientClass)} />
+      {/* slow vertical light wash with breathing glow */}
+      <div className={cn("absolute inset-0", glowGradientClass, driftClass ? "sentinel-orb" : "")} />
 
       {/* faint centered grid (see .bg-grid utility) */}
       <div className={cn("absolute inset-0 bg-grid", gridOpacityClass)} />
@@ -80,7 +80,7 @@ export function SentinelAtmosphere({
       {/* drifting watermark emblem */}
       {showWatermark && gridIntensity !== "none" && (
         <div className={cn("absolute right-[8%] top-[12%] h-56 w-56 -rotate-12 opacity-70", driftClass)}>
-          <div className="flex h-full w-full items-center justify-center rounded-full bg-card/20">
+          <div className="flex h-full w-full items-center justify-center rounded-full bg-card/20 shadow-glow">
             <SentinelMark className="h-14 w-14 opacity-60" />
           </div>
         </div>
@@ -89,20 +89,20 @@ export function SentinelAtmosphere({
       {/* soft particle field — restful, non-interfering */}
       {particleDensity !== "none" && (
         <div className="absolute inset-0">
-          <Dust className={cn("left-[12%] top-[28%]", driftClass)} />
-          <Dust className={cn("left-[72%] top-[18%]", driftClass)} />
+          <Dust className="left-[12%] top-[28%]" driftClass={driftClass} delay="0s" />
+          <Dust className="left-[72%] top-[18%]" driftClass={driftClass} delay="2.5s" alt={true} />
           {(particleDensity === "medium" || particleDensity === "high") && (
             <>
-              <Dust className={cn("left-[38%] top-[64%]", driftClass)} />
-              <Dust className={cn("left-[90%] top-[52%]", driftClass)} />
+              <Dust className="left-[38%] top-[64%]" driftClass={driftClass} delay="1.2s" />
+              <Dust className="left-[90%] top-[52%]" driftClass={driftClass} delay="3.8s" alt={true} />
             </>
           )}
           {particleDensity === "high" && (
             <>
-              <Dust className={cn("left-[25%] top-[80%]", driftClass)} />
-              <Dust className={cn("left-[82%] top-[75%]", driftClass)} />
-              <Dust className={cn("left-[55%] top-[22%]", driftClass)} />
-              <Dust className={cn("left-[48%] top-[45%]", driftClass)} />
+              <Dust className="left-[25%] top-[80%]" driftClass={driftClass} delay="0.5s" />
+              <Dust className="left-[82%] top-[75%]" driftClass={driftClass} delay="2.0s" alt={true} />
+              <Dust className="left-[55%] top-[22%]" driftClass={driftClass} delay="3.2s" />
+              <Dust className="left-[48%] top-[45%]" driftClass={driftClass} delay="4.5s" alt={true} />
             </>
           )}
         </div>
@@ -111,13 +111,28 @@ export function SentinelAtmosphere({
   );
 }
 
-function Dust({ className }: { className?: string }) {
+function Dust({
+  className,
+  driftClass = "",
+  delay = "0s",
+  alt = false,
+}: {
+  className?: string;
+  driftClass?: string;
+  delay?: string;
+  alt?: boolean;
+}) {
+  const animClass = driftClass ? (alt ? "sentinel-atmosphere-drift-alt" : "sentinel-atmosphere-drift") : "";
   return (
     <span
       className={cn(
-        "absolute h-1.5 w-1.5 rounded-full bg-primary/25",
+        "absolute h-2 w-2 rounded-full bg-primary/70 shadow-[0_0_8px_var(--primary)]",
+        animClass,
         className
       )}
+      style={{
+        animationDelay: delay,
+      }}
     />
   );
 }

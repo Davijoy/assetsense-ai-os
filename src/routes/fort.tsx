@@ -371,7 +371,7 @@ function FortLayout() {
   }
 
   return (
-    <div data-sentinel-theme className="min-h-screen flex flex-col lg:flex-row antialiased transition-colors duration-200 bg-background text-foreground selection:bg-primary/20 selection:text-foreground font-sans">
+    <div data-sentinel-theme className="relative isolate min-h-screen flex flex-col lg:flex-row antialiased transition-colors duration-200 bg-background text-foreground selection:bg-primary/20 selection:text-foreground font-sans">
       <SentinelAtmosphere config={atmosphereConfig} />
       {/* ── Mobile Sidebar Header Toggle ── */}
       <header className="lg:hidden sticky top-0 z-50 flex items-center justify-between border-b px-4 py-3 backdrop-blur border-border bg-card/95 text-foreground">
@@ -508,7 +508,7 @@ function FortLayout() {
       </aside>
 
       {/* ── Main Content Shell ── */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="relative z-10 flex-1 flex flex-col min-w-0">
         {/* Top Command Bar */}
         <header className="sticky top-0 z-30 flex flex-wrap items-center justify-between gap-3 border-b px-4 sm:px-5 py-2 backdrop-blur-md border-border bg-background/90 text-foreground">
           {/* Greeting */}
