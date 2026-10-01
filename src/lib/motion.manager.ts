@@ -23,6 +23,7 @@ export interface MotionProfile {
   glowIntensity: IntensityLevel;
   entityFloatIntensity: IntensityLevel;
   orbitIntensity: IntensityLevel;
+  watermarkLogoCount: number;
 }
 
 export interface AtmosphereConfig {
@@ -32,6 +33,7 @@ export interface AtmosphereConfig {
   particleDensity: IntensityLevel;
   driftIntensity: IntensityLevel;
   watermarkVisibility: boolean;
+  watermarkCount?: number;
 }
 
 export const DEFAULT_ATMOSPHERE_CONFIG: AtmosphereConfig = {
@@ -58,6 +60,7 @@ export const MOTION_PROFILES: MotionProfile[] = [
     glowIntensity: "none",
     entityFloatIntensity: "none",
     orbitIntensity: "none",
+    watermarkLogoCount: 0,
   },
   {
     id: "subtle",
@@ -73,6 +76,7 @@ export const MOTION_PROFILES: MotionProfile[] = [
     glowIntensity: "low",
     entityFloatIntensity: "low",
     orbitIntensity: "none",
+    watermarkLogoCount: 2,
   },
   {
     id: "executive",
@@ -88,6 +92,7 @@ export const MOTION_PROFILES: MotionProfile[] = [
     glowIntensity: "medium",
     entityFloatIntensity: "medium",
     orbitIntensity: "medium",
+    watermarkLogoCount: 3,
   },
   {
     id: "immersive",
@@ -103,10 +108,28 @@ export const MOTION_PROFILES: MotionProfile[] = [
     glowIntensity: "high",
     entityFloatIntensity: "high",
     orbitIntensity: "high",
+    watermarkLogoCount: 4,
   },
 ];
 
 export const DEFAULT_MOTION_PROFILE: MotionProfile = MOTION_PROFILES[2]; // executive
+
+export function getWatermarkLogoCount(profileOrId?: MotionProfile | MotionProfileId): number {
+  if (!profileOrId) return 3;
+  const id = typeof profileOrId === "string" ? profileOrId : profileOrId.id;
+  switch (id) {
+    case "off":
+      return 0;
+    case "subtle":
+      return 2;
+    case "executive":
+      return 3;
+    case "immersive":
+      return 4;
+    default:
+      return 3;
+  }
+}
 
 export function profileToAtmosphereConfig(profile: MotionProfile): AtmosphereConfig {
   return {

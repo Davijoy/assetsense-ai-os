@@ -33,7 +33,12 @@ import {
   DEFAULT_ATMOSPHERE_CONFIG,
   getMotionCssVariables,
   profileToAtmosphereConfig,
+  getWatermarkLogoCount,
 } from "@/lib/motion.manager";
+import {
+  WATERMARK_PRESETS,
+  resolveWatermarkCount,
+} from "@/components/sentinel/SentinelAtmosphere";
 import { setRuntimeFavicon, DEFAULT_FAVICON_URL } from "@/lib/favicon.manager";
 import {
   loadBrandAssets,
@@ -1053,6 +1058,116 @@ describe("Sentinel Fort — Brand & Experience Studio 2.0 (Phase 2D Hardened)", 
       expect(subtleVars["--motion-drift-duration"]).toBe("24s");
       expect(execVars["--motion-drift-duration"]).toBe("16s");
       expect(immVars["--motion-drift-duration"]).toBe("10s");
+    });
+  });
+
+  describe("G. Multi-Logo Floating Watermark Atmosphere Refinement", () => {
+    it("1. OFF resolves to 0 floating watermark logos", () => {
+      expect(getWatermarkLogoCount("off")).toBe(0);
+      expect(resolveWatermarkCount(true, "none", "none")).toBe(0);
+      const offProfile = MOTION_PROFILES.find((p) => p.id === "off")!;
+      expect(offProfile.watermarkLogoCount).toBe(0);
+    });
+
+    it("2. SUBTLE resolves to 2 floating watermark logos", () => {
+      expect(getWatermarkLogoCount("subtle")).toBe(2);
+      expect(resolveWatermarkCount(true, "low", "low")).toBe(2);
+      const subtleProfile = MOTION_PROFILES.find((p) => p.id === "subtle")!;
+      expect(subtleProfile.watermarkLogoCount).toBe(2);
+    });
+
+    it("3. EXECUTIVE resolves to 3 floating watermark logos", () => {
+      expect(getWatermarkLogoCount("executive")).toBe(3);
+      expect(resolveWatermarkCount(true, "medium", "medium")).toBe(3);
+      const execProfile = MOTION_PROFILES.find((p) => p.id === "executive")!;
+      expect(execProfile.watermarkLogoCount).toBe(3);
+    });
+
+    it("4. IMMERSIVE resolves to 4 floating watermark logos", () => {
+      expect(getWatermarkLogoCount("immersive")).toBe(4);
+      expect(resolveWatermarkCount(true, "high", "high")).toBe(4);
+      const immProfile = MOTION_PROFILES.find((p) => p.id === "immersive")!;
+      expect(immProfile.watermarkLogoCount).toBe(4);
+    });
+
+    it("5. watermarkVisibility=false renders 0 logos regardless of profile intensity", () => {
+      expect(resolveWatermarkCount(false, "high", "high")).toBe(0);
+      expect(resolveWatermarkCount(false, "medium", "medium")).toBe(0);
+      expect(resolveWatermarkCount(false, "low", "low")).toBe(0);
+    });
+
+    it("6. atmosphere enabled=false produces 0 logos and disabled atmosphere config", () => {
+      const offAtmo = profileToAtmosphereConfig(MOTION_PROFILES.find((p) => p.id === "off")!);
+      expect(offAtmo.enabled).toBe(false);
+      expect(offAtmo.watermarkVisibility).toBe(false);
+    });
+
+    it("7. Watermark presets are deterministic with fixed positions and no random values", () => {
+      expect(WATERMARK_PRESETS).toHaveLength(4);
+      const ids = WATERMARK_PRESETS.map((p) => p.id);
+      expect(ids).toEqual(["wm-1", "wm-2", "wm-3", "wm-4"]);
+
+      // Verify each preset has fixed top/left percentages
+      expect(WATERMARK_PRESETS[0].top).toBe("12%");
+      expect(WATERMARK_PRESETS[0].left).toBe("78%");
+      expect(WATERMARK_PRESETS[1].top).toBe("32%");
+      expect(WATERMARK_PRESETS[1].left).toBe("8%");
+      expect(WATERMARK_PRESETS[2].top).toBe("67%");
+      expect(WATERMARK_PRESETS[2].left).toBe("84%");
+      expect(WATERMARK_PRESETS[3].top).toBe("78%");
+      expect(WATERMARK_PRESETS[3].left).toBe("28%");
+    });
+
+    it("8. Logo sizes are constrained to restrained bounds (18px - 32px)", () => {
+      WATERMARK_PRESETS.forEach((preset) => {
+        expect(preset.size).toBeGreaterThanOrEqual(18);
+        expect(preset.size).toBeLessThanOrEqual(32);
+      });
+      expect(WATERMARK_PRESETS.map((p) => p.size)).toEqual([28, 22, 26, 20]);
+    });
+
+    it("9. Logo opacities are constrained to subtle, non-distracting bounds (0.08 - 0.22)", () => {
+      WATERMARK_PRESETS.forEach((preset) => {
+        expect(preset.opacity).toBeGreaterThanOrEqual(0.08);
+        expect(preset.opacity).toBeLessThanOrEqual(0.22);
+      });
+      expect(WATERMARK_PRESETS.map((p) => p.opacity)).toEqual([0.14, 0.11, 0.13, 0.10]);
+    });
+
+    it("10. Floating animations use distinct staggered delays and distinct keyframe classes", () => {
+      const delays = WATERMARK_PRESETS.map((p) => p.delay);
+      expect(delays).toEqual(["-3s", "-8s", "-13s", "-18s"]);
+
+      const animClasses = WATERMARK_PRESETS.map((p) => p.animClass);
+      expect(animClasses).toEqual([
+        "sentinel-watermark-float-1",
+        "sentinel-watermark-float-2",
+        "sentinel-watermark-float-3",
+        "sentinel-watermark-float-4",
+      ]);
+    });
+
+    it("11. Reduced motion zeroes drift duration and ensures accessibility compliance", () => {
+      const imm = MOTION_PROFILES.find((p) => p.id === "immersive")!;
+      const reducedVars = getMotionCssVariables(imm, true);
+      expect(reducedVars["--motion-drift-duration"]).toBe("0s");
+      expect(reducedVars["--motion-transition-duration"]).toBe("0ms");
+    });
+
+    it("12. Preserves canonical theme and motion IDs without drift", () => {
+      expect(THEME_PRESETS.map((t) => t.id)).toEqual([
+        "clout_obsidian_gold",
+        "sovereign_emerald",
+        "cobalt_cyber",
+        "amethyst_executive",
+        "rose_platinum",
+      ]);
+      expect(MOTION_PROFILES.map((m) => m.id)).toEqual([
+        "off",
+        "subtle",
+        "executive",
+        "immersive",
+      ]);
     });
   });
 });

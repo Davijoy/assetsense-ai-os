@@ -7,7 +7,13 @@ export const DEFAULT_SENTINEL_LOGO = "/brand/sentinel-fort-group-logo.png";
 /**
  * Sentinel Fort Group mark — official shield + fort + flag emblem (navy & gold).
  */
-export function SentinelMark({ className }: { className?: string }) {
+export function SentinelMark({
+  className,
+  style,
+}: {
+  className?: string;
+  style?: React.CSSProperties;
+}) {
   const { logoUrl, logoUrlDark } = useBranding();
   const scheme = useColorScheme();
   const src =
@@ -19,6 +25,7 @@ export function SentinelMark({ className }: { className?: string }) {
       src={src}
       alt="Sentinel Fort Group"
       className={cn("h-7 w-7 object-contain", className)}
+      style={style}
       draggable={false}
     />
   );

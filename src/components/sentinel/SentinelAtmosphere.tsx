@@ -13,6 +13,73 @@ import { cn } from "@/lib/utils";
 import { SentinelMark } from "@/components/brand/Logo";
 import type { AtmosphereConfig } from "@/lib/motion.manager";
 
+export interface WatermarkPreset {
+  id: string;
+  top: string;
+  left: string;
+  size: number;
+  opacity: number;
+  delay: string;
+  animClass: string;
+  responsiveClass?: string;
+}
+
+export const WATERMARK_PRESETS: WatermarkPreset[] = [
+  {
+    id: "wm-1",
+    top: "12%",
+    left: "78%",
+    size: 28,
+    opacity: 0.14,
+    delay: "-3s",
+    animClass: "sentinel-watermark-float-1",
+  },
+  {
+    id: "wm-2",
+    top: "32%",
+    left: "8%",
+    size: 22,
+    opacity: 0.11,
+    delay: "-8s",
+    animClass: "sentinel-watermark-float-2",
+  },
+  {
+    id: "wm-3",
+    top: "67%",
+    left: "84%",
+    size: 26,
+    opacity: 0.13,
+    delay: "-13s",
+    animClass: "sentinel-watermark-float-3",
+    responsiveClass: "hidden sm:block",
+  },
+  {
+    id: "wm-4",
+    top: "78%",
+    left: "28%",
+    size: 20,
+    opacity: 0.10,
+    delay: "-18s",
+    animClass: "sentinel-watermark-float-4",
+    responsiveClass: "hidden md:block",
+  },
+];
+
+export function resolveWatermarkCount(
+  showWatermark: boolean,
+  particleDensity: string,
+  driftIntensity: string,
+  explicitCount?: number
+): number {
+  if (!showWatermark) return 0;
+  if (explicitCount !== undefined) return explicitCount;
+  if (particleDensity === "none" || driftIntensity === "none") return 0;
+  if (particleDensity === "low") return 2;
+  if (particleDensity === "medium") return 3;
+  if (particleDensity === "high") return 4;
+  return 3;
+}
+
 export interface SentinelAtmosphereProps {
   className?: string;
   /** Lower intensity for compact shell surfaces (default ambient). */
@@ -42,6 +109,12 @@ export function SentinelAtmosphere({
   const showWatermark = config ? config.watermarkVisibility : true;
 
   const driftClass = driftIntensity === "none" ? "" : "sentinel-atmosphere-drift";
+  const watermarkCount = resolveWatermarkCount(
+    showWatermark,
+    particleDensity,
+    driftIntensity,
+    config?.watermarkCount
+  );
 
   // Compute CSS classes based on intensity levels
   const gridOpacityClass =
@@ -77,12 +150,39 @@ export function SentinelAtmosphere({
       {/* faint centered grid (see .bg-grid utility) */}
       <div className={cn("absolute inset-0 bg-grid", gridOpacityClass)} />
 
-      {/* drifting watermark emblem */}
-      {showWatermark && gridIntensity !== "none" && (
-        <div className={cn("absolute right-[8%] top-[12%] h-56 w-56 -rotate-12 opacity-70", driftClass)}>
-          <div className="flex h-full w-full items-center justify-center rounded-full bg-card/20 shadow-glow">
-            <SentinelMark className="h-14 w-14 opacity-60" />
-          </div>
+      {/* multiple floating watermark marks (no circular container, transparent background, subtle glow) */}
+      {watermarkCount > 0 && (
+        <div
+          data-testid="sentinel-watermarks"
+          className="absolute inset-0 pointer-events-none overflow-hidden"
+        >
+          {WATERMARK_PRESETS.slice(0, watermarkCount).map((preset) => (
+            <div
+              key={preset.id}
+              data-testid={`sentinel-watermark-${preset.id}`}
+              className={cn(
+                "absolute pointer-events-none select-none transition-opacity",
+                driftClass ? preset.animClass : "",
+                preset.responsiveClass
+              )}
+              style={{
+                top: preset.top,
+                left: preset.left,
+                animationDelay: preset.delay,
+                opacity: preset.opacity,
+                filter: "drop-shadow(0 0 6px var(--primary))",
+              }}
+            >
+              <div
+                style={{
+                  width: `${preset.size}px`,
+                  height: `${preset.size}px`,
+                }}
+              >
+                <SentinelMark className="h-full w-full object-contain" />
+              </div>
+            </div>
+          ))}
         </div>
       )}
 
