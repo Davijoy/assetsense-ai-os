@@ -385,7 +385,7 @@ function PropertyDetailModal({
         </div>
 
         {/* Modal Body - 2-Column Responsive Side-by-Side Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 p-5 sm:p-6 overflow-y-auto max-h-[calc(94vh-75px)]">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 p-5 sm:p-6 overflow-y-auto flex-1 min-h-0">
           {/* LEFT COLUMN: Visuals, Gallery & Embedded Video Tour (lg:col-span-5) */}
           <div className="lg:col-span-5 space-y-4">
             {/* Hero Image Container */}
