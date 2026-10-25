@@ -384,380 +384,473 @@ function PropertyDetailModal({
           </div>
         </div>
 
-        {/* Modal Body - 2-Column Responsive Side-by-Side Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 p-5 sm:p-6 overflow-y-auto flex-1 min-h-0">
-          {/* LEFT COLUMN: Visuals, Gallery & Embedded Video Tour (lg:col-span-5) */}
-          <div className="lg:col-span-5 space-y-4">
-            {/* Hero Image Container */}
-            <div className="relative h-56 sm:h-64 rounded-2xl overflow-hidden bg-neutral-950 border border-border shadow-md select-none group">
-              {currentHero ? (
-                <img
-                  src={currentHero}
-                  alt={property.name}
-                  className="h-full w-full object-cover transition-all duration-300"
-                />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center bg-surface">
-                  <Building2 className="h-16 w-16 text-muted-foreground/30" />
+        {/* Modal Body - Scrollable Content Body */}
+        <div className="overflow-y-auto overflow-x-hidden flex-1 min-h-0 p-5 sm:p-6 space-y-6">
+          {/* TOP DETAIL GRID (2-Column Responsive: Media Left, Specs/Pricing Right) */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            {/* LEFT COLUMN: Visuals, Gallery & Embedded Video Tour (lg:col-span-5) */}
+            <div className="lg:col-span-5 space-y-4">
+              {/* Hero Image Container */}
+              <div className="relative h-56 sm:h-64 rounded-2xl overflow-hidden bg-neutral-950 border border-border shadow-md select-none group">
+                {currentHero ? (
+                  <img
+                    src={currentHero}
+                    alt={property.name}
+                    className="h-full w-full object-cover transition-all duration-300"
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center bg-surface">
+                    <Building2 className="h-16 w-16 text-muted-foreground/30" />
+                  </div>
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-black/30 pointer-events-none" />
+
+                {/* Photo Counter */}
+                {totalPhotos > 1 && (
+                  <div className="absolute top-3 left-3 z-10 flex items-center gap-1.5 rounded-full bg-black/75 px-2.5 py-1 text-[11px] font-mono text-white backdrop-blur border border-white/15 shadow">
+                    <ImageIcon className="h-3 w-3 text-primary" />
+                    <span>{activePhotoIndex + 1} / {totalPhotos}</span>
+                  </div>
+                )}
+
+                {/* Floating Chevrons */}
+                {totalPhotos > 1 && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={handlePrevPhoto}
+                      aria-label="Previous Photo (Left Arrow)"
+                      title="Previous Photo (← Left Arrow)"
+                      className="absolute left-2.5 top-1/2 -translate-y-1/2 z-10 grid h-8 w-8 place-items-center rounded-full bg-black/70 text-white backdrop-blur border border-white/20 hover:bg-black/90 hover:scale-110 active:scale-95 transition-all shadow cursor-pointer"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleNextPhoto}
+                      aria-label="Next Photo (Right Arrow)"
+                      title="Next Photo (→ Right Arrow)"
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 z-10 grid h-8 w-8 place-items-center rounded-full bg-black/70 text-white backdrop-blur border border-white/20 hover:bg-black/90 hover:scale-110 active:scale-95 transition-all shadow cursor-pointer"
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </button>
+                  </>
+                )}
+
+                <div className="absolute bottom-2.5 left-3 right-3 flex items-center justify-between text-[11px] text-white/90">
+                  <span className="truncate font-medium">{property.name}</span>
+                  {totalPhotos > 1 && <span className="text-[10px] text-white/70 font-mono">Use ← → arrow keys</span>}
                 </div>
-              )}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-black/30 pointer-events-none" />
-
-              {/* Photo Counter */}
-              {totalPhotos > 1 && (
-                <div className="absolute top-3 left-3 z-10 flex items-center gap-1.5 rounded-full bg-black/75 px-2.5 py-1 text-[11px] font-mono text-white backdrop-blur border border-white/15 shadow">
-                  <ImageIcon className="h-3 w-3 text-primary" />
-                  <span>{activePhotoIndex + 1} / {totalPhotos}</span>
-                </div>
-              )}
-
-              {/* Floating Chevrons */}
-              {totalPhotos > 1 && (
-                <>
-                  <button
-                    type="button"
-                    onClick={handlePrevPhoto}
-                    aria-label="Previous Photo (Left Arrow)"
-                    title="Previous Photo (← Left Arrow)"
-                    className="absolute left-2.5 top-1/2 -translate-y-1/2 z-10 grid h-8 w-8 place-items-center rounded-full bg-black/70 text-white backdrop-blur border border-white/20 hover:bg-black/90 hover:scale-110 active:scale-95 transition-all shadow cursor-pointer"
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleNextPhoto}
-                    aria-label="Next Photo (Right Arrow)"
-                    title="Next Photo (→ Right Arrow)"
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 z-10 grid h-8 w-8 place-items-center rounded-full bg-black/70 text-white backdrop-blur border border-white/20 hover:bg-black/90 hover:scale-110 active:scale-95 transition-all shadow cursor-pointer"
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </button>
-                </>
-              )}
-
-              <div className="absolute bottom-2.5 left-3 right-3 flex items-center justify-between text-[11px] text-white/90">
-                <span className="truncate font-medium">{property.name}</span>
-                {totalPhotos > 1 && <span className="text-[10px] text-white/70 font-mono">Use ← → arrow keys</span>}
               </div>
-            </div>
 
-            {/* Thumbnail Strip */}
-            {totalPhotos > 1 && (
-              <div className="rounded-xl bg-surface/60 border border-border/70 p-2.5 backdrop-blur-md">
-                <div className="flex items-center gap-2 overflow-x-auto pb-1 px-0.5 justify-start">
-                  {photos.map((imgUrl, i) => {
-                    const isActive = activePhotoIndex === i;
-                    return (
-                      <button
-                        key={i}
-                        type="button"
-                        onClick={() => setActivePhotoIndex(i)}
-                        className={`group relative h-14 w-20 flex-shrink-0 overflow-hidden rounded-lg border-2 transition-all cursor-pointer shadow-sm ${
-                          isActive
-                            ? "border-primary ring-2 ring-primary/60 scale-105 opacity-100 z-10 shadow-glow"
-                            : "border-border/60 opacity-65 hover:opacity-100 hover:scale-102 hover:border-foreground/30"
-                        }`}
-                        title={`Photo ${i + 1} of ${totalPhotos}`}
-                      >
-                        <img
-                          src={imgUrl}
-                          alt={`Thumbnail ${i + 1}`}
-                          className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-                        <span
-                          className={`absolute bottom-0.5 right-0.5 text-[8px] font-mono px-1 py-0.2 rounded ${
-                            isActive ? "bg-primary text-primary-foreground font-bold" : "bg-black/75 text-white/90"
+              {/* Thumbnail Strip */}
+              {totalPhotos > 1 && (
+                <div className="rounded-xl bg-surface/60 border border-border/70 p-2.5 backdrop-blur-md">
+                  <div className="flex items-center gap-2 overflow-x-auto pb-1 px-0.5 justify-start">
+                    {photos.map((imgUrl, i) => {
+                      const isActive = activePhotoIndex === i;
+                      return (
+                        <button
+                          key={i}
+                          type="button"
+                          onClick={() => setActivePhotoIndex(i)}
+                          className={`group relative h-14 w-20 flex-shrink-0 overflow-hidden rounded-lg border-2 transition-all cursor-pointer shadow-sm ${
+                            isActive
+                              ? "border-primary ring-2 ring-primary/60 scale-105 opacity-100 z-10 shadow-glow"
+                              : "border-border/60 opacity-65 hover:opacity-100 hover:scale-102 hover:border-foreground/30"
                           }`}
+                          title={`Photo ${i + 1} of ${totalPhotos}`}
                         >
-                          #{i + 1}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
-            {/* Embedded Video Walkthrough Tour Player */}
-            {videoRaw && (
-              <div className="rounded-2xl border border-primary/30 bg-black/40 backdrop-blur-md p-3.5 space-y-2.5 shadow-md">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
-                    <Video className="h-3.5 w-3.5" /> Virtual Video Tour / Walkthrough
+                          <img
+                            src={imgUrl}
+                            alt={`Thumbnail ${i + 1}`}
+                            className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          />
+                          <span
+                            className={`absolute bottom-0.5 right-0.5 text-[8px] font-mono px-1 py-0.2 rounded ${
+                              isActive ? "bg-primary text-primary-foreground font-bold" : "bg-black/75 text-white/90"
+                            }`}
+                          >
+                            #{i + 1}
+                          </span>
+                        </button>
+                      );
+                    })}
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="rounded-full bg-primary/20 text-primary border border-primary/30 px-2 py-0.5 text-[9px] font-medium">
-                      HD Video
-                    </span>
-                    <a
-                      href={videoRaw}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-primary transition-colors bg-white/5 hover:bg-white/10 px-2 py-0.5 rounded border border-white/10"
-                      title="Open video in new tab"
+                </div>
+              )}
+
+              {/* Embedded Video Walkthrough Tour Player */}
+              {videoRaw && (
+                <div className="rounded-2xl border border-primary/30 bg-black/40 backdrop-blur-md p-3.5 space-y-2.5 shadow-md">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
+                      <Video className="h-3.5 w-3.5" /> Virtual Video Tour / Walkthrough
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="rounded-full bg-primary/20 text-primary border border-primary/30 px-2 py-0.5 text-[9px] font-medium">
+                        HD Video
+                      </span>
+                      <a
+                        href={videoRaw}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-primary transition-colors bg-white/5 hover:bg-white/10 px-2 py-0.5 rounded border border-white/10"
+                        title="Open video in new tab"
+                      >
+                        <ExternalLink className="h-2.5 w-2.5" /> Open
+                      </a>
+                    </div>
+                  </div>
+                  <div className="relative aspect-video rounded-xl overflow-hidden bg-neutral-950 border border-white/10 shadow-inner">
+                    {isYoutube || isVimeo ? (
+                      <iframe
+                        src={getEmbedSrc(videoRaw)}
+                        className="w-full h-full border-0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                        title={`${property.name} Video Walkthrough`}
+                      />
+                    ) : (
+                      <video
+                        src={videoRaw}
+                        controls
+                        playsInline
+                        preload="metadata"
+                        className="w-full h-full object-cover"
+                      >
+                        Your browser does not support HTML5 video. <a href={videoRaw} target="_blank" rel="noopener noreferrer" className="text-primary underline">Download video</a>.
+                      </video>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Brochure PDF Card */}
+              {brochure && (
+                <div className="rounded-xl border border-red-500/25 bg-red-500/5 p-3 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="h-9 w-9 rounded-lg bg-red-500/15 border border-red-500/30 grid place-items-center text-red-400 shrink-0">
+                      <FileText className="h-4 w-4" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-xs font-semibold text-foreground truncate">Official Brochure PDF</div>
+                      <div className="text-[10px] text-muted-foreground truncate">Layout deck & master plan</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={() => handleOpenBrochure(brochure, property.name)}
+                      className="gap-1 bg-red-500 hover:bg-red-600 text-white text-[11px] h-7 px-2.5 shadow-sm cursor-pointer"
                     >
-                      <ExternalLink className="h-2.5 w-2.5" /> Open
-                    </a>
-                  </div>
-                </div>
-                <div className="relative aspect-video rounded-xl overflow-hidden bg-neutral-950 border border-white/10 shadow-inner">
-                  {isYoutube || isVimeo ? (
-                    <iframe
-                      src={getEmbedSrc(videoRaw)}
-                      className="w-full h-full border-0"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                      title={`${property.name} Video Walkthrough`}
-                    />
-                  ) : (
-                    <video
-                      src={videoRaw}
-                      controls
-                      playsInline
-                      preload="metadata"
-                      className="w-full h-full object-cover"
+                      <Eye className="h-3 w-3" /> View
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleDownloadBrochure(brochure, property.name)}
+                      className="gap-1 border-border hover:bg-surface text-[11px] h-7 px-2.5 cursor-pointer"
                     >
-                      Your browser does not support HTML5 video. <a href={videoRaw} target="_blank" rel="noopener noreferrer" className="text-primary underline">Download video</a>.
-                    </video>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Brochure PDF Card */}
-            {brochure && (
-              <div className="rounded-xl border border-red-500/25 bg-red-500/5 p-3 flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="h-9 w-9 rounded-lg bg-red-500/15 border border-red-500/30 grid place-items-center text-red-400 shrink-0">
-                    <FileText className="h-4 w-4" />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="text-xs font-semibold text-foreground truncate">Official Brochure PDF</div>
-                    <div className="text-[10px] text-muted-foreground truncate">Layout deck & master plan</div>
+                      <Download className="h-3 w-3" /> Save
+                    </Button>
                   </div>
                 </div>
-                <div className="flex items-center gap-1.5 shrink-0">
-                  <Button
-                    type="button"
-                    size="sm"
-                    onClick={() => handleOpenBrochure(brochure, property.name)}
-                    className="gap-1 bg-red-500 hover:bg-red-600 text-white text-[11px] h-7 px-2.5 shadow-sm cursor-pointer"
-                  >
-                    <Eye className="h-3 w-3" /> View
-                  </Button>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleDownloadBrochure(brochure, property.name)}
-                    className="gap-1 border-border hover:bg-surface text-[11px] h-7 px-2.5 cursor-pointer"
-                  >
-                    <Download className="h-3 w-3" /> Save
-                  </Button>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* RIGHT COLUMN: Specifications, Pricing Table, Legal, Amenities & AI Score (lg:col-span-7) */}
-          <div className="lg:col-span-7 space-y-4">
-            {/* Prominent Key Specifications Grid (Enlarged Size) */}
-            <div className="space-y-2">
-              <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center justify-between">
-                <span>Key Specifications & Property Parameters</span>
-                <span className="text-[10px] text-primary font-mono">{property.id}</span>
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-                {[
-                  { l: "Configuration", v: property.config, highlight: true },
-                  { l: "Total Area / Size", v: property.size, highlight: true },
-                  { l: "Property Type", v: property.type },
-                  { l: "Status", v: property.status },
-                  ...(computePricePerSqft(property.price_inr || Math.round(property.priceCr * 10_000_000), property.attributes || {}, property.size)
-                    ? [{ l: "Rate / Sq.ft", v: formatPricePerSqft(computePricePerSqft(property.price_inr || Math.round(property.priceCr * 10_000_000), property.attributes || {}, property.size)), highlight: true }]
-                    : []),
-                  ...(property.attributes?.facing ? [{ l: "Facing", v: `${property.attributes.facing.charAt(0).toUpperCase() + property.attributes.facing.slice(1)} Facing` }] : []),
-                  ...(property.attributes?.khata_type ? [{ l: "Khata Type", v: `${property.attributes.khata_type.toUpperCase()} Khata` }] : []),
-                  ...(property.attributes?.rera_number ? [{ l: "RERA Reg.", v: property.attributes.rera_number }] : []),
-                  ...(property.attributes?.legal_verification ? [{ l: "Legal Status", v: property.attributes.legal_verification.charAt(0).toUpperCase() + property.attributes.legal_verification.slice(1) }] : []),
-                ].map((s) => (
-                  <div key={s.l} className={`rounded-xl border p-3 transition-colors ${s.highlight ? "border-primary/30 bg-primary/5" : "border-border bg-surface/50"}`}>
-                    <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">{s.l}</div>
-                    <div className="mt-1 text-sm font-semibold text-foreground truncate" title={s.v}>{s.v}</div>
-                  </div>
-                ))}
-              </div>
+              )}
             </div>
 
-            {/* Pricing & Rate Calculation Breakdown */}
-            {(() => {
-              const rate = computePricePerSqft(property.price_inr || Math.round(property.priceCr * 10_000_000), property.attributes || {}, property.size);
-              const isPlot = property.type === "Plot" || property.property_type === "plot";
-              const baseCost = property.attributes?.base_price ? Number(property.attributes.base_price) : (rate && property.attributes?.plot_area ? rate * Number(property.attributes.plot_area) : (property.price_inr || Math.round(property.priceCr * 10_000_000)));
-              const reg = Number(property.attributes?.registration_charges || 0);
-              const maint = Number(property.attributes?.maintenance_charges || 0);
-              const park = Number(property.attributes?.parking_charges || 0);
-              const club = Number(property.attributes?.clubhouse_charges || 0);
-
-              return (
-                <div className="rounded-2xl border border-primary/25 bg-gradient-to-br from-primary/10 via-primary/5 to-surface/40 p-4 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="text-xs font-semibold uppercase tracking-wider text-primary flex items-center gap-1.5">
-                      <Sparkles className="h-4 w-4" /> Pricing & Financial Breakdown
-                    </div>
-                    {isPlot && (
-                      <span className="rounded-full bg-primary/20 text-primary border border-primary/30 px-2.5 py-0.5 text-[10px] font-semibold">
-                        Plot Area × Rate Calculation
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
-                    {rate && (
-                      <div className="rounded-xl border border-white/5 bg-background/70 p-2.5">
-                        <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Price per Sq.ft</div>
-                        <div className="mt-0.5 text-base font-bold text-primary">{formatPricePerSqft(rate)}</div>
-                      </div>
-                    )}
-                    <div className="rounded-xl border border-white/5 bg-background/70 p-2.5">
-                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Total Area</div>
-                      <div className="mt-0.5 text-sm font-semibold text-foreground">{property.size}</div>
-                    </div>
-                    <div className="rounded-xl border border-white/5 bg-background/70 p-2.5">
-                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Base Cost</div>
-                      <div className="mt-0.5 text-sm font-semibold text-emerald-400">₹{baseCost.toLocaleString("en-IN")}</div>
-                    </div>
-                    <div className="rounded-xl border border-white/5 bg-background/70 p-2.5">
-                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Total Outlay</div>
-                      <div className="mt-0.5 text-base font-bold text-foreground">{property.priceLabel}</div>
-                    </div>
-                  </div>
-
-                  {(reg > 0 || maint > 0 || park > 0 || club > 0) && (
-                    <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-white/5 text-[11px] text-muted-foreground">
-                      {reg > 0 && <span>Reg: ₹{reg.toLocaleString("en-IN")}</span>}
-                      {maint > 0 && <span>• Maint: ₹{maint.toLocaleString("en-IN")}</span>}
-                      {park > 0 && <span>• Parking: ₹{park.toLocaleString("en-IN")}</span>}
-                      {club > 0 && <span>• Clubhouse: ₹{club.toLocaleString("en-IN")}</span>}
-                    </div>
-                  )}
+            {/* RIGHT COLUMN: Specifications, Pricing Table, Legal (lg:col-span-7) */}
+            <div className="lg:col-span-7 space-y-4">
+              {/* Prominent Key Specifications Grid */}
+              <div className="space-y-2">
+                <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center justify-between">
+                  <span>Key Specifications & Property Parameters</span>
+                  <span className="text-[10px] text-primary font-mono">{property.id}</span>
                 </div>
-              );
-            })()}
-
-            {/* Legal & Compliance Approvals */}
-            {(property.attributes?.bank_approved || property.attributes?.occupancy_certificate || property.attributes?.completion_certificate || property.attributes?.rera_number) && (
-              <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/5 p-3 flex flex-wrap items-center gap-2.5">
-                <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-400">
-                  <ShieldCheck className="h-4 w-4" /> Legal & Approvals:
-                </div>
-                <div className="flex flex-wrap items-center gap-2 text-xs">
-                  {property.attributes?.bank_approved && (
-                    <span className="flex items-center gap-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 px-2.5 py-0.5 text-emerald-300 text-[11px]">
-                      <CheckCircle2 className="h-3 w-3 text-emerald-400" /> Bank Approved
-                    </span>
-                  )}
-                  {property.attributes?.occupancy_certificate && (
-                    <span className="flex items-center gap-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 px-2.5 py-0.5 text-emerald-300 text-[11px]">
-                      <CheckCircle2 className="h-3 w-3 text-emerald-400" /> Occupancy Certificate (OC)
-                    </span>
-                  )}
-                  {property.attributes?.completion_certificate && (
-                    <span className="flex items-center gap-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 px-2.5 py-0.5 text-emerald-300 text-[11px]">
-                      <CheckCircle2 className="h-3 w-3 text-emerald-400" /> Completion Certificate (CC)
-                    </span>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Amenities Chips */}
-            {Array.isArray(property.attributes?.amenities) && property.attributes.amenities.length > 0 && (
-              <div className="rounded-xl border border-border bg-surface/30 p-3.5 space-y-2">
-                <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Community & Lifestyle Amenities</div>
-                <div className="flex flex-wrap gap-1.5">
-                  {property.attributes.amenities.map((amenity: string) => (
-                    <span
-                      key={amenity}
-                      className="rounded-lg bg-surface border border-border/80 px-2.5 py-1 text-xs text-foreground/90 flex items-center gap-1.5 shadow-sm"
-                    >
-                      <Sparkles className="h-3 w-3 text-primary" /> {amenity}
-                    </span>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                  {[
+                    { l: "Configuration", v: property.config, highlight: true },
+                    { l: "Total Area / Size", v: property.size, highlight: true },
+                    { l: "Property Type", v: property.type },
+                    { l: "Status", v: property.status },
+                    ...(computePricePerSqft(property.price_inr || Math.round(property.priceCr * 10_000_000), property.attributes || {}, property.size)
+                      ? [{ l: "Rate / Sq.ft", v: formatPricePerSqft(computePricePerSqft(property.price_inr || Math.round(property.priceCr * 10_000_000), property.attributes || {}, property.size)), highlight: true }]
+                      : []),
+                    ...(property.attributes?.facing ? [{ l: "Facing", v: `${property.attributes.facing.charAt(0).toUpperCase() + property.attributes.facing.slice(1)} Facing` }] : []),
+                    ...(property.attributes?.khata_type ? [{ l: "Khata Type", v: `${property.attributes.khata_type.toUpperCase()} Khata` }] : []),
+                    ...(property.attributes?.rera_number ? [{ l: "RERA Reg.", v: property.attributes.rera_number }] : []),
+                    ...(property.attributes?.legal_verification ? [{ l: "Legal Status", v: property.attributes.legal_verification.charAt(0).toUpperCase() + property.attributes.legal_verification.slice(1) }] : []),
+                  ].map((s) => (
+                    <div key={s.l} className={`rounded-xl border p-3 transition-colors ${s.highlight ? "border-primary/30 bg-primary/5" : "border-border bg-surface/50"}`}>
+                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">{s.l}</div>
+                      <div className="mt-1 text-sm font-semibold text-foreground truncate" title={s.v}>{s.v}</div>
+                    </div>
                   ))}
                 </div>
               </div>
-            )}
 
-            {/* Description / Highlights */}
-            {(property.attributes?.detailed_description || property.attributes?.highlights) && (
-              <div className="rounded-xl border border-border bg-surface/30 p-3.5 space-y-2">
-                <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">About the Project</div>
-                {property.attributes?.detailed_description && (
-                  <p className="text-xs text-foreground/90 leading-relaxed whitespace-pre-line">{property.attributes.detailed_description}</p>
+              {/* Pricing & Rate Calculation Breakdown */}
+              {(() => {
+                const rate = computePricePerSqft(property.price_inr || Math.round(property.priceCr * 10_000_000), property.attributes || {}, property.size);
+                const isPlot = property.type === "Plot" || property.property_type === "plot";
+                const baseCost = property.attributes?.base_price ? Number(property.attributes.base_price) : (rate && property.attributes?.plot_area ? rate * Number(property.attributes.plot_area) : (property.price_inr || Math.round(property.priceCr * 10_000_000)));
+                const reg = Number(property.attributes?.registration_charges || 0);
+                const maint = Number(property.attributes?.maintenance_charges || 0);
+                const park = Number(property.attributes?.parking_charges || 0);
+                const club = Number(property.attributes?.clubhouse_charges || 0);
+
+                return (
+                  <div className="rounded-2xl border border-primary/25 bg-gradient-to-br from-primary/10 via-primary/5 to-surface/40 p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="text-xs font-semibold uppercase tracking-wider text-primary flex items-center gap-1.5">
+                        <Sparkles className="h-4 w-4" /> Pricing & Financial Breakdown
+                      </div>
+                      {isPlot && (
+                        <span className="rounded-full bg-primary/20 text-primary border border-primary/30 px-2.5 py-0.5 text-[10px] font-semibold">
+                          Plot Area × Rate Calculation
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
+                      {rate && (
+                        <div className="rounded-xl border border-white/5 bg-background/70 p-2.5">
+                          <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Price per Sq.ft</div>
+                          <div className="mt-0.5 text-base font-bold text-primary">{formatPricePerSqft(rate)}</div>
+                        </div>
+                      )}
+                      <div className="rounded-xl border border-white/5 bg-background/70 p-2.5">
+                        <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Total Area</div>
+                        <div className="mt-0.5 text-sm font-semibold text-foreground">{property.size}</div>
+                      </div>
+                      <div className="rounded-xl border border-white/5 bg-background/70 p-2.5">
+                        <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Base Cost</div>
+                        <div className="mt-0.5 text-sm font-semibold text-emerald-400">₹{baseCost.toLocaleString("en-IN")}</div>
+                      </div>
+                      <div className="rounded-xl border border-white/5 bg-background/70 p-2.5">
+                        <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Total Outlay</div>
+                        <div className="mt-0.5 text-base font-bold text-foreground">{property.priceLabel}</div>
+                      </div>
+                    </div>
+
+                    {(reg > 0 || maint > 0 || park > 0 || club > 0) && (
+                      <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-white/5 text-[11px] text-muted-foreground">
+                        {reg > 0 && <span>Reg: ₹{reg.toLocaleString("en-IN")}</span>}
+                        {maint > 0 && <span>• Maint: ₹{maint.toLocaleString("en-IN")}</span>}
+                        {park > 0 && <span>• Parking: ₹{park.toLocaleString("en-IN")}</span>}
+                        {club > 0 && <span>• Clubhouse: ₹{club.toLocaleString("en-IN")}</span>}
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+
+              {/* Legal & Compliance Approvals */}
+              {(property.attributes?.bank_approved || property.attributes?.occupancy_certificate || property.attributes?.completion_certificate || property.attributes?.rera_number) && (
+                <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/5 p-3 flex flex-wrap items-center gap-2.5">
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-400">
+                    <ShieldCheck className="h-4 w-4" /> Legal & Approvals:
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2 text-xs">
+                    {property.attributes?.bank_approved && (
+                      <span className="flex items-center gap-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 px-2.5 py-0.5 text-emerald-300 text-[11px]">
+                        <CheckCircle2 className="h-3 w-3 text-emerald-400" /> Bank Approved
+                      </span>
+                    )}
+                    {property.attributes?.occupancy_certificate && (
+                      <span className="flex items-center gap-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 px-2.5 py-0.5 text-emerald-300 text-[11px]">
+                        <CheckCircle2 className="h-3 w-3 text-emerald-400" /> Occupancy Certificate (OC)
+                      </span>
+                    )}
+                    {property.attributes?.completion_certificate && (
+                      <span className="flex items-center gap-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 px-2.5 py-0.5 text-emerald-300 text-[11px]">
+                        <CheckCircle2 className="h-3 w-3 text-emerald-400" /> Completion Certificate (CC)
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* LOWER DETAIL SECTIONS: Spanning Full Width of the Modal */}
+
+          {/* Amenities Chips */}
+          {Array.isArray(property.attributes?.amenities) && property.attributes.amenities.length > 0 && (
+            <div className="rounded-xl border border-border bg-surface/30 p-4 space-y-2.5">
+              <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Community & Lifestyle Amenities</div>
+              <div className="flex flex-wrap gap-2">
+                {property.attributes.amenities.map((amenity: string) => (
+                  <span
+                    key={amenity}
+                    className="rounded-lg bg-surface border border-border/80 px-3 py-1.5 text-xs text-foreground/90 flex items-center gap-1.5 shadow-sm"
+                  >
+                    <Sparkles className="h-3.5 w-3.5 text-primary" /> {amenity}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Description / Highlights */}
+          {(property.attributes?.detailed_description || property.attributes?.highlights) && (
+            <div className="rounded-xl border border-border bg-surface/30 p-4 space-y-2.5">
+              <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">About the Project</div>
+              {property.attributes?.detailed_description && (
+                <p className="text-xs sm:text-sm text-foreground/90 leading-relaxed whitespace-pre-line">{property.attributes.detailed_description}</p>
+              )}
+              {property.attributes?.highlights && (
+                <div className="pt-2 border-t border-border/50 text-xs sm:text-sm text-muted-foreground whitespace-pre-line leading-relaxed">
+                  {property.attributes.highlights}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Location & Connectivity */}
+          {(property.attributes?.address || property.area || property.city) && (
+            <div className="rounded-xl border border-border bg-surface/30 p-4 space-y-2.5">
+              <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                <MapPin className="h-3.5 w-3.5 text-primary" /> Location & Connectivity
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 pt-1">
+                {property.attributes?.address && (
+                  <div className="sm:col-span-2 rounded-lg border border-border/60 bg-surface/50 p-2.5">
+                    <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Full Address</div>
+                    <div className="mt-0.5 text-xs font-semibold text-foreground">{property.attributes.address}</div>
+                  </div>
                 )}
-                {property.attributes?.highlights && (
-                  <div className="pt-2 border-t border-border/50 text-xs text-muted-foreground whitespace-pre-line">
-                    {property.attributes.highlights}
+                <div className="rounded-lg border border-border/60 bg-surface/50 p-2.5">
+                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Locality / Micro-Market</div>
+                  <div className="mt-0.5 text-xs font-semibold text-foreground">{property.attributes?.locality || property.area}</div>
+                </div>
+                <div className="rounded-lg border border-border/60 bg-surface/50 p-2.5">
+                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">City & State</div>
+                  <div className="mt-0.5 text-xs font-semibold text-foreground">{property.city}{property.attributes?.state ? `, ${property.attributes.state}` : ""}</div>
+                </div>
+                {property.attributes?.country && (
+                  <div className="rounded-lg border border-border/60 bg-surface/50 p-2.5">
+                    <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Country</div>
+                    <div className="mt-0.5 text-xs font-semibold text-foreground">{property.attributes.country}</div>
                   </div>
                 )}
               </div>
-            )}
-
-            {/* AI Investment Intelligence */}
-            <div className="rounded-xl border border-primary/30 bg-primary/5 p-3.5">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-primary font-semibold">
-                  <Sparkles className="h-3.5 w-3.5" /> AI Investment Score · {property.score}/100
-                </div>
-                <span className="text-xs font-semibold text-emerald-400">{property.appreciation}</span>
-              </div>
-              <p className="mt-1.5 text-xs text-muted-foreground leading-relaxed">
-                Strong fundamentals: {property.appreciation} appreciation, builder credibility AAA, infrastructure pipeline
-                active in {property.area}. Ranks in top 8% of {property.city} inventory.
-              </p>
             </div>
+          )}
 
-            {/* Unit-Level & Action Buttons Footer */}
-            <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-border/60">
-              <div className="flex flex-wrap gap-2">
+          {/* Project & Developer Information */}
+          {(property.builder || property.attributes?.developer || property.attributes?.project_name) && (
+            <div className="rounded-xl border border-border bg-surface/30 p-4 space-y-2.5">
+              <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                <Building2 className="h-3.5 w-3.5 text-primary" /> Project & Developer Information
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
+                <div className="rounded-lg border border-border/60 bg-surface/50 p-2.5">
+                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Developer / Builder</div>
+                  <div className="mt-0.5 text-xs font-semibold text-foreground">{property.builder !== "—" ? property.builder : (property.attributes?.developer || "Direct Developer")}</div>
+                </div>
+                <div className="rounded-lg border border-border/60 bg-surface/50 p-2.5">
+                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Project Name</div>
+                  <div className="mt-0.5 text-xs font-semibold text-foreground">{property.attributes?.project_name || property.name}</div>
+                </div>
+                <div className="rounded-lg border border-border/60 bg-surface/50 p-2.5">
+                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Execution Status</div>
+                  <div className="mt-0.5 text-xs font-semibold text-foreground">{property.status}</div>
+                </div>
+                <div className="rounded-lg border border-border/60 bg-surface/50 p-2.5">
+                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Title & Approvals</div>
+                  <div className="mt-0.5 text-xs font-semibold text-foreground">{property.attributes?.khata_type ? `${property.attributes.khata_type.toUpperCase()}` : (property.attributes?.legal_verification ? "Verified Legal Title" : "Standard Registered")}</div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Inventory & Unit Availability */}
+          <div className="rounded-xl border border-border bg-surface/30 p-4 space-y-2.5">
+            <div className="flex items-center justify-between">
+              <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                <Square className="h-3.5 w-3.5 text-primary" /> Inventory Portfolio & Unit Availability
+              </div>
+              <span className="rounded-full bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 text-[10px] font-semibold text-emerald-400">
+                Active Allocation
+              </span>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
+              <div className="rounded-lg border border-border/60 bg-surface/50 p-2.5">
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Sample Unit</div>
+                <div className="mt-0.5 text-xs font-semibold text-foreground">Unit 1204 · Tower B</div>
+              </div>
+              <div className="rounded-lg border border-border/60 bg-surface/50 p-2.5">
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Typology</div>
+                <div className="mt-0.5 text-xs font-semibold text-foreground">{property.config}</div>
+              </div>
+              <div className="rounded-lg border border-border/60 bg-surface/50 p-2.5">
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Carpet / Super Area</div>
+                <div className="mt-0.5 text-xs font-semibold text-foreground">{property.size}</div>
+              </div>
+              <div className="rounded-lg border border-border/60 bg-surface/50 p-2.5">
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Availability Stage</div>
+                <div className="mt-0.5 text-xs font-semibold text-emerald-400 font-mono">Available for Booking</div>
+              </div>
+            </div>
+          </div>
+
+          {/* AI Investment Intelligence */}
+          <div className="rounded-xl border border-primary/30 bg-primary/5 p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-primary font-semibold">
+                <Sparkles className="h-3.5 w-3.5" /> AI Investment Score · {property.score}/100
+              </div>
+              <span className="text-xs font-semibold text-emerald-400">{property.appreciation}</span>
+            </div>
+            <p className="mt-1.5 text-xs sm:text-sm text-muted-foreground leading-relaxed">
+              Strong fundamentals: {property.appreciation} appreciation, builder credibility AAA, infrastructure pipeline
+              active in {property.area}. Ranks in top 8% of {property.city} inventory.
+            </p>
+          </div>
+
+          {/* Unit-Level & Action Buttons Footer */}
+          <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-border/60">
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => onInspectUnit(property)}
+                className="rounded-lg border border-primary/40 bg-primary/10 px-3.5 py-2 text-xs font-semibold text-primary hover:bg-primary/20 transition-colors flex items-center gap-1.5 cursor-pointer shadow-sm"
+              >
+                <Sparkles className="h-3.5 w-3.5" /> Inspect Unit 1204
+              </button>
+              {filteredProperties.find((item) => item.id !== property.id) && (
                 <button
                   type="button"
-                  onClick={() => onInspectUnit(property)}
-                  className="rounded-lg border border-primary/40 bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary hover:bg-primary/20 transition-colors flex items-center gap-1.5 cursor-pointer"
+                  onClick={() => {
+                    const other = filteredProperties.find((item) => item.id !== property.id);
+                    if (other) onCompareWith(property, other);
+                  }}
+                  className="rounded-lg border border-border bg-muted/40 px-3.5 py-2 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5 cursor-pointer shadow-sm"
                 >
-                  <Sparkles className="h-3 w-3" /> Inspect Unit 1204
+                  <Scale className="h-3.5 w-3.5" /> Compare
                 </button>
-                {filteredProperties.find((item) => item.id !== property.id) && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const other = filteredProperties.find((item) => item.id !== property.id);
-                      if (other) onCompareWith(property, other);
-                    }}
-                    className="rounded-lg border border-border bg-muted/40 px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5 cursor-pointer"
-                  >
-                    <Scale className="h-3 w-3" /> Compare
-                  </button>
-                )}
-              </div>
+              )}
+            </div>
 
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={onClose}
-                  className="cursor-pointer"
-                >
-                  Close
-                </Button>
-                <Button
-                  size="sm"
-                  className="bg-primary text-primary-foreground shadow-glow hover:bg-primary/90 cursor-pointer"
-                  onClick={() => toast.success("Site visit scheduling request logged for sales team.")}
-                >
-                  Schedule Site Visit
-                </Button>
-              </div>
+            <div className="flex items-center gap-2.5">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onClose}
+                className="cursor-pointer h-9 px-4 text-xs font-medium"
+              >
+                Close
+              </Button>
+              <Button
+                size="sm"
+                className="bg-primary text-primary-foreground shadow-glow hover:bg-primary/90 cursor-pointer h-9 px-4 text-xs font-semibold"
+                onClick={() => toast.success("Site visit scheduling request logged for sales team.")}
+              >
+                Schedule Site Visit
+              </Button>
             </div>
           </div>
         </div>
